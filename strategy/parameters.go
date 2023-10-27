@@ -1,13 +1,4 @@
-package common
-
-type Tradable interface {
-	FetchEvents(charts ChartContainer)
-	MinCandles() int
-}
-type VectorizedTradable interface {
-	Tradable
-	Backtest(commission float64)
-}
+package strategy
 
 type Parameter interface {
 	Name() string

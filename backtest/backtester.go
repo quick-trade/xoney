@@ -1,27 +1,28 @@
 package backtest
 
 import (
-	"xoney/internal"
-	"xoney/pkg/common"
+	"xoney/common/data"
+	st "xoney/strategy"
+	"xoney/trade"
 )
 
 type Backtester struct {
-	trades      internal.TradeHeap
+	trades      trade.TradeHeap
 	commission  float64
 	initialDepo float64
 }
 
 func (b *Backtester) Backtest(
-	charts common.ChartContainer,
-	system common.Tradable,
+	charts data.ChartContainer,
+	system st.Tradable,
 	independent_testing bool,
-) common.Equity {
-
+) data.Equity {
+	panic("TODO: Implement")
 }
 
 func NewBacktester(commission float64, initial_depo float64) *Backtester {
 	return &Backtester{
-		trades:      internal.TradeHeap{},
+		trades:      trade.TradeHeap{},
 		commission:  commission,
 		initialDepo: initial_depo,
 	}

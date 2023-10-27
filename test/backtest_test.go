@@ -2,7 +2,7 @@ package test
 
 import (
 	"testing"
-	// "xoney/pkg/backtest"
+	// "xoney/backtest"
 )
 
 func TestBacktestReturnsEquity(t *testing.T) {
