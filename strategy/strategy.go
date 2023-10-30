@@ -4,10 +4,12 @@ import (
 	"time"
 
 	"xoney/common/data"
+	"xoney/events"
 )
 
 type Tradable interface {
-	FetchEvents(charts data.ChartContainer)
+	Start(charts data.ChartContainer)
+	Next(candle data.Candle) []events.Event
 	MinDuration() time.Duration
 }
 

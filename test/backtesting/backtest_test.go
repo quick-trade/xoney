@@ -2,9 +2,10 @@ package backtesting_test
 
 import (
 	"testing"
-	// "xoney/backtest".
+	bt "xoney/backtest"
 )
 
 func TestBacktestReturnsEquity(t *testing.T) {
-	panic("TODO: implement")
+	bt := bt.NewBacktester(0, 1)
+	bt.Backtest()
 }

@@ -3,7 +3,7 @@ package structures
 import "xoney/errors"
 
 type Equaler[T any] interface {
-	IsEqual(other T) bool
+	IsEqual(other *T) bool
 }
 
 type Heap[T Equaler[T]] struct {
@@ -11,9 +11,9 @@ type Heap[T Equaler[T]] struct {
 }
 
 func (h *Heap[T]) Len() int { return len(h.Members) }
-func (h *Heap[T]) Contains(v T) bool {
+func (h *Heap[T]) Contains(v *T) bool {
 	for i := range h.Members {
-		if v.IsEqual(h.Members[i]) {
+		if h.Members[i].IsEqual(v) {
 			return true
 		}
 	}
@@ -34,7 +34,7 @@ func (h *Heap[T]) RemoveAt(index int) error {
 	return nil
 }
 
-func (h *Heap[T]) Index(v T) (int, error) {
+func (h *Heap[T]) Index(v *T) (int, error) {
 	for i := range h.Members {
 		if h.Members[i].IsEqual(v) {
 			return i, nil
@@ -44,7 +44,7 @@ func (h *Heap[T]) Index(v T) (int, error) {
 	return 0, errors.ValueNotFoundError{}
 }
 
-func (h *Heap[T]) Remove(v T) error {
+func (h *Heap[T]) Remove(v *T) error {
 	idx, err := h.Index(v)
 	if err != nil {
 		return err

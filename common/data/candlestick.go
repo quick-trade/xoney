@@ -6,26 +6,24 @@ import (
 	"xoney/common"
 )
 
-type Candle [4]float64
-
-func (c *Candle) Open() float64 {
-	return c[0]
+type Candle struct {
+	Open      float64
+	High      float64
+	Low       float64
+	Close     float64
+	Volume    float64
+	Timestamp time.Time
 }
 
-func (c *Candle) High() float64 {
-	return c[1]
-}
-
-func (c *Candle) Low() float64 {
-	return c[2]
-}
-
-func (c *Candle) Close() float64 {
-	return c[3]
-}
-
-func NewCandle(open, high, low, c float64) *Candle {
-	return &Candle{open, high, low, c}
+func NewCandle(open, high, low, c, volume float64, timestamp time.Time) *Candle {
+	return &Candle{
+		Open:      open,
+		High:      high,
+		Low:       low,
+		Close:     c,
+		Volume:    volume,
+		Timestamp: timestamp,
+	}
 }
 
 type Chart struct {
@@ -37,25 +35,17 @@ type Chart struct {
 	Timestamp []time.Time
 }
 
-func (c *Chart) Slice(period common.Period) (Chart, error) {
-	panic("not implemented")
+func (c *Chart) Slice(period common.Period) Chart {
+	panic("TODO: implement")
 }
 
 type ChartContainer map[Instrument]Chart
 
-func (c *ChartContainer) ChartsByPeriod(period common.Period) (ChartContainer, error) {
-	var err error
-	success := true
+func (c *ChartContainer) ChartsByPeriod(period common.Period) ChartContainer {
 	result := make(ChartContainer, len(*c))
 	for instrument, chart := range *c {
-		result[instrument], err = chart.Slice(period)
-		if err != nil {
-			success = false
-		}
-	}
-	if !success {
-		err = 
+		result[instrument] = chart.Slice(period)
 	}
 
-	return result, err
+	return result
 }

@@ -15,19 +15,17 @@ type EquityResult common.Result[data.Equity]
 func newEquityResult(equity data.Equity, err error) EquityResult {
 	return EquityResult{Data: equity, Error: err}
 }
+
 func shiftedCharts(
 	charts data.ChartContainer,
 	period common.Period,
 	system *st.Optimizable,
-) (data.ChartContainer, error) {
+) data.ChartContainer {
 	period = period.ShiftedStart(-(*system).MinDuration())
 
-	result, err := charts.ChartsByPeriod(period)
-	if err != nil {
-		return data.ChartContainer{}, fmt.Errorf("failed to retrieve charts by period: %w", err)
-	}
+	result := charts.ChartsByPeriod(period)
 
-	return result, nil
+	return result
 }
 
 type InSample struct {
@@ -37,10 +35,7 @@ type InSample struct {
 }
 
 func (i *InSample) Optimize(system *st.Optimizable) error {
-	charts, err := shiftedCharts(i.charts, i.period, system)
-	if err != nil {
-		return err
-	}
+	charts := shiftedCharts(i.charts, i.period, system)
 
 	if err := i.optimizer.Optimize(system, charts); err != nil {
 		return fmt.Errorf("failed to optimize the system: %w", err)

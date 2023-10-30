@@ -11,7 +11,6 @@ func (p Period) ShiftedStart(shift time.Duration) Period {
 
 	return p
 }
-func NewPeriod()
 
 type Result[T any] struct {
 	Data  T

@@ -11,7 +11,7 @@ interfacer,\
 varcheck,\
 structcheck,\
 depguard,\
-gci --fix
+gci
 
 fmt :
-	go fmt ./...
+	go fmt ./... && golangci-lint run --enable-all --fix

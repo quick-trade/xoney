@@ -13,6 +13,12 @@ func (e ZeroLengthChartError) Error() string {
 	return e.Msg
 }
 
+type IncorrectSymbolError struct{}
+
+func (e IncorrectSymbolError) Error() string {
+	return "incorrect symbol initialization"
+}
+
 type IncorrectDurationError struct {
 	Duration time.Duration
 }
@@ -33,5 +39,5 @@ func NewIncorrectDurationError(duration time.Duration) IncorrectDurationError {
 type UnsuccessfulChartSlicingError struct{}
 
 func (e UnsuccessfulChartSlicingError) Error() string {
-	return "cannot slice a chart "
+	return "cannot slice a chart"
 }

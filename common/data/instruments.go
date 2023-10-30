@@ -1,6 +1,7 @@
 package data
 
 import (
+	"strings"
 	"time"
 
 	"xoney/errors"
@@ -19,7 +20,33 @@ func (s *Symbol) Base() string     { return s.base }
 func (s *Symbol) Quote() string    { return s.quote }
 func (s *Symbol) Exchange() string { return s.exchange }
 func NewSymbol(param string, rest ...string) (*Symbol, error) {
-	panic("TODO: implement")
+	var symbol Symbol
+	switch len(rest) {
+	case 2:
+		symbol = symbolByBaseQuoteExchange(param, rest...)
+		return &symbol, nil
+	}
+
+	return nil, errors.IncorrectSymbolError{}
+}
+
+func symbolByBaseQuoteExchange(param string, rest ...string) Symbol {
+	base := param
+	quote := rest[0]
+	exchange := rest[1]
+
+	var full strings.Builder
+
+	full.WriteString(base)
+	full.WriteRune('/')
+	full.WriteString(quote)
+
+	return Symbol{
+		base:     base,
+		quote:    quote,
+		exchange: exchange,
+		full:     full.String(),
+	}
 }
 
 type TimeFrame struct {
@@ -33,7 +60,7 @@ func NewTimeFrame(duration time.Duration, name string) (*TimeFrame, error) {
 	if duration <= 0 {
 		return nil, errors.NewIncorrectDurationError(duration)
 	}
-	
+
 	candles := internal.TimesInYear(duration)
 
 	return &TimeFrame{
