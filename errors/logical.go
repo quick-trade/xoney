@@ -19,10 +19,19 @@ type IncorrectDurationError struct {
 
 func (e IncorrectDurationError) Error() string {
 	var msg strings.Builder
-	msg.WriteString("Invalid duration: ")
+
+	msg.WriteString("invalid duration: ")
 	msg.WriteString(e.Duration.String())
+
 	return msg.String()
 }
+
 func NewIncorrectDurationError(duration time.Duration) IncorrectDurationError {
 	return IncorrectDurationError{Duration: duration}
+}
+
+type UnsuccessfulChartSlicingError struct{}
+
+func (e UnsuccessfulChartSlicingError) Error() string {
+	return "cannot slice a chart "
 }

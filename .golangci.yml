@@ -1,0 +1,8 @@
+linters-settings:
+  varnamelen:
+    ignore-decls:
+      - t testing.T
+      - i int
+      - const C
+      - T any
+      - wg sync.WaitGroup

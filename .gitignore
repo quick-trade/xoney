@@ -22,3 +22,6 @@ go.work
 
 # Code counter files
 .VSCodeCounter/
+
+# Visual Studio Code workspace
+.vscode/

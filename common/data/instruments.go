@@ -2,6 +2,7 @@ package data
 
 import (
 	"time"
+
 	"xoney/errors"
 	"xoney/internal"
 )
@@ -32,11 +33,14 @@ func NewTimeFrame(duration time.Duration, name string) (*TimeFrame, error) {
 	if duration <= 0 {
 		return nil, errors.NewIncorrectDurationError(duration)
 	}
+	
 	candles := internal.TimesInYear(duration)
+
 	return &TimeFrame{
 		Duration:       duration,
 		Seconds:        duration.Seconds(),
-		CandlesPerYear: float64(candles),
+		CandlesPerYear: candles,
+		Name:           name,
 	}, nil
 }
 

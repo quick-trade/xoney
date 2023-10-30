@@ -14,16 +14,15 @@ type Backtester struct {
 
 func (b *Backtester) Backtest(
 	charts data.ChartContainer,
-	system st.Tradable,
-	independent_testing bool,
+	system *st.Tradable,
 ) data.Equity {
 	panic("TODO: Implement")
 }
 
-func NewBacktester(commission float64, initial_depo float64) *Backtester {
+func NewBacktester(commission float64, initialDepo float64) *Backtester {
 	return &Backtester{
-		trades:      trade.TradeHeap{},
+		trades:      *trade.NewTradeHeap(),
 		commission:  commission,
-		initialDepo: initial_depo,
+		initialDepo: initialDepo,
 	}
 }

@@ -31,7 +31,6 @@ type CategoricalParameter[T any] struct {
 	Categories []T
 }
 
-type Optimizable interface {
-	Tradable
-	Parameters() []Parameter
+func (c *CategoricalParameter[T]) Name() string {
+	return c.name
 }

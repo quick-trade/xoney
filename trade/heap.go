@@ -14,3 +14,7 @@ func (h *TradeHeap) Update(candle data.Candle) {
 		(&h.Members[i]).Update(candle)
 	}
 }
+
+func NewTradeHeap(trades ...Trade) *TradeHeap {
+	return &TradeHeap{Heap: *st.NewHeap[Trade](trades...)}
+}

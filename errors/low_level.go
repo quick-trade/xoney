@@ -11,9 +11,11 @@ type OutOfIndexError struct {
 
 func (e OutOfIndexError) Error() string {
 	var builder strings.Builder
+
 	builder.WriteString("Index ")
 	builder.WriteString(strconv.Itoa(e.index))
 	builder.WriteString(" is out of range")
+
 	return builder.String()
 }
 

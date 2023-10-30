@@ -17,33 +17,42 @@ func (h *Heap[T]) Contains(v T) bool {
 			return true
 		}
 	}
+
 	return false
 }
 func (h *Heap[T]) Add(v T) { h.Members = append(h.Members, v) }
 
-func (h *Heap[T]) RemoveAt(i int) error {
+func (h *Heap[T]) RemoveAt(index int) error {
 	last := h.Len() - 1
-	if last < i {
-		return errors.NewOutOfIndexError(i)
+	if last < index {
+		return errors.NewOutOfIndexError(index)
 	}
 
-	h.Members[i], h.Members[last] = h.Members[last], h.Members[i]
+	h.Members[index], h.Members[last] = h.Members[last], h.Members[index]
 	h.Members = h.Members[:last]
+
 	return nil
 }
+
 func (h *Heap[T]) Index(v T) (int, error) {
 	for i := range h.Members {
 		if h.Members[i].IsEqual(v) {
 			return i, nil
 		}
 	}
+
 	return 0, errors.ValueNotFoundError{}
 }
+
 func (h *Heap[T]) Remove(v T) error {
 	idx, err := h.Index(v)
 	if err != nil {
 		return err
 	}
-	h.RemoveAt(idx)
-	return nil
+
+	return h.RemoveAt(idx)
+}
+
+func NewHeap[T Equaler[T]](members ...T) *Heap[T] {
+	return &Heap[T]{Members: members}
 }
