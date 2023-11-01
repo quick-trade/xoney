@@ -12,9 +12,9 @@ type OutOfIndexError struct {
 func (e OutOfIndexError) Error() string {
 	var builder strings.Builder
 
-	builder.WriteString("Index ")
+	builder.WriteString("index ")
 	builder.WriteString(strconv.Itoa(e.index))
-	builder.WriteString(" is out of range")
+	builder.WriteString(" is out of range.")
 
 	return builder.String()
 }
@@ -26,5 +26,5 @@ func NewOutOfIndexError(index int) OutOfIndexError {
 type ValueNotFoundError struct{}
 
 func (e ValueNotFoundError) Error() string {
-	return "Value not found"
+	return "value not found."
 }

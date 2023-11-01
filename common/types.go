@@ -24,5 +24,5 @@ func NewResult[T any](data T, err error) Result[T] {
 type TimeStamp []time.Time
 
 func NewTimeStamp(capacity int) TimeStamp {
-	return make(TimeStamp, capacity)
+	return make(TimeStamp, 0, capacity)
 }

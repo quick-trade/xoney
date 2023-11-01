@@ -1,6 +1,9 @@
 package structures
 
-import "xoney/errors"
+import (
+	"xoney/errors"
+	"xoney/internal"
+)
 
 type Equaler[T any] interface {
 	IsEqual(other *T) bool
@@ -20,7 +23,7 @@ func (h *Heap[T]) Contains(v *T) bool {
 
 	return false
 }
-func (h *Heap[T]) Add(v T) { h.Members = append(h.Members, v) }
+func (h *Heap[T]) Add(v T) { h.Members = internal.Append(h.Members, v) }
 
 func (h *Heap[T]) RemoveAt(index int) error {
 	last := h.Len() - 1

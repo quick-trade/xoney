@@ -5,18 +5,28 @@ import (
 	"time"
 )
 
-type ZeroLengthChartError struct {
-	Msg string
+type ZeroLengthError struct {
+	Character string
 }
 
-func (e ZeroLengthChartError) Error() string {
-	return e.Msg
+func NewZeroLengthError(characterName string) ZeroLengthError {
+	return ZeroLengthError{Character: characterName}
+}
+
+func (e ZeroLengthError) Error() string {
+	var msg strings.Builder
+
+	msg.WriteString("character ")
+	msg.WriteString(e.Character)
+	msg.WriteString(" has 0 length.")
+
+	return e.Character
 }
 
 type IncorrectSymbolError struct{}
 
 func (e IncorrectSymbolError) Error() string {
-	return "incorrect symbol initialization"
+	return "incorrect symbol initialization."
 }
 
 type IncorrectDurationError struct {
@@ -28,6 +38,7 @@ func (e IncorrectDurationError) Error() string {
 
 	msg.WriteString("invalid duration: ")
 	msg.WriteString(e.Duration.String())
+	msg.WriteString(".")
 
 	return msg.String()
 }
@@ -39,5 +50,5 @@ func NewIncorrectDurationError(duration time.Duration) IncorrectDurationError {
 type UnsuccessfulChartSlicingError struct{}
 
 func (e UnsuccessfulChartSlicingError) Error() string {
-	return "cannot slice a chart"
+	return "cannot slice a chart."
 }

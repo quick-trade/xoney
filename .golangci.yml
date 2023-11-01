@@ -3,6 +3,7 @@ linters-settings:
     ignore-decls:
       - t testing.T
       - i int
+      - n int
       - const C
       - T any
       - wg sync.WaitGroup

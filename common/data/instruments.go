@@ -3,7 +3,6 @@ package data
 import (
 	"strings"
 	"time"
-
 	"xoney/errors"
 	"xoney/internal"
 )
@@ -24,10 +23,9 @@ func NewSymbol(param string, rest ...string) (*Symbol, error) {
 	switch len(rest) {
 	case 2:
 		symbol = symbolByBaseQuoteExchange(param, rest...)
-		return &symbol, nil
 	}
 
-	return nil, errors.IncorrectSymbolError{}
+	return &symbol, nil
 }
 
 func symbolByBaseQuoteExchange(param string, rest ...string) Symbol {

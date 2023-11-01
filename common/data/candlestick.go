@@ -2,8 +2,8 @@ package data
 
 import (
 	"time"
-
 	"xoney/common"
+	"xoney/internal/search"
 )
 
 type Candle struct {
@@ -32,11 +32,38 @@ type Chart struct {
 	Low       []float64
 	Close     []float64
 	Volume    []float64
-	Timestamp []time.Time
+	Timestamp common.TimeStamp
+}
+
+func RawChart(capacity int) Chart {
+	return Chart{
+		Open:      make([]float64, 0, capacity),
+		High:      make([]float64, 0, capacity),
+		Low:       make([]float64, 0, capacity),
+		Close:     make([]float64, 0, capacity),
+		Volume:    make([]float64, 0, capacity),
+		Timestamp: make(common.TimeStamp, 0, capacity),
+	}
 }
 
 func (c *Chart) Slice(period common.Period) Chart {
-	panic("TODO: implement")
+	start, err := search.LastBeforeIdx(c.Timestamp, period[0])
+	if err != nil {
+		return RawChart(0)
+	}
+
+	stop, err := search.LastBeforeIdx(c.Timestamp, period[1])
+	if err != nil {
+		return RawChart(0)
+	}
+	return Chart{
+		Open:      c.Open[start:stop],
+		High:      c.High[start:stop],
+		Low:       c.Low[start:stop],
+		Close:     c.Close[start:stop],
+		Volume:    c.Volume[start:stop],
+		Timestamp: c.Timestamp[start:stop],
+	}
 }
 
 type ChartContainer map[Instrument]Chart
