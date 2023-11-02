@@ -3,7 +3,6 @@ package data
 import (
 	"strings"
 	"time"
-
 	"xoney/errors"
 	"xoney/internal"
 )
@@ -75,6 +74,13 @@ func NewTimeFrame(duration time.Duration, name string) (*TimeFrame, error) {
 type Instrument struct {
 	symbol    Symbol
 	timeframe TimeFrame
+}
+
+func NewInstrument(symbol Symbol, timeframe TimeFrame) Instrument {
+	return Instrument{
+		symbol:    symbol,
+		timeframe: timeframe,
+	}
 }
 
 func (l *Instrument) Symbol() Symbol {

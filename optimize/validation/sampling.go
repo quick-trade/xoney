@@ -2,10 +2,11 @@ package validation
 
 import (
 	"fmt"
-
-	bt "xoney/backtest"
 	"xoney/common"
 	"xoney/common/data"
+
+	bt "xoney/backtest"
+
 	opt "xoney/optimize"
 	st "xoney/strategy"
 )
@@ -16,6 +17,7 @@ func newEquityResult(equity data.Equity, err error) EquityResult {
 	return EquityResult{Data: equity, Error: err}
 }
 
+// important function for getting unbiased strategy estimations.
 func shiftedCharts(
 	charts data.ChartContainer,
 	period common.Period,
@@ -69,7 +71,8 @@ type OutOfSample struct {
 func (o *OutOfSample) Backtest(system *st.Optimizable) (data.Equity, error) {
 	var tr st.Tradable = *system
 
-	return o.backtester.Backtest(o.charts, &tr)
+	charts := shiftedCharts(o.charts, o.period, system)
+	return o.backtester.Backtest(charts, &tr)
 }
 
 func NewOutOfSample(
@@ -97,7 +100,6 @@ func (s *SamplePair) Test(system st.Optimizable) (data.Equity, error) {
 
 	best := s.IS.BestSystem()
 	equity, err := s.OOS.Backtest(best)
-
 	if err != nil {
 		return data.Equity{}, fmt.Errorf("error during backtesting: %w", err)
 	}
