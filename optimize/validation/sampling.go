@@ -66,7 +66,7 @@ type OutOfSample struct {
 	period     common.Period
 }
 
-func (o *OutOfSample) Backtest(system *st.Optimizable) data.Equity {
+func (o *OutOfSample) Backtest(system *st.Optimizable) (data.Equity, error) {
 	var tr st.Tradable = *system
 
 	return o.backtester.Backtest(o.charts, &tr)
@@ -92,11 +92,15 @@ type SamplePair struct {
 func (s *SamplePair) Test(system st.Optimizable) (data.Equity, error) {
 	err := s.IS.Optimize(&system)
 	if err != nil {
-		return data.Equity{}, err
+		return data.Equity{}, fmt.Errorf("error during optimization: %w", err)
 	}
 
 	best := s.IS.BestSystem()
-	equity := s.OOS.Backtest(best)
+	equity, err := s.OOS.Backtest(best)
+
+	if err != nil {
+		return data.Equity{}, fmt.Errorf("error during backtesting: %w", err)
+	}
 
 	return equity, nil
 }

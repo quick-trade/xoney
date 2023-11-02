@@ -2,6 +2,7 @@ package data
 
 import (
 	"time"
+
 	"xoney/common"
 	"xoney/internal/search"
 )
@@ -53,9 +54,11 @@ func (c *Chart) Slice(period common.Period) Chart {
 	}
 
 	stop, err := search.LastBeforeIdx(c.Timestamp, period[1])
+
 	if err != nil {
 		return RawChart(0)
 	}
+
 	return Chart{
 		Open:      c.Open[start:stop],
 		High:      c.High[start:stop],

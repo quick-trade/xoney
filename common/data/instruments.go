@@ -3,6 +3,7 @@ package data
 import (
 	"strings"
 	"time"
+
 	"xoney/errors"
 	"xoney/internal"
 )
@@ -35,6 +36,8 @@ func symbolByBaseQuoteExchange(param string, rest ...string) Symbol {
 
 	var full strings.Builder
 
+	full.WriteString(exchange)
+	full.WriteRune(':')
 	full.WriteString(base)
 	full.WriteRune('/')
 	full.WriteString(quote)

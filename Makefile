@@ -1,3 +1,6 @@
+setup :
+	export PATH=$$PATH:$(shell go env GOPATH)/bin
+
 lint :
 	golangci-lint run --enable-all -D \
 deadcode,\

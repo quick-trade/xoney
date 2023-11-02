@@ -2,7 +2,6 @@ package strategy
 
 import (
 	"time"
-
 	"xoney/common/data"
 	"xoney/events"
 )
@@ -15,7 +14,11 @@ type Tradable interface {
 
 type VectorizedTradable interface {
 	Tradable
-	Backtest(commission float64) (data.Equity, error)
+	Backtest(
+		commission float64,
+		initialDepo float64,
+		charts data.ChartContainer,
+	) (data.Equity, error)
 }
 
 type Optimizable interface {

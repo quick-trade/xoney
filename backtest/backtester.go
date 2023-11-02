@@ -15,7 +15,11 @@ type Backtester struct {
 func (b *Backtester) Backtest(
 	charts data.ChartContainer,
 	system *st.Tradable,
-) data.Equity {
+) (data.Equity, error) {
+	if vecTradable, ok := (*system).(st.VectorizedTradable); ok {
+		return vecTradable.Backtest(b.commission, b.initialDepo, charts)
+	}
+
 	panic("TODO: Implement")
 }
 
