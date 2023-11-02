@@ -2,8 +2,8 @@ package data
 
 import (
 	"time"
-
 	"xoney/common"
+	"xoney/internal"
 	"xoney/internal/search"
 )
 
@@ -47,6 +47,15 @@ func RawChart(capacity int) Chart {
 	}
 }
 
+func (c *Chart) Add(candle Candle) {
+	c.Open = internal.Append(c.Open, candle.Open)
+	c.High = internal.Append(c.High, candle.High)
+	c.Low = internal.Append(c.Low, candle.Low)
+	c.Close = internal.Append(c.Close, candle.Close)
+	c.Volume = internal.Append(c.Volume, candle.Volume)
+	c.Timestamp = internal.Append(c.Timestamp, candle.Timestamp)
+}
+
 func (c *Chart) Slice(period common.Period) Chart {
 	start, err := search.LastBeforeIdx(c.Timestamp, period[0])
 	if err != nil {
@@ -54,7 +63,6 @@ func (c *Chart) Slice(period common.Period) Chart {
 	}
 
 	stop, err := search.LastBeforeIdx(c.Timestamp, period[1])
-
 	if err != nil {
 		return RawChart(0)
 	}
