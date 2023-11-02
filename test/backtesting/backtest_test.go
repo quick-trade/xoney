@@ -44,7 +44,7 @@ func TestMain(m *testing.M) {
 
 func TestBacktestReturnsEquity(t *testing.T) {
 	bt := bt.NewBacktester(0, 1)
-	var system st.Tradable = testdata.NewBBStrategy(80, 1.5, instrument)
+	var system st.Tradable = testdata.NewBBStrategy(1000, 1.9, instrument)
 	equity, err := bt.Backtest(charts, &system)
 	if err != nil {
 		t.Error(err.Error())

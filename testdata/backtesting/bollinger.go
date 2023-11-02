@@ -5,6 +5,7 @@ import (
 	"time"
 	"xoney/common/data"
 	"xoney/events"
+	"xoney/internal"
 )
 
 const (
@@ -30,16 +31,23 @@ func (b *BBBStrategy) Backtest(commission float64, initialDepo float64, charts d
 
 	var diff float64
 
-	// Расчет Bollinger Bands на основе цен
-	for i := b.Period-1; i < len(price); i++ {
-		// Рассчитываем среднее значение цены за период
-		sum := 0.0
-		for j := 0; j < b.Period; j++ {
-			sum += price[i-j]
-		}
-		average := sum / float64(b.Period)
+	for i, p := range price {
+		price[i] = math.Log(p)
+	}
 
-		// Рассчитываем стандартное отклонение цены за период
+	average, _ := internal.RawMoment(price[:b.Period+1], 1)
+
+	for i := b.Period-1; i < len(price); i++ {
+		diff = price[i] - price[i-1]
+
+		if flag == BUY {
+			equity.AddValue(equity.Now()+diff)
+		} else if flag == SELL {
+			equity.AddValue(equity.Now()-diff)
+		}
+
+		average += (price[i] - price[i-b.Period+1]) / float64(b.Period)
+
 		stdDev := 0.0
 		for j := 0; j < b.Period; j++ {
 			deviation := price[i-j] - average
@@ -47,28 +55,15 @@ func (b *BBBStrategy) Backtest(commission float64, initialDepo float64, charts d
 		}
 		stdDev = math.Sqrt(stdDev / float64(b.Period))
 
-		// Рассчитываем верхнюю и нижнюю полосы Bollinger Bands
 		upperBand := average + b.Deviation*stdDev
 		lowerBand := average - b.Deviation*stdDev
 
-		// Ваша логика для торговли на основе Bollinger Bands
-		// Здесь можно определить условия покупки и продажи
-
-		// Пример условия: если цена закрытия выше верхней полосы, покупаем
 		if price[i] > upperBand {
 			flag = BUY
 		}
 
-		// Пример условия: если цена закрытия ниже нижней полосы, продаем
 		if price[i] < lowerBand {
 			flag = SELL
-		}
-		diff = price[i] - price[i-1]
-
-		if flag == BUY {
-			equity.AddValue(equity.Now()+diff)
-		} else if flag == SELL {
-			equity.AddValue(equity.Now()-diff)
 		}
 	}
 

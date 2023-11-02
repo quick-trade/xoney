@@ -25,3 +25,6 @@ go.work
 
 # Visual Studio Code workspace
 .vscode/
+
+# test data files
+testdata/BBEquity.csv

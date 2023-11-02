@@ -19,3 +19,6 @@ gofumpt
 
 fmt :
 	go fmt ./... && golangci-lint run --enable-all --fix
+
+test-cov :
+	go test ./test/... -v -coverprofile="testdata/coverage.txt"
