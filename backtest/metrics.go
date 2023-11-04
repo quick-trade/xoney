@@ -2,7 +2,6 @@ package backtest
 
 import (
 	"math"
-
 	"xoney/common/data"
 	"xoney/internal"
 )
@@ -27,7 +26,9 @@ func (s SharpeRatio) Evaluate(equity data.Equity) float64 {
 	variance := internal.CentralMoment(deposit, mean, 2)
 	std := math.Sqrt(variance)
 
-	return (mean - s.Rf) / std
+	inYear := internal.TimesInYear(equity.Timeframe().Duration)
+
+	return (mean*inYear - s.Rf) / std
 }
 
 type CARA struct {

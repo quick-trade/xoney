@@ -3,8 +3,8 @@ package validation
 import (
 	"fmt"
 	"sync"
-	"xoney/common/data"
 
+	"xoney/common/data"
 	st "xoney/strategy"
 )
 

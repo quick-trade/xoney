@@ -4,9 +4,7 @@ import (
 	"xoney/common/data"
 )
 
-type Trade struct{
-	
-}
+type Trade struct{}
 
 func (t *Trade) Update(candle data.Candle) {
 	panic("TODO: implement")
