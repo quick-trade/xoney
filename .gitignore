@@ -27,4 +27,4 @@ go.work
 .vscode/
 
 # test data files
-testdata/BBEquity.csv
+*.csv
