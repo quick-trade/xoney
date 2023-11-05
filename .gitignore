@@ -28,3 +28,4 @@ go.work
 
 # test data files
 *.csv
+*.txt

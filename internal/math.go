@@ -6,9 +6,9 @@ import (
 	"xoney/errors"
 )
 
-type data []float64
+type Data []float64
 
-func RawMoment(sample data, degree float64) (float64, error) {
+func RawMoment(sample Data, degree float64) (float64, error) {
 	n := len(sample)
 
 	if n == 0 {
@@ -24,7 +24,7 @@ func RawMoment(sample data, degree float64) (float64, error) {
 	return sum / float64(n), nil
 }
 
-func CentralMoment(sample data, mean float64, degree float64) float64 {
+func CentralMoment(sample Data, mean float64, degree float64) float64 {
 	var moment float64
 
 	n := len(sample)
@@ -34,4 +34,12 @@ func CentralMoment(sample data, mean float64, degree float64) float64 {
 	}
 
 	return moment / float64(n)
+}
+
+func Diff(sample Data) Data {
+	diff := make(Data, 0, len(sample))
+	for i := range sample {
+		diff = append(diff, sample[i]-sample[i-1])
+	}
+	return diff
 }

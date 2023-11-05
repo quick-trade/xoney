@@ -19,7 +19,7 @@ func newEquityResult(equity data.Equity, err error) EquityResult {
 // important function for getting unbiased strategy estimations.
 func shiftedCharts(
 	charts data.ChartContainer,
-	period common.Period,
+	period data.Period,
 	system *st.Optimizable,
 ) data.ChartContainer {
 	period = period.ShiftedStart(-(*system).MinDuration())
@@ -31,7 +31,7 @@ func shiftedCharts(
 
 type InSample struct {
 	optimizer opt.Optimizer
-	period    common.Period
+	period    data.Period
 	charts    data.ChartContainer
 }
 
@@ -51,7 +51,7 @@ func (i *InSample) BestSystem() *st.Optimizable {
 
 func NewInSample(
 	charts data.ChartContainer,
-	period common.Period,
+	period data.Period,
 	optimizer opt.Optimizer,
 ) *InSample {
 	return &InSample{
@@ -64,7 +64,7 @@ func NewInSample(
 type OutOfSample struct {
 	charts     data.ChartContainer
 	backtester bt.Backtester
-	period     common.Period
+	period     data.Period
 }
 
 func (o *OutOfSample) Backtest(system *st.Optimizable) (data.Equity, error) {
@@ -76,7 +76,7 @@ func (o *OutOfSample) Backtest(system *st.Optimizable) (data.Equity, error) {
 
 func NewOutOfSample(
 	charts data.ChartContainer,
-	period common.Period,
+	period data.Period,
 	backtester bt.Backtester,
 ) *OutOfSample {
 	return &OutOfSample{

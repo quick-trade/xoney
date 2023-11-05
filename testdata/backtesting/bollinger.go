@@ -74,7 +74,7 @@ func NewBBStrategy(period int, deviation float64, instrument data.Instrument) *B
 		Period: period,
 		Deviation: deviation,
 		instrument: instrument,
-		chart: data.RawChart(0),
+		chart: data.RawChart(instrument.Timeframe(), 0),
 	}
 }
 

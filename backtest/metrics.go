@@ -17,13 +17,13 @@ type SharpeRatio struct {
 
 func (s SharpeRatio) IsPositive() bool { return true }
 func (s SharpeRatio) Evaluate(equity data.Equity) float64 {
-	deposit := equity.Deposit()
-	mean, err := internal.RawMoment(deposit, 1)
+	returns := internal.Diff(equity.Deposit())
+	mean, err := internal.RawMoment(returns, 1)
 	if err != nil {
 		return 0
 	}
 
-	variance := internal.CentralMoment(deposit, mean, 2)
+	variance := internal.CentralMoment(returns, mean, 2)
 	std := math.Sqrt(variance)
 
 	inYear := internal.TimesInYear(equity.Timeframe().Duration)
@@ -37,15 +37,16 @@ type CARA struct {
 
 func (c CARA) IsPositive() bool { return true }
 func (c CARA) Evaluate(equity data.Equity) float64 {
-	deposit := equity.Deposit()
-	mean, err := internal.RawMoment(deposit, 1)
+	returns := internal.Diff(equity.Deposit())
+
+	mean, err := internal.RawMoment(returns, 1)
 	if err != nil {
 		return 0
 	}
 
-	variance := internal.CentralMoment(deposit, mean, 2)
-	CentralMoment3 := internal.CentralMoment(deposit, mean, 3)
-	CentralMoment4 := internal.CentralMoment(deposit, mean, 4)
+	variance := internal.CentralMoment(returns, mean, 2)
+	CentralMoment3 := internal.CentralMoment(returns, mean, 3)
+	CentralMoment4 := internal.CentralMoment(returns, mean, 4)
 
 	return mean -
 		c.Theta*variance/2 +

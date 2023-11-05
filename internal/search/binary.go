@@ -1,19 +1,18 @@
 package search
 
 import (
-	"time"
-	"xoney/common"
 	"xoney/errors"
+	math "xoney/internal"
 )
 
-func LastBeforeIdx(series common.TimeStamp, moment time.Time) (int, error) {
+func Index(series math.Data, moment float64) (int, error) {
 	left, right := 0, len(series)-1
 
 	if len(series) == 0 {
-		return -1, errors.NewZeroLengthError("timestamp series")
+		return -1, errors.NewZeroLengthError("series")
 	}
 
-	if moment.Before(series[left]) {
+	if moment < series[left] {
 		return -1, errors.ValueNotFoundError{}
 	}
 
@@ -22,7 +21,7 @@ func LastBeforeIdx(series common.TimeStamp, moment time.Time) (int, error) {
 	for left <= right {
 		mid := (left + right) / 2
 
-		if series[mid].Before(moment) {
+		if series[mid] < moment {
 			result = mid
 			left = mid + 1
 		} else {
