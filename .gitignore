@@ -28,4 +28,6 @@ go.work
 
 # test data files
 *.csv
+!BTCUSDT15m.csv
+
 *.txt
