@@ -56,6 +56,6 @@ func (h *Heap[T]) Remove(v *T) error {
 	return h.RemoveAt(idx)
 }
 
-func NewHeap[T Equaler[T]](members ...T) *Heap[T] {
-	return &Heap[T]{Members: members}
+func NewHeap[T Equaler[T]](capacity int) *Heap[T] {
+	return &Heap[T]{Members: make([]T, 0, capacity)}
 }

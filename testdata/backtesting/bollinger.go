@@ -6,6 +6,7 @@ import (
 	"xoney/common/data"
 	"xoney/events"
 	"xoney/internal"
+	"xoney/strategy"
 )
 
 const (
@@ -21,9 +22,13 @@ type BBBStrategy struct {
 	chart data.Chart
 }
 
-func (b *BBBStrategy) Backtest(commission float64, initialDepo float64, charts data.ChartContainer) (data.Equity, error) {
+func (b *BBBStrategy) Backtest(
+	commission float64,
+	initialDepo float64,
+	charts data.ChartContainer,
+) (data.Equity, error) {
 	b.chart = charts[b.instrument]
-	equity := *data.NewEquity(len(b.chart.Close), b.instrument.Timeframe(), time.Now(), 1)
+	equity := *data.NewEquity(len(b.chart.Close), b.instrument.Timeframe(), time.Now(), 1000)
 	equity.AddValue(initialDepo)
 
 	price := b.chart.Close
@@ -78,9 +83,6 @@ func NewBBStrategy(period int, deviation float64, instrument data.Instrument) *B
 	}
 }
 
-func (b *BBBStrategy) MinDuration() time.Duration {
-	return b.instrument.Timeframe().Duration * time.Duration(b.Period)
-}
 
 func (b *BBBStrategy) Next(candle data.Candle) []events.Event {
 	panic("not implemented")
@@ -88,4 +90,10 @@ func (b *BBBStrategy) Next(candle data.Candle) []events.Event {
 
 func (b *BBBStrategy) Start(charts data.ChartContainer) {
 	panic("not implemented")
+}
+
+func (b BBBStrategy) MinDurations() strategy.Durations {
+	return strategy.Durations{
+		b.instrument: b.instrument.Timeframe().Duration * time.Duration(b.Period),
+	}
 }

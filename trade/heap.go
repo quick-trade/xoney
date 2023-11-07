@@ -15,6 +15,6 @@ func (h *TradeHeap) Update(candle data.Candle) {
 	}
 }
 
-func NewTradeHeap(trades ...Trade) *TradeHeap {
-	return &TradeHeap{Heap: *st.NewHeap[Trade](trades...)}
+func NewTradeHeap(capacity int) TradeHeap {
+	return TradeHeap{Heap: *st.NewHeap[Trade](capacity)}
 }

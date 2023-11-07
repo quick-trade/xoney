@@ -13,7 +13,7 @@ type Validator struct {
 	sampler *Sampler
 }
 
-func (v *Validator) Validate(system st.Optimizable) (chan EquityResult, error) {
+func (v *Validator) Validate(system st.Optimizable) (<-chan EquityResult, error) {
 	samples, err := (*v.sampler).Samples(v.charts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve samples: %w", err)

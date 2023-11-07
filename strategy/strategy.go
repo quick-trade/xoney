@@ -6,10 +6,21 @@ import (
 	"xoney/events"
 )
 
+type Durations map[data.Instrument]time.Duration
+func (d Durations) Max() time.Duration {
+	var maxDur time.Duration
+	for _, duration := range d {
+		if duration > maxDur {
+			maxDur = duration
+		}
+	}
+	return maxDur
+}
+
 type Tradable interface {
 	Start(charts data.ChartContainer)
 	Next(candle data.Candle) []events.Event
-	MinDuration() time.Duration
+	MinDurations() Durations
 }
 
 type VectorizedTradable interface {

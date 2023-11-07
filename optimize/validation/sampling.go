@@ -20,9 +20,9 @@ func newEquityResult(equity data.Equity, err error) EquityResult {
 func shiftedCharts(
 	charts data.ChartContainer,
 	period data.Period,
-	system *st.Optimizable,
+	system st.Optimizable,
 ) data.ChartContainer {
-	period = period.ShiftedStart(-(*system).MinDuration())
+	period = period.ShiftedStart(-system.MinDurations().Max())
 
 	result := charts.ChartsByPeriod(period)
 
@@ -35,7 +35,7 @@ type InSample struct {
 	charts    data.ChartContainer
 }
 
-func (i *InSample) Optimize(system *st.Optimizable) error {
+func (i *InSample) Optimize(system st.Optimizable) error {
 	charts := shiftedCharts(i.charts, i.period, system)
 
 	if err := i.optimizer.Optimize(system, charts); err != nil {
@@ -45,8 +45,8 @@ func (i *InSample) Optimize(system *st.Optimizable) error {
 	return nil
 }
 
-func (i *InSample) BestSystem() *st.Optimizable {
-	return i.optimizer.GetBests(1)[0]
+func (i *InSample) BestSystem() st.Optimizable {
+	return *i.optimizer.GetBests(1)[0]
 }
 
 func NewInSample(
@@ -67,11 +67,9 @@ type OutOfSample struct {
 	period     data.Period
 }
 
-func (o *OutOfSample) Backtest(system *st.Optimizable) (data.Equity, error) {
-	var tr st.Tradable = *system
-
+func (o *OutOfSample) Backtest(system st.Optimizable) (data.Equity, error) {
 	charts := shiftedCharts(o.charts, o.period, system)
-	return o.backtester.Backtest(charts, &tr)
+	return o.backtester.Backtest(charts, system)
 }
 
 func NewOutOfSample(
@@ -92,7 +90,7 @@ type SamplePair struct {
 }
 
 func (s *SamplePair) Test(system st.Optimizable) (data.Equity, error) {
-	err := s.IS.Optimize(&system)
+	err := s.IS.Optimize(system)
 	if err != nil {
 		return data.Equity{}, fmt.Errorf("error during optimization: %w", err)
 	}

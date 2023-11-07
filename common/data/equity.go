@@ -8,7 +8,7 @@ import (
 
 type Equity struct {
 	history   []float64
-	timestamp TimeStamp
+	Timestamp TimeStamp
 	timeframe TimeFrame
 }
 
@@ -19,7 +19,7 @@ func (e *Equity) Timeframe() TimeFrame {
 func (e *Equity) Deposit() []float64 { return e.history }
 func (e *Equity) AddValue(value float64) {
 	e.history = internal.Append(e.history, value)
-	e.timestamp.Extend(1)
+	e.Timestamp.Extend(1)
 }
 
 func (e *Equity) Now() float64 {
@@ -38,7 +38,7 @@ func NewEquity(
 	timestamp.Append(start)
 	return &Equity{
 		history:   history,
-		timestamp: timestamp,
+		Timestamp: timestamp,
 		timeframe: timeframe,
 	}
 }

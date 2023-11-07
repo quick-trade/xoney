@@ -4,7 +4,9 @@ import (
 	"xoney/common/data"
 )
 
-type Trade struct{
+type Trade struct {
+	breakouts []level
+	entries   []level
 }
 
 func (t *Trade) Update(candle data.Candle) {

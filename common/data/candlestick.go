@@ -3,8 +3,8 @@ package data
 import (
 	"time"
 
-	"xoney/internal"
 	"xoney/errors"
+	"xoney/internal"
 )
 
 type Period [2]time.Time
@@ -21,29 +21,38 @@ type TimeStamp struct {
 }
 
 func NewTimeStamp(timeframe TimeFrame, capacity int) TimeStamp {
-	return TimeStamp{timeframe: timeframe,
-		Timestamp: make([]time.Time, 0, capacity)}
+	return TimeStamp{
+		timeframe: timeframe,
+		Timestamp: make([]time.Time, 0, capacity),
+	}
 }
 
 func (t TimeStamp) Timeframe() TimeFrame {
 	return t.timeframe
 }
+
 func (t *TimeStamp) Extend(n int) {
 	last := t.Timestamp[len(t.Timestamp)-1]
 	new := last.Add(t.timeframe.Duration)
 	t.Timestamp = internal.Append(t.Timestamp, new)
 }
+
 func (t *TimeStamp) Append(moments ...time.Time) {
 	t.Timestamp = internal.Append(t.Timestamp, moments...)
 }
+
 func (t TimeStamp) sliceIdx(start, stop int) TimeStamp {
 	return TimeStamp{
 		timeframe: t.timeframe,
 		Timestamp: t.Timestamp[start:stop],
 	}
 }
-func (t TimeStamp) Now() time.Time {
+
+func (t TimeStamp) End() time.Time {
 	return t.Timestamp[len(t.Timestamp)-1]
+}
+func (t TimeStamp) Start() time.Time {
+	return t.Timestamp[0]
 }
 
 type Candle struct {
@@ -115,7 +124,6 @@ func (c *Chart) Slice(period Period) Chart {
 		Timestamp: c.Timestamp.sliceIdx(start, stop),
 	}
 }
-
 type ChartContainer map[Instrument]Chart
 
 func (c *ChartContainer) ChartsByPeriod(period Period) ChartContainer {

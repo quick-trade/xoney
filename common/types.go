@@ -1,7 +1,5 @@
 package common
 
-
-
 type Result[T any] struct {
 	Data  T
 	Error error

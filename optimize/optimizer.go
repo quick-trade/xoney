@@ -7,7 +7,7 @@ import (
 )
 
 type Optimizer interface {
-	Optimize(system *st.Optimizable, charts data.ChartContainer) error
+	Optimize(system st.Optimizable, charts data.ChartContainer) error
 	GetBests(n int) []*st.Optimizable
 	SetMetrics(metrics []bt.Metric)
 	Metrics() []bt.Metric
