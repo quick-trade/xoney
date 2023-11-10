@@ -1,7 +1,9 @@
 package internal
 
-const DefaultCapacity = 100
-const CapacityMultiplier = 10
+const (
+	DefaultCapacity    = 100
+	CapacityMultiplier = 10
+)
 
 func Append[T any](slice []T, elems ...T) []T {
 	var newSlice []T

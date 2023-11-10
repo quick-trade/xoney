@@ -2,11 +2,13 @@ package strategy
 
 import (
 	"time"
+
 	"xoney/common/data"
 	"xoney/events"
 )
 
 type Durations map[data.Instrument]time.Duration
+
 func (d Durations) Max() time.Duration {
 	var maxDur time.Duration
 	for _, duration := range d {
@@ -18,8 +20,8 @@ func (d Durations) Max() time.Duration {
 }
 
 type Tradable interface {
-	Start(charts data.ChartContainer)
-	Next(candle data.Candle) []events.Event
+	Start(charts data.ChartContainer) error
+	Next(candle data.InstrumentCandle) ([]events.Event, error)
 	MinDurations() Durations
 }
 

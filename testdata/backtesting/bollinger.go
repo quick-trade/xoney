@@ -84,12 +84,12 @@ func NewBBStrategy(period int, deviation float64, instrument data.Instrument) *B
 }
 
 
-func (b *BBBStrategy) Next(candle data.Candle) []events.Event {
+func (b *BBBStrategy) Next(candle data.InstrumentCandle) ([]events.Event, error) {
 	panic("not implemented")
 }
 
-func (b *BBBStrategy) Start(charts data.ChartContainer) {
-	panic("not implemented")
+func (b *BBBStrategy) Start(charts data.ChartContainer) error {
+	return nil
 }
 
 func (b BBBStrategy) MinDurations() strategy.Durations {

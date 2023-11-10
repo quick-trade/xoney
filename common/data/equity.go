@@ -2,7 +2,6 @@ package data
 
 import (
 	"time"
-
 	"xoney/internal"
 )
 
@@ -36,6 +35,7 @@ func NewEquity(
 	history = internal.Append(history, initialDepo)
 	timestamp := NewTimeStamp(timeframe, capacity)
 	timestamp.Append(start)
+
 	return &Equity{
 		history:   history,
 		Timestamp: timestamp,

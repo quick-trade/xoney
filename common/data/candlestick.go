@@ -2,7 +2,6 @@ package data
 
 import (
 	"time"
-
 	"xoney/errors"
 	"xoney/internal"
 )
@@ -51,6 +50,7 @@ func (t TimeStamp) sliceIdx(start, stop int) TimeStamp {
 func (t TimeStamp) End() time.Time {
 	return t.Timestamp[len(t.Timestamp)-1]
 }
+
 func (t TimeStamp) Start() time.Time {
 	return t.Timestamp[0]
 }
@@ -73,6 +73,11 @@ func NewCandle(open, high, low, c, volume float64, timestamp time.Time) *Candle 
 		Volume:    volume,
 		Timestamp: timestamp,
 	}
+}
+
+type InstrumentCandle struct {
+	Candle
+	Instrument
 }
 
 type Chart struct {
@@ -124,6 +129,7 @@ func (c *Chart) Slice(period Period) Chart {
 		Timestamp: c.Timestamp.sliceIdx(start, stop),
 	}
 }
+
 type ChartContainer map[Instrument]Chart
 
 func (c *ChartContainer) ChartsByPeriod(period Period) ChartContainer {
@@ -133,6 +139,10 @@ func (c *ChartContainer) ChartsByPeriod(period Period) ChartContainer {
 	}
 
 	return result
+}
+
+func (c *ChartContainer) Candles() []InstrumentCandle {
+	panic("TODO: Implement")
 }
 
 func findIndexBeforeOrAtTime(

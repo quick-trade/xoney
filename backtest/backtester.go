@@ -3,7 +3,9 @@ package backtest
 import (
 	"fmt"
 	"time"
+
 	"xoney/common/data"
+	"xoney/events"
 	"xoney/internal"
 	st "xoney/strategy"
 	"xoney/trade"
@@ -15,14 +17,16 @@ type Backtester struct {
 	initialDepo float64
 	equity      data.Equity
 }
+
 func NewBacktester(commission float64, initialDepo float64) *Backtester {
 	return &Backtester{
 		trades:      trade.NewTradeHeap(internal.DefaultCapacity),
 		commission:  commission,
 		initialDepo: initialDepo,
-		equity: data.Equity{},
+		equity:      data.Equity{},
 	}
 }
+
 func (b *Backtester) Backtest(
 	charts data.ChartContainer,
 	system st.Tradable,
@@ -40,26 +44,52 @@ func (b *Backtester) Backtest(
 	if err != nil {
 		return b.equity, fmt.Errorf("error during backtest: %w", err)
 	}
+
 	return b.equity, nil
 }
+
 func (b *Backtester) setup(
 	charts data.ChartContainer,
 	system *st.Tradable,
 ) error {
 	b.clearTrades()
-	b.equity = *generateEquity(charts, (*system).MinDurations(), b.initialDepo)
-	// TODO: setup strategies
-	return nil
+
+	durations := (*system).MinDurations()
+	period := equityPeriod(charts, durations)
+
+	b.equity = *generateEquity(charts, period, durations, b.initialDepo)
+
+	err := (*system).Start(charts.ChartsByPeriod(period))
+
+	return err
 }
+
 func (b *Backtester) runTest(
 	charts data.ChartContainer,
 	system *st.Tradable,
 ) error {
-	panic("TODO: not implemented")
+	for _, candle := range charts.Candles() {
+		events, err := (*system).Next(candle)
+		if err != nil {
+			return err
+		}
+
+		b.processEvents(events)
+	}
+	// TODO: should write an equity
+	return nil
 }
+
 func (b *Backtester) clearTrades() {
 	b.trades = trade.NewTradeHeap(internal.DefaultCapacity)
 }
+
+func (b *Backtester) processEvents(events []events.Event) {
+	for _, e := range events {
+		e.HandleTrades(&b.trades)
+	}
+}
+
 func equityPeriod(
 	charts data.ChartContainer,
 	durations st.Durations,
@@ -76,6 +106,7 @@ func equityPeriod(
 		chartStart = chart.Timestamp.Start()
 		instMinDuration = durations[inst]
 		instStart = chartStart.Add(instMinDuration)
+
 		if start.Before(instStart) {
 			start = chartStart
 		}
@@ -89,6 +120,7 @@ func equityPeriod(
 
 	return data.Period{start, latestEnd}
 }
+
 func maxTimeFrame(charts data.ChartContainer) data.TimeFrame {
 	var tf data.TimeFrame
 	var chartTimeframe data.TimeFrame
@@ -102,15 +134,16 @@ func maxTimeFrame(charts data.ChartContainer) data.TimeFrame {
 
 	return tf
 }
+
 func generateEquity(
 	charts data.ChartContainer,
+	period data.Period,
 	durations st.Durations,
 	initial float64,
 ) *data.Equity {
-	period := equityPeriod(charts, durations)
 	timeframe := maxTimeFrame(charts)
 	duration := period[1].Sub(period[0])
-	length := int(duration / timeframe.Duration) + 2
+	length := int(duration/timeframe.Duration) + 2
 
 	return data.NewEquity(length, timeframe, period[0], initial)
 }

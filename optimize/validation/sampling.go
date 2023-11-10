@@ -2,10 +2,11 @@ package validation
 
 import (
 	"fmt"
-
-	bt "xoney/backtest"
 	"xoney/common"
 	"xoney/common/data"
+
+	bt "xoney/backtest"
+
 	opt "xoney/optimize"
 	st "xoney/strategy"
 )
@@ -69,6 +70,7 @@ type OutOfSample struct {
 
 func (o *OutOfSample) Backtest(system st.Optimizable) (data.Equity, error) {
 	charts := shiftedCharts(o.charts, o.period, system)
+
 	return o.backtester.Backtest(charts, system)
 }
 
@@ -97,6 +99,7 @@ func (s *SamplePair) Test(system st.Optimizable) (data.Equity, error) {
 
 	best := s.IS.BestSystem()
 	equity, err := s.OOS.Backtest(best)
+
 	if err != nil {
 		return data.Equity{}, fmt.Errorf("error during backtesting: %w", err)
 	}

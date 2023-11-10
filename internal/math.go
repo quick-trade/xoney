@@ -2,7 +2,6 @@ package internal
 
 import (
 	"math"
-
 	"xoney/errors"
 )
 
@@ -41,5 +40,6 @@ func Diff(sample Data) Data {
 	for i := range sample {
 		diff = append(diff, sample[i]-sample[i-1])
 	}
+
 	return diff
 }

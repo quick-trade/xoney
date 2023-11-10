@@ -4,10 +4,9 @@ import (
 	"os"
 	"testing"
 	"time"
-	"xoney/common/data"
 
 	bt "xoney/backtest"
-
+	"xoney/common/data"
 	st "xoney/strategy"
 	testdata "xoney/testdata/backtesting"
 	dtr "xoney/testdata/dataread"
@@ -36,6 +35,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
+
 	instrument = data.NewInstrument(*sym, *timeframe)
 	charts[instrument] = chart
 
