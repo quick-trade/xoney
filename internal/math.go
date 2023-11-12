@@ -38,7 +38,7 @@ func CentralMoment(sample Data, mean float64, degree float64) float64 {
 func Diff(sample Data) Data {
 	diff := make(Data, 0, len(sample))
 	for i := range sample {
-		diff = append(diff, sample[i]-sample[i-1])
+		diff = Append(diff, sample[i]-sample[i-1])
 	}
 
 	return diff

@@ -6,21 +6,21 @@ import (
 )
 
 type OutOfIndexError struct {
-	index int
+	Index int
 }
 
 func (e OutOfIndexError) Error() string {
 	var builder strings.Builder
 
 	builder.WriteString("index ")
-	builder.WriteString(strconv.Itoa(e.index))
+	builder.WriteString(strconv.Itoa(e.Index))
 	builder.WriteString(" is out of range.")
 
 	return builder.String()
 }
 
 func NewOutOfIndexError(index int) OutOfIndexError {
-	return OutOfIndexError{index: index}
+	return OutOfIndexError{Index: index}
 }
 
 type ValueNotFoundError struct{}

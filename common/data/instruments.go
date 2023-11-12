@@ -51,7 +51,6 @@ func symbolByBaseQuoteExchange(param string, rest ...string) Symbol {
 
 type TimeFrame struct {
 	Duration       time.Duration
-	Seconds        float64
 	CandlesPerYear float64
 	Name           string
 }
@@ -65,7 +64,6 @@ func NewTimeFrame(duration time.Duration, name string) (*TimeFrame, error) {
 
 	return &TimeFrame{
 		Duration:       duration,
-		Seconds:        duration.Seconds(),
 		CandlesPerYear: candles,
 		Name:           name,
 	}, nil

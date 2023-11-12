@@ -16,6 +16,7 @@ func (d Durations) Max() time.Duration {
 			maxDur = duration
 		}
 	}
+
 	return maxDur
 }
 

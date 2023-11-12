@@ -1,6 +1,7 @@
 package data
 
 import (
+	"sort"
 	"time"
 	"xoney/errors"
 	"xoney/internal"
@@ -30,8 +31,12 @@ func (t TimeStamp) Timeframe() TimeFrame {
 	return t.timeframe
 }
 
+func (t TimeStamp) At(index int) time.Time {
+	return t.Timestamp[index]
+}
+
 func (t *TimeStamp) Extend(n int) {
-	last := t.Timestamp[len(t.Timestamp)-1]
+	last := t.At(len(t.Timestamp) - 1)
 	new := last.Add(t.timeframe.Duration)
 	t.Timestamp = internal.Append(t.Timestamp, new)
 }
@@ -48,11 +53,11 @@ func (t TimeStamp) sliceIdx(start, stop int) TimeStamp {
 }
 
 func (t TimeStamp) End() time.Time {
-	return t.Timestamp[len(t.Timestamp)-1]
+	return t.At(len(t.Timestamp) - 1)
 }
 
 func (t TimeStamp) Start() time.Time {
-	return t.Timestamp[0]
+	return t.At(0)
 }
 
 type Candle struct {
@@ -61,17 +66,17 @@ type Candle struct {
 	Low       float64
 	Close     float64
 	Volume    float64
-	Timestamp time.Time
+	TimeClose time.Time
 }
 
-func NewCandle(open, high, low, c, volume float64, timestamp time.Time) *Candle {
+func NewCandle(open, high, low, c, volume float64, timeClose time.Time) *Candle {
 	return &Candle{
 		Open:      open,
 		High:      high,
 		Low:       low,
 		Close:     c,
 		Volume:    volume,
-		Timestamp: timestamp,
+		TimeClose: timeClose,
 	}
 }
 
@@ -130,6 +135,25 @@ func (c *Chart) Slice(period Period) Chart {
 	}
 }
 
+func (c *Chart) Len() int {
+	return len(c.Timestamp.Timestamp)
+}
+
+func (c *Chart) CandleByIndex(index int) (*Candle, error) {
+	if index >= c.Len() {
+		return nil, errors.OutOfIndexError{Index: index}
+	}
+
+	return NewCandle(
+		c.Open[index],
+		c.High[index],
+		c.Low[index],
+		c.Close[index],
+		c.Volume[index],
+		c.Timestamp.At(index),
+	), nil
+}
+
 type ChartContainer map[Instrument]Chart
 
 func (c *ChartContainer) ChartsByPeriod(period Period) ChartContainer {
@@ -141,8 +165,67 @@ func (c *ChartContainer) ChartsByPeriod(period Period) ChartContainer {
 	return result
 }
 
-func (c *ChartContainer) Candles() []InstrumentCandle {
-	panic("TODO: Implement")
+func (c *ChartContainer) sortedInstruments() []Instrument {
+	keys := make([]Instrument, 0, len(*c))
+
+	for instrument := range *c {
+		keys = internal.Append(keys, instrument)
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		durationI := keys[i].timeframe.Duration
+		durationJ := keys[j].timeframe.Duration
+
+		return durationI < durationJ
+	})
+
+	return keys
+}
+
+func (c ChartContainer) Candles() []InstrumentCandle {
+	sumLength := 0
+	for _, chart := range c {
+		sumLength += chart.Len()
+	}
+
+	result := make([]InstrumentCandle, 0, sumLength)
+	pointers := make([]int, len(c))
+	instruments := c.sortedInstruments()
+
+	for {
+		var minChart Chart
+		var minInstrument Instrument
+		var minKey int
+
+		minIndex := -1
+		minTime := time.Time{}
+
+		for instIdx, inst := range instruments {
+			minKey = instIdx
+			idx := pointers[instIdx]
+			chart := c[inst]
+			moment := chart.Timestamp.At(idx)
+
+			if idx < chart.Len() && (minIndex == -1 || moment.Before(minTime)) {
+				minTime = moment
+				minChart = chart
+				minInstrument = inst
+				minIndex = idx
+			}
+		}
+
+		if minIndex == -1 {
+			break
+		}
+
+		candle, _ := minChart.CandleByIndex(minIndex)
+		instCandle := InstrumentCandle{Candle: *candle, Instrument: minInstrument}
+		result = internal.Append(result, instCandle)
+
+		pointers[minKey]++
+	}
+
+	return result
 }
 
 func findIndexBeforeOrAtTime(
@@ -155,7 +238,7 @@ func findIndexBeforeOrAtTime(
 		return -1, errors.NewZeroLengthError("timestamp series")
 	}
 
-	begin := series.Timestamp[0]
+	begin := series.At(0)
 	if moment.Before(begin) {
 		return -1, errors.ValueNotFoundError{}
 	}

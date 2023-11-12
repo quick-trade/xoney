@@ -2,7 +2,6 @@ package backtest
 
 import (
 	"math"
-
 	"xoney/common/data"
 	"xoney/internal"
 )
@@ -20,6 +19,7 @@ func (s SharpeRatio) IsPositive() bool { return true }
 func (s SharpeRatio) Evaluate(equity data.Equity) float64 {
 	returns := internal.Diff(equity.Deposit())
 	mean, err := internal.RawMoment(returns, 1)
+
 	if err != nil {
 		return 0
 	}
@@ -27,7 +27,7 @@ func (s SharpeRatio) Evaluate(equity data.Equity) float64 {
 	variance := internal.CentralMoment(returns, mean, 2)
 	std := math.Sqrt(variance)
 
-	inYear := internal.TimesInYear(equity.Timeframe().Duration)
+	inYear := equity.Timeframe().CandlesPerYear
 
 	return (mean*inYear - s.Rf) / std
 }

@@ -15,7 +15,9 @@ varcheck,\
 structcheck,\
 depguard,\
 gci,\
-gofumpt
+gofumpt,\
+wrapcheck,\
+varnamelen
 
 fmt :
 	go fmt ./... && golangci-lint run --enable-all --fix
