@@ -68,6 +68,8 @@ func (b *Backtester) runTest(
 	charts data.ChartContainer,
 	system *st.Tradable,
 ) error {
+	// equityTime := b.equity.Timestamp.Start()
+	// nextTime := equityTime.Add(b.equity.Timeframe().Duration)
 	for _, candle := range charts.Candles() {
 		events, err := (*system).Next(candle)
 		if err != nil {

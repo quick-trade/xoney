@@ -117,12 +117,12 @@ func (c *Chart) Add(candle Candle) {
 func (c *Chart) Slice(period Period) Chart {
 	start, err := findIndexBeforeOrAtTime(c.Timestamp, period[0])
 	if err != nil {
-		return RawChart(c.Timestamp.Timeframe(), 0)
+		return RawChart(c.Timestamp.timeframe, 0)
 	}
 
 	stop, err := findIndexBeforeOrAtTime(c.Timestamp, period[1])
 	if err != nil {
-		return RawChart(c.Timestamp.Timeframe(), 0)
+		return RawChart(c.Timestamp.timeframe, 0)
 	}
 
 	return Chart{

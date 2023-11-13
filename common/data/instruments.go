@@ -81,10 +81,10 @@ func NewInstrument(symbol Symbol, timeframe TimeFrame) Instrument {
 	}
 }
 
-func (l *Instrument) Symbol() Symbol {
-	return l.symbol
+func (i *Instrument) Symbol() Symbol {
+	return i.symbol
 }
 
-func (l *Instrument) Timeframe() TimeFrame {
-	return l.timeframe
+func (i *Instrument) Timeframe() TimeFrame {
+	return i.timeframe
 }

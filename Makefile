@@ -23,4 +23,7 @@ fmt :
 	go fmt ./... && golangci-lint run --enable-all --fix
 
 test-cov :
-	go test ./test/... -v -coverprofile="testdata/coverage.txt"
+	go test ./test/... -v -coverprofile="testdata/coverage.txt" -coverpkg=./...
+
+view-cov :
+	go tool cover -html="testdata/coverage.txt"
