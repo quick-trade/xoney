@@ -3,6 +3,7 @@ package data
 import (
 	"sort"
 	"time"
+
 	"xoney/errors"
 	"xoney/internal"
 )
@@ -27,7 +28,7 @@ func NewTimeStamp(timeframe TimeFrame, capacity int) TimeStamp {
 	}
 }
 
-func (t TimeStamp) Timeframe() TimeFrame {
+func (t *TimeStamp) Timeframe() TimeFrame {
 	return t.timeframe
 }
 
@@ -37,8 +38,10 @@ func (t TimeStamp) At(index int) time.Time {
 
 func (t *TimeStamp) Extend(n int) {
 	last := t.At(len(t.Timestamp) - 1)
-	new := last.Add(t.timeframe.Duration)
-	t.Timestamp = internal.Append(t.Timestamp, new)
+	for i:=0; i < n; i++ {
+		last = last.Add(t.timeframe.Duration)
+		t.Timestamp = internal.Append(t.Timestamp, last)
+	}
 }
 
 func (t *TimeStamp) Append(moments ...time.Time) {

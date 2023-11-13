@@ -93,7 +93,7 @@ type TimeStamp struct {
 
 - `Timeframe() TimeFrame`: Возвращает временной интервал, связанный с `TimeStamp`. Период дискретизации
 - `At(index int) time.Time`: Возвращает временную метку по индексу.
-- `Extend(n int)`: Расширяет временные метки на указанное количество.
+- `Extend(n int)`: Удлиняет ряд на указанное количество значений.
 - `Append(moments ...time.Time)`: Добавляет временные метки.
 - `sliceIdx(start, stop int) TimeStamp`: Возвращает подмножество `TimeStamp` с индексами от `start` до `stop`.
 - `End() time.Time`: Возвращает последнюю временную метку.
