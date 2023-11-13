@@ -146,7 +146,7 @@ type Chart struct {
 
 #### Конструктор
 
-- `RawChart(timeframe TimeFrame, capacity int) Chart`: Создает новый временной ряд.
+- `RawChart(timeframe TimeFrame, capacity int) Chart`: Создает пустой ряд с указанным таймфреймом и ёмкостью.
 
 #### Методы
 
