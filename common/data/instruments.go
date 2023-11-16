@@ -7,16 +7,18 @@ import (
 	"xoney/internal"
 )
 
+type Currency string
+
 type Symbol struct {
-	base     string
-	quote    string
+	base     Currency
+	quote    Currency
 	exchange string // TODO: could be nil
 	full     string
 }
 
 func (s *Symbol) String() string   { return s.full }
-func (s *Symbol) Base() string     { return s.base }
-func (s *Symbol) Quote() string    { return s.quote }
+func (s *Symbol) Base() Currency     { return s.base }
+func (s *Symbol) Quote() Currency    { return s.quote }
 func (s *Symbol) Exchange() string { return s.exchange }
 func NewSymbol(param string, rest ...string) (*Symbol, error) {
 	var symbol Symbol
@@ -42,8 +44,8 @@ func symbolByBaseQuoteExchange(param string, rest ...string) Symbol {
 	full.WriteString(quote)
 
 	return Symbol{
-		base:     base,
-		quote:    quote,
+		base:     Currency(base),
+		quote:    Currency(quote),
 		exchange: exchange,
 		full:     full.String(),
 	}
