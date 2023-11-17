@@ -7,7 +7,10 @@ import (
 	"xoney/internal"
 )
 
-type Currency string
+type Currency struct {
+	Asset    string
+	Exchange string
+}
 
 type Symbol struct {
 	base     Currency
@@ -44,8 +47,8 @@ func symbolByBaseQuoteExchange(param string, rest ...string) Symbol {
 	full.WriteString(quote)
 
 	return Symbol{
-		base:     Currency(base),
-		quote:    Currency(quote),
+		base:     Currency{Asset: base, Exchange: exchange},
+		quote:    Currency{Asset: quote, Exchange: exchange},
 		exchange: exchange,
 		full:     full.String(),
 	}

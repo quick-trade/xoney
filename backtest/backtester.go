@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"xoney/common"
 	"xoney/common/data"
 	"xoney/events"
 	"xoney/internal"
@@ -16,6 +17,7 @@ type Backtester struct {
 	commission  float64
 	initialDepo float64
 	equity      data.Equity
+	portfolio   common.Portfolio
 }
 
 func NewBacktester(commission float64, initialDepo float64) *Backtester {
@@ -68,9 +70,16 @@ func (b *Backtester) runTest(
 	charts data.ChartContainer,
 	system *st.Tradable,
 ) error {
-	// equityTime := b.equity.Timestamp.Start()
-	// nextTime := equityTime.Add(b.equity.Timeframe().Duration)
+	start := b.equity.Timestamp.Start()
+	timeframe := b.equity.Timeframe().Duration
+	nextTime := start.Add(timeframe)
+
 	for _, candle := range charts.Candles() {
+		if candle.TimeClose.After(nextTime) {
+			b.equity.AddValue(b.portfolio.Total())
+			nextTime = nextTime.Add(timeframe)
+		}
+
 		events, err := (*system).Next(candle)
 		if err != nil {
 			return err
@@ -78,7 +87,7 @@ func (b *Backtester) runTest(
 
 		b.processEvents(events)
 	}
-	// TODO: should write an equity
+
 	return nil
 }
 
