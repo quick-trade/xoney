@@ -10,16 +10,16 @@ import (
 )
 
 const (
-	BUY = iota
-	SELL = iota
+	BUY     = iota
+	SELL    = iota
 	NEUTRAL = iota
 )
 
 type BBBStrategy struct {
-	Period int
-	Deviation float64
+	Period     int
+	Deviation  float64
 	instrument data.Instrument
-	chart data.Chart
+	chart      data.Chart
 }
 
 func (b *BBBStrategy) Backtest(
@@ -42,13 +42,13 @@ func (b *BBBStrategy) Backtest(
 
 	average, _ := internal.RawMoment(price[:b.Period+1], 1)
 
-	for i := b.Period-1; i < len(price); i++ {
+	for i := b.Period - 1; i < len(price); i++ {
 		diff = price[i] - price[i-1]
 
 		if flag == BUY {
-			equity.AddValue(equity.Now()+diff)
+			equity.AddValue(equity.Now() + diff)
 		} else if flag == SELL {
-			equity.AddValue(equity.Now()-diff)
+			equity.AddValue(equity.Now() - diff)
 		}
 
 		average += (price[i] - price[i-b.Period+1]) / float64(b.Period)
@@ -76,13 +76,12 @@ func (b *BBBStrategy) Backtest(
 }
 func NewBBStrategy(period int, deviation float64, instrument data.Instrument) *BBBStrategy {
 	return &BBBStrategy{
-		Period: period,
-		Deviation: deviation,
+		Period:     period,
+		Deviation:  deviation,
 		instrument: instrument,
-		chart: data.RawChart(instrument.Timeframe(), 0),
+		chart:      data.RawChart(instrument.Timeframe(), 0),
 	}
 }
-
 
 func (b *BBBStrategy) Next(candle data.InstrumentCandle) ([]events.Event, error) {
 	panic("not implemented")

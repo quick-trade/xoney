@@ -1,29 +1,23 @@
+COVERAGE := testdata/coverage.txt
+TESTPATH := ./test/...
+
 setup :
 	export PATH=$$PATH:$(shell go env GOPATH)/bin
 
 lint :
 	golangci-lint run --enable-all -D \
-deadcode,\
-golint,\
-scopelint,\
-ifshort,\
-nosnakecase,\
-maligned,\
-exhaustivestruct,\
-interfacer,\
-varcheck,\
-structcheck,\
 depguard,\
 gci,\
-gofumpt,\
-wrapcheck,\
-varnamelen
+varnamelen,\
+gomnd,\
+gofumpt
 
 fmt :
-	go fmt ./... && golangci-lint run --enable-all --fix
+	go fmt && \
+	golangci-lint run --enable-all --fix
 
 test-cov :
-	go test ./test/... -v -coverprofile="testdata/coverage.txt" -coverpkg=./...
+	go test $(TESTPATH) -v -coverprofile=$(COVERAGE) -coverpkg=./...
 
 view-cov :
-	go tool cover -html="testdata/coverage.txt"
+	go tool cover -html=$(COVERAGE)

@@ -26,6 +26,7 @@ func NewBacktester(commission float64, initialDepo float64) *Backtester {
 		commission:  commission,
 		initialDepo: initialDepo,
 		equity:      data.Equity{},
+		portfolio:   common.NewPortfolio(internal.DefaultCapacity),
 	}
 }
 
@@ -77,6 +78,7 @@ func (b *Backtester) runTest(
 	for _, candle := range charts.Candles() {
 		if candle.TimeClose.After(nextTime) {
 			b.equity.AddValue(b.portfolio.Total())
+
 			nextTime = nextTime.Add(timeframe)
 		}
 

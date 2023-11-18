@@ -20,8 +20,8 @@ type Symbol struct {
 }
 
 func (s *Symbol) String() string   { return s.full }
-func (s *Symbol) Base() Currency     { return s.base }
-func (s *Symbol) Quote() Currency    { return s.quote }
+func (s *Symbol) Base() Currency   { return s.base }
+func (s *Symbol) Quote() Currency  { return s.quote }
 func (s *Symbol) Exchange() string { return s.exchange }
 func NewSymbol(param string, rest ...string) (*Symbol, error) {
 	var symbol Symbol

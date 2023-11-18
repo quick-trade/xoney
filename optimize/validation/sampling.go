@@ -98,7 +98,7 @@ func (s *SamplePair) Test(system st.Optimizable) (data.Equity, error) {
 	}
 
 	best := s.IS.BestSystem()
-	
+
 	equity, err := s.OOS.Backtest(best)
 	if err != nil {
 		return data.Equity{}, fmt.Errorf("error during backtesting: %w", err)
