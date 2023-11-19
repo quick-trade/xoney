@@ -19,11 +19,12 @@ type Symbol struct {
 	full     string
 }
 
-func (s *Symbol) String() string   { return s.full }
-func (s *Symbol) Base() Currency   { return s.base }
-func (s *Symbol) Quote() Currency  { return s.quote }
-func (s *Symbol) Exchange() string { return s.exchange }
+func (s Symbol) String() string   { return s.full }
+func (s Symbol) Base() Currency   { return s.base }
+func (s Symbol) Quote() Currency  { return s.quote }
+func (s Symbol) Exchange() string { return s.exchange }
 func NewSymbol(param string, rest ...string) (*Symbol, error) {
+	// TODO: add another initialization methods
 	var symbol Symbol
 	switch len(rest) {
 	case 2:

@@ -23,11 +23,6 @@ func (e ZeroLengthError) Error() string {
 	return e.Character
 }
 
-type IncorrectSymbolError struct{}
-
-func (e IncorrectSymbolError) Error() string {
-	return "incorrect symbol initialization."
-}
 
 type IncorrectDurationError struct {
 	Duration time.Duration
@@ -47,8 +42,24 @@ func NewIncorrectDurationError(duration time.Duration) IncorrectDurationError {
 	return IncorrectDurationError{Duration: duration}
 }
 
-type UnsuccessfulChartSlicingError struct{}
+type MissingCurrencyError struct {
+	currencies []string
+}
 
-func (e UnsuccessfulChartSlicingError) Error() string {
-	return "cannot slice a chart."
+func NewMissingCurrencyError(capacity int) MissingCurrencyError {
+	return MissingCurrencyError{currencies: make([]string, 0, capacity)}
+}
+
+func (m *MissingCurrencyError) Add(currency string) {
+	m.currencies = append(m.currencies, currency)
+}
+func (e MissingCurrencyError) Error() string {
+	var msg strings.Builder
+
+	msg.WriteString("missed currency(ies): ")
+	for _, currency := range e.currencies {
+		msg.WriteString(currency)
+	}
+
+	return msg.String()
 }

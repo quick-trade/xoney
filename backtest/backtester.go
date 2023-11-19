@@ -18,6 +18,7 @@ type Backtester struct {
 	initialDepo float64
 	equity      data.Equity
 	portfolio   common.Portfolio
+	prices map[data.Currency]float64
 }
 
 func NewBacktester(commission float64, initialDepo float64) *Backtester {
@@ -27,6 +28,7 @@ func NewBacktester(commission float64, initialDepo float64) *Backtester {
 		initialDepo: initialDepo,
 		equity:      data.Equity{},
 		portfolio:   common.NewPortfolio(internal.DefaultCapacity),
+		prices: make(map[data.Currency]float64, internal.DefaultCapacity),
 	}
 }
 
@@ -75,9 +77,14 @@ func (b *Backtester) runTest(
 	timeframe := b.equity.Timeframe().Duration
 	nextTime := start.Add(timeframe)
 
+	clear(b.prices)
+
 	for _, candle := range charts.Candles() {
+		b.updatePrices(candle)
 		if candle.TimeClose.After(nextTime) {
-			b.equity.AddValue(b.portfolio.Total())
+			if err := b.processBalance(); err != nil {
+				return err
+			}
 
 			nextTime = nextTime.Add(timeframe)
 		}
@@ -93,10 +100,23 @@ func (b *Backtester) runTest(
 	return nil
 }
 
+func (b *Backtester) updatePrices(candle data.InstrumentCandle) {
+	b.prices[candle.Instrument.Symbol().Base()] = candle.Close
+}
+
 func (b *Backtester) clearTrades() {
 	b.trades = trade.NewTradeHeap(internal.DefaultCapacity)
 }
+func (b *Backtester) processBalance() error {
+	totalBalance, err := b.portfolio.Total(b.prices)
+	if err != nil {
+		return err
+	}
 
+	b.equity.AddValue(totalBalance)
+
+	return nil
+}
 func (b *Backtester) processEvents(events []events.Event) {
 	for _, e := range events {
 		e.HandleTrades(&b.trades)
