@@ -2,6 +2,7 @@ package backtest
 
 import (
 	"math"
+
 	"xoney/common/data"
 	"xoney/internal"
 )
@@ -19,7 +20,6 @@ func (s SharpeRatio) IsPositive() bool { return true }
 func (s SharpeRatio) Evaluate(equity data.Equity) float64 {
 	returns := internal.Diff(equity.Deposit())
 	mean, err := internal.RawMoment(returns, 1)
-
 	if err != nil {
 		return 0
 	}

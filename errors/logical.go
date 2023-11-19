@@ -23,7 +23,6 @@ func (e ZeroLengthError) Error() string {
 	return e.Character
 }
 
-
 type IncorrectDurationError struct {
 	Duration time.Duration
 }
@@ -53,6 +52,7 @@ func NewMissingCurrencyError(capacity int) MissingCurrencyError {
 func (m *MissingCurrencyError) Add(currency string) {
 	m.currencies = append(m.currencies, currency)
 }
+
 func (e MissingCurrencyError) Error() string {
 	var msg strings.Builder
 

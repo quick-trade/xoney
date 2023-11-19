@@ -13,7 +13,7 @@ gomnd,\
 gofumpt
 
 fmt :
-	go fmt -s && \
+	go fmt ./... && \
 	golangci-lint run --enable-all --fix
 
 test-cov :

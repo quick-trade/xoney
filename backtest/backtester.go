@@ -3,13 +3,13 @@ package backtest
 import (
 	"fmt"
 	"time"
-
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/events"
 	"xoney/internal"
-	st "xoney/strategy"
 	"xoney/trade"
+
+	st "xoney/strategy"
 )
 
 type Backtester struct {
@@ -18,7 +18,7 @@ type Backtester struct {
 	initialDepo float64
 	equity      data.Equity
 	portfolio   common.Portfolio
-	prices map[data.Currency]float64
+	prices      map[data.Currency]float64
 }
 
 func NewBacktester(commission float64, initialDepo float64) *Backtester {
@@ -28,7 +28,7 @@ func NewBacktester(commission float64, initialDepo float64) *Backtester {
 		initialDepo: initialDepo,
 		equity:      data.Equity{},
 		portfolio:   common.NewPortfolio(internal.DefaultCapacity),
-		prices: make(map[data.Currency]float64, internal.DefaultCapacity),
+		prices:      make(map[data.Currency]float64, internal.DefaultCapacity),
 	}
 }
 
@@ -107,6 +107,7 @@ func (b *Backtester) updatePrices(candle data.InstrumentCandle) {
 func (b *Backtester) clearTrades() {
 	b.trades = trade.NewTradeHeap(internal.DefaultCapacity)
 }
+
 func (b *Backtester) processBalance() error {
 	totalBalance, err := b.portfolio.Total(b.prices)
 	if err != nil {
@@ -117,6 +118,7 @@ func (b *Backtester) processBalance() error {
 
 	return nil
 }
+
 func (b *Backtester) processEvents(events []events.Event) {
 	for _, e := range events {
 		e.HandleTrades(&b.trades)
