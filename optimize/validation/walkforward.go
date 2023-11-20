@@ -7,5 +7,5 @@ import (
 type WFSampler struct{}
 
 func (w *WFSampler) Samples(data data.ChartContainer) ([]SamplePair, error) {
-	panic("TODO")
+	panic("TODO: implement")
 }
