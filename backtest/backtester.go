@@ -62,7 +62,7 @@ func (b *Backtester) setup(
 	durations := (*system).MinDurations()
 	period := equityPeriod(charts, durations)
 
-	b.equity = *generateEquity(charts, period, durations, b.initialDepo)
+	b.equity = *generateEquity(charts, period, durations.Max(), b.initialDepo)
 
 	err := (*system).Start(charts.ChartsByPeriod(period))
 
@@ -129,7 +129,7 @@ func equityPeriod(
 	charts data.ChartContainer,
 	durations st.Durations,
 ) data.Period {
-	var start time.Time
+	var firstStart time.Time
 	var chartStart time.Time
 	var instMinDuration time.Duration
 	var instStart time.Time
@@ -142,8 +142,8 @@ func equityPeriod(
 		instMinDuration = durations[inst]
 		instStart = chartStart.Add(instMinDuration)
 
-		if start.Before(instStart) {
-			start = chartStart
+		if firstStart.Before(instStart) {
+			firstStart = chartStart
 		}
 
 		chartEnd = chart.Timestamp.End()
@@ -153,7 +153,7 @@ func equityPeriod(
 		}
 	}
 
-	return data.Period{start, latestEnd}
+	return data.Period{firstStart, latestEnd}
 }
 
 func maxTimeFrame(charts data.ChartContainer) data.TimeFrame {
@@ -173,12 +173,14 @@ func maxTimeFrame(charts data.ChartContainer) data.TimeFrame {
 func generateEquity(
 	charts data.ChartContainer,
 	period data.Period,
-	durations st.Durations,
+	maxDuration time.Duration,
 	initial float64,
 ) *data.Equity {
+	period = period.ShiftedStart(-maxDuration)
+	
 	timeframe := maxTimeFrame(charts)
 	duration := period[1].Sub(period[0])
-	length := int(duration/timeframe.Duration) + 2
+	length := int(duration/timeframe.Duration) + 1
 
 	return data.NewEquity(length, timeframe, period[0], initial)
 }
