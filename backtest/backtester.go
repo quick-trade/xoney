@@ -108,23 +108,19 @@ func equityPeriod(
 	durations st.Durations,
 ) data.Period {
 	var start time.Time
-	var chartStart time.Time
-	var instMinDuration time.Duration
-	var instStart time.Time
 
 	var latestEnd time.Time
-	var chartEnd time.Time
 
 	for inst, chart := range charts {
-		chartStart = chart.Timestamp.Start()
-		instMinDuration = durations[inst]
-		instStart = chartStart.Add(instMinDuration)
+		chartStart := chart.Timestamp.Start()
+		instMinDuration := durations[inst]
+		instStart := chartStart.Add(instMinDuration)
 
 		if start.Before(instStart) {
 			start = chartStart
 		}
 
-		chartEnd = chart.Timestamp.End()
+		chartEnd := chart.Timestamp.End()
 
 		if latestEnd.Before(chartEnd) {
 			latestEnd = chartEnd
@@ -136,10 +132,9 @@ func equityPeriod(
 
 func maxTimeFrame(charts data.ChartContainer) data.TimeFrame {
 	var tf data.TimeFrame
-	var chartTimeframe data.TimeFrame
 
 	for _, chart := range charts {
-		chartTimeframe = chart.Timestamp.Timeframe()
+		chartTimeframe := chart.Timestamp.Timeframe()
 		if tf.Duration < chartTimeframe.Duration {
 			tf = chartTimeframe
 		}
