@@ -54,11 +54,12 @@ func (m *MissingCurrencyError) Add(currency string) {
 	m.currencies = append(m.currencies, currency)
 }
 
-func (e MissingCurrencyError) Error() string {
+func (m MissingCurrencyError) Error() string {
 	var msg strings.Builder
 
 	msg.WriteString("missed currencies: ")
-	for _, currency := range e.currencies {
+
+	for _, currency := range m.currencies {
 		msg.WriteString(currency)
 		msg.WriteString(", ")
 	}
@@ -72,6 +73,7 @@ type NotEnoughFundsError struct {
 	Currency string
 	Quantity float64
 }
+
 func (e NotEnoughFundsError) Error() string {
 	var msg strings.Builder
 
@@ -84,6 +86,7 @@ func (e NotEnoughFundsError) Error() string {
 
 	return msg.String()
 }
+
 func NewNotEnoughFundsError(currency string, quantity float64) NotEnoughFundsError {
 	return NotEnoughFundsError{Currency: currency, Quantity: quantity}
 }

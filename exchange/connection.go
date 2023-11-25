@@ -7,18 +7,20 @@ import (
 	"xoney/internal/structures"
 )
 
-
 type OrderHeap struct {
 	heap structures.Heap[Order]
 }
+
 func (o OrderHeap) IndexByID(id uint) (int, error) {
 	for index, order := range o.heap.Members {
 		if order.ID() == id {
 			return index, nil
 		}
 	}
+
 	return -1, errors.ValueNotFoundError{}
 }
+
 func (o *OrderHeap) RemoveByID(id uint) error {
 	index, err := o.IndexByID(id)
 	if err != nil {
@@ -36,7 +38,7 @@ type Connector interface {
 }
 
 type Simulator struct {
-	portfolio common.Portfolio
+	portfolio   common.Portfolio
 	limitOrders OrderHeap
 }
 
@@ -45,14 +47,17 @@ func (s *Simulator) CancelOrder(id uint) error {
 }
 
 func (s *Simulator) PlaceOrder(order Order) error {
-	if order.type_ == Market {
+	if order.orderType == Market {
 		return s.executeMarketOrder(order)
 	}
+
 	return s.executeLimitOrder(order)
 }
+
 func (s *Simulator) executeMarketOrder(order Order) error {
 	panic("TODO: Implement")
 }
+
 func (s *Simulator) executeLimitOrder(order Order) error {
 	panic("TODO: Implement")
 }

@@ -2,10 +2,11 @@ package validation
 
 import (
 	"fmt"
-
-	bt "xoney/backtest"
 	"xoney/common"
 	"xoney/common/data"
+
+	bt "xoney/backtest"
+
 	opt "xoney/optimize"
 	st "xoney/strategy"
 )

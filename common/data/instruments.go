@@ -3,7 +3,6 @@ package data
 import (
 	"strings"
 	"time"
-
 	"xoney/errors"
 	"xoney/internal"
 )
@@ -14,6 +13,7 @@ type Currency struct {
 	Asset    string
 	Exchange Exchange
 }
+
 func (c Currency) String() string {
 	var str strings.Builder
 
@@ -25,9 +25,10 @@ func (c Currency) String() string {
 }
 
 type Symbol struct {
-	base     Currency
-	quote    Currency
+	base  Currency
+	quote Currency
 }
+
 func (s Symbol) String() string {
 	var full strings.Builder
 
@@ -40,8 +41,8 @@ func (s Symbol) String() string {
 	return full.String()
 }
 
-func (s Symbol) Base() Currency   { return s.base }
-func (s Symbol) Quote() Currency  { return s.quote }
+func (s Symbol) Base() Currency     { return s.base }
+func (s Symbol) Quote() Currency    { return s.quote }
 func (s Symbol) Exchange() Exchange { return s.base.Exchange }
 func NewSymbol(param string, rest ...string) (*Symbol, error) {
 	// TODO: add another initialization methods
@@ -60,8 +61,8 @@ func symbolByBaseQuoteExchange(param string, rest ...string) Symbol {
 	exchange := Exchange(rest[1])
 
 	return Symbol{
-		base:     Currency{Asset: base, Exchange: exchange},
-		quote:    Currency{Asset: quote, Exchange: exchange},
+		base:  Currency{Asset: base, Exchange: exchange},
+		quote: Currency{Asset: quote, Exchange: exchange},
 	}
 }
 

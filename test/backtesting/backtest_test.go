@@ -4,10 +4,9 @@ import (
 	"os"
 	"testing"
 	"time"
-	"xoney/common/data"
 
 	bt "xoney/backtest"
-
+	"xoney/common/data"
 	st "xoney/strategy"
 	testdata "xoney/testdata/backtesting"
 	dtr "xoney/testdata/dataread"
@@ -47,7 +46,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestBacktestReturnsEquity(t *testing.T) {
-	tester := bt.NewBacktester(1)
+	currency := data.Currency{Asset: "USD", Exchange: data.Exchange("SIMULATOR")}
+	tester := bt.NewBacktester(1, currency)
 	var system st.Tradable = testdata.NewBBStrategy(300, 1.5, instrument)
 
 	equity, err := tester.Backtest(charts, system)

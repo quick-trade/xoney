@@ -3,12 +3,12 @@ package backtest
 import (
 	"fmt"
 	"time"
+
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/events"
 	"xoney/exchange"
 	"xoney/internal"
-
 	st "xoney/strategy"
 )
 
@@ -17,16 +17,16 @@ type Backtester struct {
 	equity      data.Equity
 	portfolio   common.Portfolio
 	prices      map[data.Currency]float64
-	connector *exchange.Connector
+	connector   *exchange.Connector
 }
 
-func NewBacktester(initialDepo float64) *Backtester {
+func NewBacktester(initialDepo float64, currency data.Currency) *Backtester {
 	var simulator exchange.Connector = exchange.NewSimulator()
 
 	return &Backtester{
 		initialDepo: initialDepo,
 		equity:      data.Equity{},
-		portfolio:   common.NewPortfolio(internal.DefaultCapacity),
+		portfolio:   common.NewPortfolio(currency, internal.DefaultCapacity),
 		prices:      make(map[data.Currency]float64, internal.DefaultCapacity),
 		connector:   &simulator,
 	}
@@ -79,6 +79,7 @@ func (b *Backtester) runTest(
 
 	for _, candle := range charts.Candles() {
 		b.updatePrices(candle)
+
 		if candle.TimeClose.After(nextTime) {
 			if err := b.processBalance(); err != nil {
 				return err
