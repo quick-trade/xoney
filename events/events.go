@@ -1,7 +1,9 @@
 package events
 
-import "xoney/trade"
+import (
+	"xoney/exchange"
+)
 
 type Event interface {
-	HandleTrades(trades *trade.TradeHeap)
+	Occur(connector *exchange.Connector)
 }

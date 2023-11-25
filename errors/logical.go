@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"strconv"
 	"strings"
 	"time"
 )
@@ -56,10 +57,33 @@ func (m *MissingCurrencyError) Add(currency string) {
 func (e MissingCurrencyError) Error() string {
 	var msg strings.Builder
 
-	msg.WriteString("missed currency(ies): ")
+	msg.WriteString("missed currencies: ")
 	for _, currency := range e.currencies {
 		msg.WriteString(currency)
+		msg.WriteString(", ")
 	}
 
+	msg.WriteRune('.')
+
 	return msg.String()
+}
+
+type NotEnoughFundsError struct {
+	Currency string
+	Quantity float64
+}
+func (e NotEnoughFundsError) Error() string {
+	var msg strings.Builder
+
+	msg.WriteString("Not enough funds in portfolio: ")
+	msg.WriteString(strconv.FormatFloat(e.Quantity, 'f', -1, 64))
+	msg.WriteString(", ")
+	msg.WriteString(e.Currency)
+
+	msg.WriteRune('.')
+
+	return msg.String()
+}
+func NewNotEnoughFundsError(currency string, quantity float64) NotEnoughFundsError {
+	return NotEnoughFundsError{Currency: currency, Quantity: quantity}
 }

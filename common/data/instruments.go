@@ -8,22 +8,41 @@ import (
 	"xoney/internal"
 )
 
+type Exchange string
+
 type Currency struct {
 	Asset    string
-	Exchange string
+	Exchange Exchange
+}
+func (c Currency) String() string {
+	var str strings.Builder
+
+	str.WriteString(string(c.Exchange))
+	str.WriteRune(':')
+	str.WriteString(c.Asset)
+
+	return str.String()
 }
 
 type Symbol struct {
 	base     Currency
 	quote    Currency
-	exchange string // TODO: could be nil
-	full     string
+}
+func (s Symbol) String() string {
+	var full strings.Builder
+
+	full.WriteString(string(s.base.Exchange))
+	full.WriteRune(':')
+	full.WriteString(s.base.Asset)
+	full.WriteRune('/')
+	full.WriteString(s.quote.Asset)
+
+	return full.String()
 }
 
-func (s Symbol) String() string   { return s.full }
 func (s Symbol) Base() Currency   { return s.base }
 func (s Symbol) Quote() Currency  { return s.quote }
-func (s Symbol) Exchange() string { return s.exchange }
+func (s Symbol) Exchange() Exchange { return s.base.Exchange }
 func NewSymbol(param string, rest ...string) (*Symbol, error) {
 	// TODO: add another initialization methods
 	var symbol Symbol
@@ -38,21 +57,11 @@ func NewSymbol(param string, rest ...string) (*Symbol, error) {
 func symbolByBaseQuoteExchange(param string, rest ...string) Symbol {
 	base := param
 	quote := rest[0]
-	exchange := rest[1]
-
-	var full strings.Builder
-
-	full.WriteString(exchange)
-	full.WriteRune(':')
-	full.WriteString(base)
-	full.WriteRune('/')
-	full.WriteString(quote)
+	exchange := Exchange(rest[1])
 
 	return Symbol{
 		base:     Currency{Asset: base, Exchange: exchange},
 		quote:    Currency{Asset: quote, Exchange: exchange},
-		exchange: exchange,
-		full:     full.String(),
 	}
 }
 

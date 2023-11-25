@@ -28,7 +28,6 @@ type Tradable interface {
 type VectorizedTradable interface {
 	Tradable
 	Backtest(
-		commission float64,
 		initialDepo float64,
 		charts data.ChartContainer,
 	) (data.Equity, error)
