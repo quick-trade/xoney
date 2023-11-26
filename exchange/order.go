@@ -19,12 +19,12 @@ const (
 )
 
 type Order struct {
-	symbol data.Symbol
-	orderType  OrderType
-	side   OrderSide
-	id     uint
-	price  float64
-	amount float64
+	symbol    data.Symbol
+	orderType OrderType
+	side      OrderSide
+	id        uint
+	price     float64
+	amount    float64
 }
 
 func (o Order) Symbol() data.Symbol { return o.symbol }
@@ -36,4 +36,8 @@ func (o Order) Amount() float64     { return o.amount }
 
 func (o Order) IsEqual(other *Order) bool {
 	return o.id == other.id
+}
+
+func crossesPrice(order Order, high, low float64) bool {
+	return low <= order.price && order.price <= high
 }

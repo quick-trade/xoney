@@ -18,7 +18,7 @@ func (o OrderHeap) IndexByID(id uint) (int, error) {
 		}
 	}
 
-	return -1, errors.ValueNotFoundError{}
+	return -1, errors.NewNoLimitOrderError(id)
 }
 
 func (o *OrderHeap) RemoveByID(id uint) error {
@@ -38,6 +38,7 @@ type Connector interface {
 }
 
 type Simulator struct {
+	prices      map[data.Currency]float64
 	portfolio   common.Portfolio
 	limitOrders OrderHeap
 }
@@ -51,15 +52,60 @@ func (s *Simulator) PlaceOrder(order Order) error {
 		return s.executeMarketOrder(order)
 	}
 
-	return s.executeLimitOrder(order)
+	s.executeLimitOrder(order)
+
+	return nil
 }
 
 func (s *Simulator) executeMarketOrder(order Order) error {
-	panic("TODO: Implement")
+	baseQuantity := order.amount
+	quoteQuantity := baseQuantity * order.price
+
+	symbol := order.symbol
+	quote := symbol.Quote()
+	base := symbol.Base()
+
+	if order.side == Buy {
+		return s.executeBuyOrder(base, quote, baseQuantity, quoteQuantity)
+	}
+
+	return s.executeSellOrder(base, quote, baseQuantity, quoteQuantity)
 }
 
-func (s *Simulator) executeLimitOrder(order Order) error {
-	panic("TODO: Implement")
+func (s *Simulator) executeBuyOrder(base, quote data.Currency, baseQuantity, quoteQuantity float64) error {
+	if quoteQuantity > s.portfolio.Balance(quote) {
+		return errors.NewNotEnoughFundsError(quote.String(), quoteQuantity)
+	}
+
+	s.portfolio.Increase(base, baseQuantity)
+	s.portfolio.Decrease(quote, quoteQuantity)
+
+	return nil
+}
+
+func (s *Simulator) executeSellOrder(base, quote data.Currency, baseQuantity, quoteQuantity float64) error {
+	if baseQuantity > s.portfolio.Balance(base) {
+		return errors.NewNotEnoughFundsError(quote.String(), quoteQuantity)
+	}
+
+	s.portfolio.Decrease(base, baseQuantity)
+	s.portfolio.Increase(quote, quoteQuantity)
+
+	return nil
+}
+
+func (s *Simulator) executeLimitOrder(order Order) {
+	s.limitOrders.heap.Add(order)
+}
+
+func (s *Simulator) updateLimits(high, low float64) error {
+	for i, order := range s.limitOrders.heap.Members {
+		if crossesPrice(order, high, low) {
+			s.limitOrders.heap.RemoveAt(i)
+			return s.executeMarketOrder(order)
+		}
+	}
+	return nil
 }
 
 func (s *Simulator) Portfolio() *common.Portfolio {
@@ -79,6 +125,18 @@ func (s *Simulator) Transfer(quantity float64, currency data.Currency, target da
 	return nil
 }
 
+func (s *Simulator) UpdatePrice(candle data.InstrumentCandle) error {
+	symbol := candle.Symbol()
+	base := symbol.Base()
+	quote := symbol.Quote()
+
+	if quote == s.portfolio.MainCurrency() {
+		s.prices[base] = candle.Close
+	}
+
+	return s.updateLimits(candle.High, candle.Low)
+}
+
 func NewSimulator() *Simulator {
-	return nil
+	panic("TODO: implement")
 }

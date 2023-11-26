@@ -90,3 +90,21 @@ func (e NotEnoughFundsError) Error() string {
 func NewNotEnoughFundsError(currency string, quantity float64) NotEnoughFundsError {
 	return NotEnoughFundsError{Currency: currency, Quantity: quantity}
 }
+
+type NoLimitOrderError struct {
+	id uint
+}
+
+func (e NoLimitOrderError) Error() string {
+	var msg strings.Builder
+
+	msg.WriteString("there is no such limit order with ID: ")
+	msg.WriteString(string(e.id))
+	msg.WriteRune('.')
+
+	return msg.String()
+}
+
+func NewNoLimitOrderError(id uint) NoLimitOrderError {
+	return NoLimitOrderError{id: id}
+}

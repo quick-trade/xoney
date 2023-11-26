@@ -52,10 +52,10 @@ func (p *Portfolio) Increase(currency data.Currency, quantity float64) {
 func (p *Portfolio) Decrease(currency data.Currency, quantity float64) {
 	p.assets[currency] -= quantity
 }
-
-func NewPortfolio(mainCurrency data.Currency ,capacity int) Portfolio {
+func (p Portfolio) MainCurrency() data.Currency { return p.mainCurrency }
+func NewPortfolio(mainCurrency data.Currency, capacity int) Portfolio {
 	return Portfolio{
-		assets: make(map[data.Currency]float64, capacity),
+		assets:       make(map[data.Currency]float64, capacity),
 		mainCurrency: mainCurrency,
 	}
 }
