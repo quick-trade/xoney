@@ -38,6 +38,20 @@ func (o Order) IsEqual(other *Order) bool {
 	return o.id == other.id
 }
 
+func NewOrder(symbol data.Symbol, orderType OrderType, side OrderSide, price, amount float64) *Order {
+	return &Order{
+		symbol:    symbol,
+		orderType: orderType,
+		side:      side,
+		price:     price,
+		amount:    amount,
+		id:        0, // BUGFIX: make exchange id or random
+	}
+}
+
 func crossesPrice(order Order, high, low float64) bool {
-	return low <= order.price && order.price <= high
+	if order.side == Buy {
+		return low < order.price
+	}
+	return high > order.price
 }

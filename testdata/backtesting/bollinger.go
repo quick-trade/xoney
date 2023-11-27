@@ -3,8 +3,10 @@ package backtesting
 import (
 	"math"
 	"time"
+
 	"xoney/common/data"
 	"xoney/events"
+	"xoney/exchange"
 	"xoney/internal"
 	"xoney/strategy"
 )
@@ -20,15 +22,15 @@ type BBBStrategy struct {
 	Deviation  float64
 	instrument data.Instrument
 	chart      data.Chart
+	first bool
 }
 
-func (b *BBBStrategy) Backtest(
-	commission float64,
+func (b *BBBStrategy) Bacdktest(
 	initialDepo float64,
 	charts data.ChartContainer,
 ) (data.Equity, error) {
 	b.chart = charts[b.instrument]
-	equity := *data.NewEquity(len(b.chart.Close), b.instrument.Timeframe(), time.Now(), 1000)
+	equity := *data.NewEquity(len(b.chart.Close), b.instrument.Timeframe(), time.Now())
 	equity.AddValue(initialDepo)
 
 	price := b.chart.Close
@@ -80,11 +82,25 @@ func NewBBStrategy(period int, deviation float64, instrument data.Instrument) *B
 		Deviation:  deviation,
 		instrument: instrument,
 		chart:      data.RawChart(instrument.Timeframe(), 0),
+		first: true,
 	}
 }
 
 func (b *BBBStrategy) Next(candle data.InstrumentCandle) ([]events.Event, error) {
-	panic("not implemented")
+	if !b.first { return []events.Event{}, nil}
+	if candle.Instrument == b.instrument {
+		b.first = false
+		return []events.Event{
+			events.NewOpenOrder(
+				*exchange.NewOrder(candle.Symbol(), exchange.Limit, exchange.Buy, 16800, 17099.96/candle.Close),
+			),
+			events.NewOpenOrder(
+				*exchange.NewOrder(candle.Symbol(), exchange.Limit, exchange.Sell, 18000, 17099.96/candle.Close),
+			),
+			}, nil
+		}
+
+	return []events.Event{}, nil
 }
 
 func (b *BBBStrategy) Start(charts data.ChartContainer) error {
@@ -94,5 +110,12 @@ func (b *BBBStrategy) Start(charts data.ChartContainer) error {
 func (b BBBStrategy) MinDurations() strategy.Durations {
 	return strategy.Durations{
 		b.instrument: b.instrument.Timeframe().Duration * time.Duration(b.Period),
+	}
+}
+
+func (b *BBBStrategy) Parameters() []strategy.Parameter {
+	return []strategy.Parameter{
+		strategy.NewIntParameter("Period", 1, 600),
+		strategy.NewFloatParameter("Deviation", 0, 4),
 	}
 }

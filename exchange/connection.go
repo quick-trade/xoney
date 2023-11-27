@@ -4,6 +4,7 @@ import (
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"
+	"xoney/internal"
 	"xoney/internal/structures"
 )
 
@@ -30,11 +31,20 @@ func (o *OrderHeap) RemoveByID(id uint) error {
 	return o.heap.RemoveAt(index)
 }
 
+func newOrderHeap(capacity int) OrderHeap {
+	return OrderHeap{
+		heap: structures.Heap[Order]{
+			Members: make([]Order, 0, capacity),
+		},
+	}
+}
+
 type Connector interface {
 	PlaceOrder(order Order) error
 	CancelOrder(id uint) error
 	Transfer(quantity float64, currency data.Currency, target data.Exchange) error
-	Portfolio() *common.Portfolio
+	Balance(currency data.Currency) float64
+	Total() (float64, error)
 }
 
 type Simulator struct {
@@ -108,10 +118,6 @@ func (s *Simulator) updateLimits(high, low float64) error {
 	return nil
 }
 
-func (s *Simulator) Portfolio() *common.Portfolio {
-	return &s.portfolio
-}
-
 func (s *Simulator) Transfer(quantity float64, currency data.Currency, target data.Exchange) error {
 	if s.portfolio.Balance(currency) < quantity {
 		return errors.NewNotEnoughFundsError(currency.String(), quantity)
@@ -137,6 +143,21 @@ func (s *Simulator) UpdatePrice(candle data.InstrumentCandle) error {
 	return s.updateLimits(candle.High, candle.Low)
 }
 
-func NewSimulator() *Simulator {
-	panic("TODO: implement")
+func (s *Simulator) Balance(currency data.Currency) float64 {
+	return s.portfolio.Balance(currency)
+}
+
+func (s *Simulator) Total() (float64, error) {
+	return s.portfolio.Total(s.prices)
+}
+
+func NewSimulator(currency data.Currency, initialDepo float64) Simulator {
+	portfolio := common.NewPortfolio(currency, internal.DefaultCapacity)
+	portfolio.Set(currency, initialDepo)
+
+	return Simulator{
+		prices:      make(map[data.Currency]float64, internal.DefaultCapacity),
+		portfolio:   portfolio,
+		limitOrders: newOrderHeap(internal.DefaultCapacity),
+	}
 }

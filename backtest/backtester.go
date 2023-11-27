@@ -3,32 +3,23 @@ package backtest
 import (
 	"fmt"
 	"time"
-
-	"xoney/common"
 	"xoney/common/data"
 	"xoney/events"
 	"xoney/exchange"
-	"xoney/internal"
 	st "xoney/strategy"
 )
 
 type Backtester struct {
 	initialDepo float64
 	equity      data.Equity
-	portfolio   common.Portfolio
-	prices      map[data.Currency]float64
-	connector   *exchange.Connector
+	simulator   exchange.Simulator
 }
 
 func NewBacktester(initialDepo float64, currency data.Currency) *Backtester {
-	var simulator exchange.Connector = exchange.NewSimulator()
-
 	return &Backtester{
 		initialDepo: initialDepo,
 		equity:      data.Equity{},
-		portfolio:   common.NewPortfolio(currency, internal.DefaultCapacity),
-		prices:      make(map[data.Currency]float64, internal.DefaultCapacity),
-		connector:   &simulator,
+		simulator:   exchange.NewSimulator(currency, initialDepo),
 	}
 }
 
@@ -40,12 +31,12 @@ func (b *Backtester) Backtest(
 		return vecTradable.Backtest(b.initialDepo, charts)
 	}
 
-	err := b.setup(charts, &system)
+	err := b.setup(charts, system)
 	if err != nil {
 		return b.equity, fmt.Errorf("error during backtest setup: %w", err)
 	}
 
-	err = b.runTest(charts, &system)
+	err = b.runTest(charts, system)
 	if err != nil {
 		return b.equity, fmt.Errorf("error during backtest: %w", err)
 	}
@@ -55,30 +46,31 @@ func (b *Backtester) Backtest(
 
 func (b *Backtester) setup(
 	charts data.ChartContainer,
-	system *st.Tradable,
+	system st.Tradable,
 ) error {
-	durations := (*system).MinDurations()
+	// TODO: add cleaning up an exchange
+	durations := system.MinDurations()
 	period := equityPeriod(charts, durations)
 
-	b.equity = *generateEquity(charts, period, durations.Max(), b.initialDepo)
+	b.equity = *generateEquity(charts, period, durations.Max())
 
-	err := (*system).Start(charts.ChartsByPeriod(period))
+	err := system.Start(charts.ChartsByPeriod(period))
 
 	return err
 }
 
 func (b *Backtester) runTest(
 	charts data.ChartContainer,
-	system *st.Tradable,
+	system st.Tradable,
 ) error {
-	start := b.equity.Timestamp.Start()
+	start := b.equity.Start()
 	timeframe := b.equity.Timeframe().Duration
 	nextTime := start.Add(timeframe)
 
-	clear(b.prices)
-
 	for _, candle := range charts.Candles() {
-		b.updatePrices(candle)
+		if err := b.updatePrices(candle); err != nil {
+			return err
+		}
 
 		if candle.TimeClose.After(nextTime) {
 			if err := b.processBalance(); err != nil {
@@ -88,7 +80,7 @@ func (b *Backtester) runTest(
 			nextTime = nextTime.Add(timeframe)
 		}
 
-		events, err := (*system).Next(candle)
+		events, err := system.Next(candle)
 		if err != nil {
 			return err
 		}
@@ -99,12 +91,12 @@ func (b *Backtester) runTest(
 	return nil
 }
 
-func (b *Backtester) updatePrices(candle data.InstrumentCandle) {
-	b.prices[candle.Instrument.Symbol().Base()] = candle.Close
+func (b *Backtester) updatePrices(candle data.InstrumentCandle) error {
+	return b.simulator.UpdatePrice(candle)
 }
 
 func (b *Backtester) processBalance() error {
-	totalBalance, err := b.portfolio.Total(b.prices)
+	totalBalance, err := b.simulator.Total()
 	if err != nil {
 		return err
 	}
@@ -116,7 +108,8 @@ func (b *Backtester) processBalance() error {
 
 func (b *Backtester) processEvents(events []events.Event) {
 	for _, e := range events {
-		e.Occur(b.connector)
+		// TODO: handle errors
+		e.Occur(&b.simulator)
 	}
 }
 
@@ -169,7 +162,6 @@ func generateEquity(
 	charts data.ChartContainer,
 	period data.Period,
 	maxDuration time.Duration,
-	initial float64,
 ) *data.Equity {
 	period = period.ShiftedStart(-maxDuration)
 
@@ -177,5 +169,5 @@ func generateEquity(
 	duration := period[1].Sub(period[0])
 	length := int(duration/timeframe.Duration) + 1
 
-	return data.NewEquity(length, timeframe, period[0], initial)
+	return data.NewEquity(length, timeframe, period[0])
 }

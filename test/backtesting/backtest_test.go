@@ -19,17 +19,17 @@ var (
 
 func TestMain(m *testing.M) {
 	// Uploading chart data once
-	chart, err := dtr.LoadChartFromCSV("../../testdata/BTCUSDT15m.csv")
+	timeframe, err := data.NewTimeFrame(time.Minute*15, "15m")
+	if err != nil {
+		panic(err)
+	}
+
+	chart, err := dtr.LoadChartFromCSV("../../testdata/BTCUSDT15m.csv", *timeframe)
 	if err != nil {
 		panic(err)
 	}
 
 	charts = make(data.ChartContainer, 1)
-
-	timeframe, err := data.NewTimeFrame(time.Minute*15, "15m")
-	if err != nil {
-		panic(err)
-	}
 
 	sym, err := data.NewSymbol("BTC", "USD", "BINANCE")
 	if err != nil {
@@ -46,8 +46,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestBacktestReturnsEquity(t *testing.T) {
-	currency := data.Currency{Asset: "USD", Exchange: data.Exchange("SIMULATOR")}
-	tester := bt.NewBacktester(1, currency)
+	currency := data.Currency{Asset: "USD", Exchange: data.Exchange("BINANCE")}
+	tester := bt.NewBacktester(17099.96, currency)
 	var system st.Tradable = testdata.NewBBStrategy(300, 1.5, instrument)
 
 	equity, err := tester.Backtest(charts, system)
