@@ -1,7 +1,21 @@
 package events
 
-import "xoney/trade"
+import (
+	"xoney/exchange"
+)
 
 type Event interface {
-	HandleTrades(trades *trade.TradeHeap)
+	Occur(connector exchange.Connector) error
+}
+
+type OpenOrder struct {
+	order exchange.Order
+}
+
+func (o *OpenOrder) Occur(connector exchange.Connector) error {
+	return connector.PlaceOrder(o.order)
+}
+
+func NewOpenOrder(order exchange.Order) *OpenOrder {
+	return &OpenOrder{order: order}
 }

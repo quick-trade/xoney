@@ -9,7 +9,7 @@ import (
 	"xoney/common/data"
 )
 
-func LoadChartFromCSV(filePath string) (data.Chart, error) {
+func LoadChartFromCSV(filePath string, tf data.TimeFrame) (data.Chart, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return data.Chart{}, fmt.Errorf("Error opening file: %w", err)
@@ -23,7 +23,14 @@ func LoadChartFromCSV(filePath string) (data.Chart, error) {
 		return data.Chart{}, fmt.Errorf("Error reading CSV: %w", err)
 	}
 
-	var chart data.Chart
+	chart := data.Chart{
+		Open: make([]float64, 0, 1000),
+		High: make([]float64, 0, 1000),
+		Low: make([]float64, 0, 1000),
+		Close: make([]float64, 0, 1000),
+		Volume: make([]float64, 0, 1000),
+		Timestamp: data.NewTimeStamp(tf, 1000),
+	}
 
 	for _, row := range rows[1:] {
 		timestampStr := row[0]

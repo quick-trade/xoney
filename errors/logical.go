@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"strconv"
 	"strings"
 	"time"
 )
@@ -23,12 +24,6 @@ func (e ZeroLengthError) Error() string {
 	return e.Character
 }
 
-type IncorrectSymbolError struct{}
-
-func (e IncorrectSymbolError) Error() string {
-	return "incorrect symbol initialization."
-}
-
 type IncorrectDurationError struct {
 	Duration time.Duration
 }
@@ -47,8 +42,69 @@ func NewIncorrectDurationError(duration time.Duration) IncorrectDurationError {
 	return IncorrectDurationError{Duration: duration}
 }
 
-type UnsuccessfulChartSlicingError struct{}
+type MissingCurrencyError struct {
+	currencies []string
+}
 
-func (e UnsuccessfulChartSlicingError) Error() string {
-	return "cannot slice a chart."
+func NewMissingCurrencyError(capacity int) MissingCurrencyError {
+	return MissingCurrencyError{currencies: make([]string, 0, capacity)}
+}
+
+func (m *MissingCurrencyError) Add(currency string) {
+	m.currencies = append(m.currencies, currency)
+}
+
+func (m MissingCurrencyError) Error() string {
+	var msg strings.Builder
+
+	msg.WriteString("missed currencies: ")
+
+	for _, currency := range m.currencies {
+		msg.WriteString(currency)
+		msg.WriteString(", ")
+	}
+
+	msg.WriteRune('.')
+
+	return msg.String()
+}
+
+type NotEnoughFundsError struct {
+	Currency string
+	Quantity float64
+}
+
+func (e NotEnoughFundsError) Error() string {
+	var msg strings.Builder
+
+	msg.WriteString("Not enough funds in portfolio: ")
+	msg.WriteString(strconv.FormatFloat(e.Quantity, 'f', -1, 64))
+	msg.WriteString(", ")
+	msg.WriteString(e.Currency)
+
+	msg.WriteRune('.')
+
+	return msg.String()
+}
+
+func NewNotEnoughFundsError(currency string, quantity float64) NotEnoughFundsError {
+	return NotEnoughFundsError{Currency: currency, Quantity: quantity}
+}
+
+type NoLimitOrderError struct {
+	id uint
+}
+
+func (e NoLimitOrderError) Error() string {
+	var msg strings.Builder
+
+	msg.WriteString("there is no such limit order with ID: ")
+	msg.WriteString(string(e.id))
+	msg.WriteRune('.')
+
+	return msg.String()
+}
+
+func NewNoLimitOrderError(id uint) NoLimitOrderError {
+	return NoLimitOrderError{id: id}
 }

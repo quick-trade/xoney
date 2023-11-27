@@ -62,6 +62,7 @@ func (t TimeStamp) End() time.Time {
 func (t TimeStamp) Start() time.Time {
 	return t.At(0)
 }
+func (t TimeStamp) Len() int { return len(t.Timestamp) }
 
 type Candle struct {
 	Open      float64
@@ -207,9 +208,12 @@ func (c ChartContainer) Candles() []InstrumentCandle {
 			minKey = instIdx
 			idx := pointers[instIdx]
 			chart := c[inst]
+			if idx >= chart.Len() {
+				break
+			}
 			moment := chart.Timestamp.At(idx)
 
-			if idx < chart.Len() && (minIndex == -1 || moment.Before(minTime)) {
+			if minIndex == -1 || moment.Before(minTime) {
 				minTime = moment
 				minChart = chart
 				minInstrument = inst
@@ -220,7 +224,6 @@ func (c ChartContainer) Candles() []InstrumentCandle {
 		if minIndex == -1 {
 			break
 		}
-
 		candle, _ := minChart.CandleByIndex(minIndex)
 		instCandle := InstrumentCandle{Candle: *candle, Instrument: minInstrument}
 		result = internal.Append(result, instCandle)
