@@ -11,16 +11,14 @@ import (
 )
 
 type Backtester struct {
-	initialDepo float64
 	equity      data.Equity
 	simulator   exchange.Simulator
 }
 
-func NewBacktester(initialDepo float64, currency data.Currency) *Backtester {
+func NewBacktester(simulator exchange.Simulator) *Backtester {
 	return &Backtester{
-		initialDepo: initialDepo,
 		equity:      data.Equity{},
-		simulator:   exchange.NewSimulator(currency, initialDepo),
+		simulator:   simulator,
 	}
 }
 
@@ -29,7 +27,7 @@ func (b *Backtester) Backtest(
 	system st.Tradable,
 ) (data.Equity, error) {
 	if vecTradable, ok := system.(st.VectorizedTradable); ok {
-		return vecTradable.Backtest(b.initialDepo, charts)
+		return vecTradable.Backtest(b.simulator, charts)
 	}
 
 	err := b.setup(charts, system)
@@ -167,5 +165,5 @@ func generateEquity(
 	duration := period[1].Sub(period[0])
 	length := int(duration/timeframe.Duration) + 1
 
-	return data.NewEquity(length, timeframe, period[0])
+	return data.NewEquity(timeframe, period[0], length)
 }

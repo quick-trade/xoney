@@ -6,7 +6,9 @@ import (
 	"time"
 
 	bt "xoney/backtest"
+	"xoney/common"
 	"xoney/common/data"
+	"xoney/exchange"
 	st "xoney/strategy"
 	testdata "xoney/testdata/backtesting"
 	dtr "xoney/testdata/dataread"
@@ -46,8 +48,13 @@ func TestMain(m *testing.M) {
 }
 
 func TestBacktestReturnsEquity(t *testing.T) {
-	currency := data.Currency{Asset: "USD", Exchange: data.Exchange("BINANCE")}
-	tester := bt.NewBacktester(17099.96, currency)
+	currency := data.NewCurrency("USD", "BINANCE")
+	portfolio := common.NewPortfolio(currency)
+	portfolio.Set(currency, 20000)
+
+	simulator := exchange.NewSimulator(portfolio)
+	tester := bt.NewBacktester(simulator)
+
 	var system st.Tradable = testdata.NewBBStrategy(300, 1.5, instrument)
 
 	equity, err := tester.Backtest(charts, system)
@@ -57,7 +64,7 @@ func TestBacktestReturnsEquity(t *testing.T) {
 
 	history := equity.Deposit()
 	balanceHistory := equity.PortfolioHistory()
-	balanceHistory[data.Currency{Asset: "Total", Exchange: ""}] = history
+	balanceHistory[data.NewCurrency("Total", "")] = history
 
 
 	err = dtr.WriteMap(balanceHistory, "../../testdata/BBEquity.csv")

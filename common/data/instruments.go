@@ -23,6 +23,12 @@ func (c Currency) String() string {
 
 	return str.String()
 }
+func NewCurrency[E Exchange | string](asset string, exchange E) Currency {
+	return Currency{
+		Asset: asset,
+		Exchange: Exchange(exchange),
+	}
+}
 
 type Symbol struct {
 	base  Currency
@@ -61,8 +67,8 @@ func symbolByBaseQuoteExchange(param string, rest ...string) Symbol {
 	exchange := Exchange(rest[1])
 
 	return Symbol{
-		base:  Currency{Asset: base, Exchange: exchange},
-		quote: Currency{Asset: quote, Exchange: exchange},
+		base:  NewCurrency(base, exchange),
+		quote: NewCurrency(quote, exchange),
 	}
 }
 

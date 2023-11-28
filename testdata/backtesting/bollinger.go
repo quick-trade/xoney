@@ -30,7 +30,7 @@ func (b *BBBStrategy) Bacdktest(
 	charts data.ChartContainer,
 ) (data.Equity, error) {
 	b.chart = charts[b.instrument]
-	equity := *data.NewEquity(len(b.chart.Close), b.instrument.Timeframe(), time.Now())
+	equity := *data.NewEquity(b.instrument.Timeframe(), time.Now(), len(b.chart.Close))
 	equity.AddValue(initialDepo)
 
 	price := b.chart.Close

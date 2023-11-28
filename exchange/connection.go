@@ -12,7 +12,7 @@ type OrderHeap struct {
 	heap structures.Heap[Order]
 }
 
-func (o OrderHeap) IndexByID(id uint) (int, error) {
+func (o OrderHeap) IndexByID(id uint64) (int, error) {
 	for index, order := range o.heap.Members {
 		if order.ID() == id {
 			return index, nil
@@ -22,7 +22,7 @@ func (o OrderHeap) IndexByID(id uint) (int, error) {
 	return -1, errors.NewNoLimitOrderError(id)
 }
 
-func (o *OrderHeap) RemoveByID(id uint) error {
+func (o *OrderHeap) RemoveByID(id uint64) error {
 	index, err := o.IndexByID(id)
 	if err != nil {
 		return err
@@ -41,11 +41,11 @@ func newOrderHeap(capacity int) OrderHeap {
 
 type Connector interface {
 	PlaceOrder(order Order) error
-	CancelOrder(id uint) error
+	CancelOrder(id uint64) error
 	CancelAllOrders() error
 	Transfer(quantity float64, currency data.Currency, target data.Exchange) error
 	Total() (float64, error)
-	Portfolio() *common.Portfolio
+	Portfolio() common.Portfolio
 
 }
 
@@ -55,7 +55,7 @@ type Simulator struct {
 	limitOrders OrderHeap
 }
 
-func (s *Simulator) CancelOrder(id uint) error {
+func (s *Simulator) CancelOrder(id uint64) error {
 	return s.limitOrders.RemoveByID(id)
 }
 
@@ -153,14 +153,11 @@ func (s *Simulator) CancelAllOrders() error {
 func (s *Simulator) Total() (float64, error) {
 	return s.portfolio.Total(s.prices)
 }
-func (s *Simulator) Portfolio() *common.Portfolio {
-	return &s.portfolio
+func (s *Simulator) Portfolio() common.Portfolio {
+	return s.portfolio
 }
 
-func NewSimulator(currency data.Currency, initialDepo float64) Simulator {
-	portfolio := common.NewPortfolio(currency, internal.DefaultCapacity)
-	portfolio.Set(currency, initialDepo)
-
+func NewSimulator(portfolio common.Portfolio) Simulator {
 	return Simulator{
 		prices:      make(map[data.Currency]float64, internal.DefaultCapacity),
 		portfolio:   portfolio,

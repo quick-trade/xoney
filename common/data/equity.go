@@ -56,9 +56,9 @@ func (e *Equity) Now() float64 {
 func (e *Equity) Start() time.Time { return e.startTime }
 
 func NewEquity(
-	capacity int,
 	timeframe TimeFrame,
 	start time.Time,
+	capacity int,
 ) *Equity {
 	history := make([]float64, 0, capacity)
 	timestamp := NewTimeStamp(timeframe, capacity)

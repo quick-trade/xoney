@@ -5,6 +5,7 @@ import (
 
 	"xoney/common/data"
 	"xoney/events"
+	"xoney/exchange"
 )
 
 type Durations map[data.Instrument]time.Duration
@@ -29,8 +30,8 @@ type Tradable interface {
 type VectorizedTradable interface {
 	Tradable
 	Backtest(
-		initialDepo float64,
-		charts data.ChartContainer,
+		simulator exchange.Simulator,
+		charts    data.ChartContainer,
 	) (data.Equity, error)
 }
 
