@@ -40,6 +40,7 @@ func (p Portfolio) Total(prices map[data.Currency]float64) (float64, error) {
 func (p Portfolio) Balance(currency data.Currency) float64 {
 	return p.assets[currency]
 }
+func (p Portfolio) Assets() map[data.Currency]float64 { return p.assets }
 
 func (p *Portfolio) Set(currency data.Currency, quantity float64) {
 	p.assets[currency] = quantity

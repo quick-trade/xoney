@@ -81,7 +81,7 @@ func LoadChartFromCSV(filePath string, tf data.TimeFrame) (data.Chart, error) {
 	return chart, nil
 }
 
-func WriteSlice(data []float64, columnName string, filename string) error {
+func WriteMap(data_map map[data.Currency][]float64, filename string) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -91,16 +91,44 @@ func WriteSlice(data []float64, columnName string, filename string) error {
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	if err := writer.Write([]string{columnName}); err != nil {
+	columns := make([]string, 0, 10)
+	currencies := make([]data.Currency, 0, 10)
+
+	for k := range data_map {
+		columns = append(columns, k.String())
+		currencies = append(currencies, k)
+	}
+
+	if err := writer.Write(columns); err != nil {
 		return err
 	}
 
-	for _, value := range data {
-		row := []string{fmt.Sprintf("%f", value)}
+	maxLen := maxRowLength(data_map)
+
+	for i := 0; i < maxLen; i++ {
+		row := make([]string, 0, 10)
+		for _, currency := range currencies {
+			val := 0.0
+			if i < len(data_map[currency]){
+				val = data_map[currency][i]
+			}
+
+			row = append(row, strconv.FormatFloat(val, 'f', -1, 64))
+		}
 		if err := writer.Write(row); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func maxRowLength(data map[data.Currency][]float64) int {
+	maxLength := 0
+	for _, values := range data {
+		if len(values) > maxLength {
+			maxLength = len(values)
+		}
+	}
+	return maxLength
 }

@@ -7,7 +7,8 @@ import (
 
 type Equity struct {
 	startTime time.Time
-	history   []float64
+	portfolioHistory []map[Currency]float64
+	mainHistory   []float64
 	Timestamp TimeStamp
 	timeframe TimeFrame
 }
@@ -16,9 +17,25 @@ func (e *Equity) Timeframe() TimeFrame {
 	return e.timeframe
 }
 
-func (e *Equity) Deposit() []float64 { return e.history }
+func (e *Equity) Deposit() []float64 { return e.mainHistory }
+func (e *Equity) PortfolioHistory() map[Currency][]float64 {
+	last := e.portfolioHistory[len(e.portfolioHistory)-1]
+	result := make(map[Currency][]float64, len(last))
+
+	for i := range e.mainHistory {
+		for currency := range last {
+			value := e.portfolioHistory[i][currency]
+			result[currency] = internal.Append(result[currency], value)
+		}
+	}
+
+	return result
+}
+func (e *Equity) AddPortfolio(portfolio map[Currency]float64) {
+	e.portfolioHistory = internal.Append(e.portfolioHistory, portfolio)
+}
 func (e *Equity) AddValue(value float64) {
-	e.history = internal.Append(e.history, value)
+	e.mainHistory = internal.Append(e.mainHistory, value)
 	if e.Timestamp.Len() == 0 {
 		e.Timestamp.Append(e.startTime)
 	} else {
@@ -27,7 +44,7 @@ func (e *Equity) AddValue(value float64) {
 }
 
 func (e *Equity) Now() float64 {
-	return e.history[len(e.history)-1]
+	return e.mainHistory[len(e.mainHistory)-1]
 }
 func (e *Equity) Start() time.Time { return e.startTime }
 
@@ -41,7 +58,8 @@ func NewEquity(
 
 	return &Equity{
 		startTime: start,
-		history:   history,
+		portfolioHistory: make([]map[Currency]float64, internal.DefaultCapacity),
+		mainHistory:   history,
 		Timestamp: timestamp,
 		timeframe: timeframe,
 	}

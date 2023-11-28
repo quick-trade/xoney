@@ -92,10 +92,10 @@ func (b *BBBStrategy) Next(candle data.InstrumentCandle) ([]events.Event, error)
 		b.first = false
 		return []events.Event{
 			events.NewOpenOrder(
-				*exchange.NewOrder(candle.Symbol(), exchange.Limit, exchange.Buy, 16800, 17099.96/candle.Close),
+				*exchange.NewOrder(candle.Symbol(), exchange.Limit, exchange.Buy, 16510, 17099.96/candle.Close),
 			),
 			events.NewOpenOrder(
-				*exchange.NewOrder(candle.Symbol(), exchange.Limit, exchange.Sell, 18000, 17099.96/candle.Close),
+				*exchange.NewOrder(candle.Symbol(), exchange.Limit, exchange.Sell, 24000, 17099.96/candle.Close),
 			),
 			}, nil
 		}

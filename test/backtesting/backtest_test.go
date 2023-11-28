@@ -55,7 +55,12 @@ func TestBacktestReturnsEquity(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	err = dtr.WriteSlice(equity.Deposit(), "Equity", "../../testdata/BBEquity.csv")
+	history := equity.Deposit()
+	balanceHistory := equity.PortfolioHistory()
+	balanceHistory[data.Currency{Asset: "Total", Exchange: ""}] = history
+
+
+	err = dtr.WriteMap(balanceHistory, "../../testdata/BBEquity.csv")
 	if err != nil {
 		t.Error(err.Error())
 	}

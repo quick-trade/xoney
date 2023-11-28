@@ -42,9 +42,11 @@ func newOrderHeap(capacity int) OrderHeap {
 type Connector interface {
 	PlaceOrder(order Order) error
 	CancelOrder(id uint) error
+	CancelAllOrders() error
 	Transfer(quantity float64, currency data.Currency, target data.Exchange) error
-	Balance(currency data.Currency) float64
 	Total() (float64, error)
+	Portfolio() *common.Portfolio
+
 }
 
 type Simulator struct {
@@ -143,12 +145,16 @@ func (s *Simulator) UpdatePrice(candle data.InstrumentCandle) error {
 	return s.updateLimits(candle.High, candle.Low)
 }
 
-func (s *Simulator) Balance(currency data.Currency) float64 {
-	return s.portfolio.Balance(currency)
+func (s *Simulator) CancelAllOrders() error {
+	clear(s.limitOrders.heap.Members)
+	return nil
 }
 
 func (s *Simulator) Total() (float64, error) {
 	return s.portfolio.Total(s.prices)
+}
+func (s *Simulator) Portfolio() *common.Portfolio {
+	return &s.portfolio
 }
 
 func NewSimulator(currency data.Currency, initialDepo float64) Simulator {
