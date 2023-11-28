@@ -2,6 +2,7 @@ package data
 
 import (
 	"time"
+
 	"xoney/internal"
 )
 
@@ -22,6 +23,10 @@ func (e *Equity) PortfolioHistory() map[Currency][]float64 {
 	last := e.portfolioHistory[len(e.portfolioHistory)-1]
 	result := make(map[Currency][]float64, len(last))
 
+	for currency := range last {
+		result[currency] = make([]float64, 0, len(e.mainHistory))
+	}
+
 	for i := range e.mainHistory {
 		for currency := range last {
 			value := e.portfolioHistory[i][currency]
@@ -31,8 +36,10 @@ func (e *Equity) PortfolioHistory() map[Currency][]float64 {
 
 	return result
 }
+
 func (e *Equity) AddPortfolio(portfolio map[Currency]float64) {
-	e.portfolioHistory = internal.Append(e.portfolioHistory, portfolio)
+	element := internal.MapCopy(portfolio)
+	e.portfolioHistory = internal.Append(e.portfolioHistory, element)
 }
 func (e *Equity) AddValue(value float64) {
 	e.mainHistory = internal.Append(e.mainHistory, value)
@@ -58,7 +65,7 @@ func NewEquity(
 
 	return &Equity{
 		startTime: start,
-		portfolioHistory: make([]map[Currency]float64, internal.DefaultCapacity),
+		portfolioHistory: make([]map[Currency]float64, 0, internal.DefaultCapacity),
 		mainHistory:   history,
 		Timestamp: timestamp,
 		timeframe: timeframe,

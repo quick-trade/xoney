@@ -19,3 +19,13 @@ func Append[T any](slice []T, elems ...T) []T {
 
 	return slice
 }
+
+func MapCopy[K comparable, V any](src map[K]V) map[K]V {
+	result := make(map[K]V, len(src))
+
+	for k, v := range src {
+		result[k] = v
+	}
+
+	return result
+}
