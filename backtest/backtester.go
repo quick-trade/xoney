@@ -84,7 +84,9 @@ func (b *Backtester) runTest(
 			return err
 		}
 
-		b.processEvents(events)
+		if err = b.processEvents(events); err != nil {
+			return fmt.Errorf("failed to process events: %w", err)
+		}
 	}
 
 	return nil
@@ -107,11 +109,15 @@ func (b *Backtester) updateBalance() error {
 	return nil
 }
 
-func (b *Backtester) processEvents(events []events.Event) {
+func (b *Backtester) processEvents(events []events.Event) error {
 	for _, e := range events {
 		// TODO: handle errors
-		e.Occur(&b.simulator)
+		if err := e.Occur(&b.simulator); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func equityPeriod(
