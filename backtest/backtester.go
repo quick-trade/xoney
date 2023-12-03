@@ -111,7 +111,6 @@ func (b *Backtester) updateBalance() error {
 
 func (b *Backtester) processEvents(events []events.Event) error {
 	for _, e := range events {
-		// TODO: handle errors
 		if err := e.Occur(&b.simulator); err != nil {
 			return err
 		}
