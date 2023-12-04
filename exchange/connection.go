@@ -44,9 +44,8 @@ type Connector interface {
 	CancelOrder(id uint64) error
 	CancelAllOrders() error
 	Transfer(quantity float64, currency data.Currency, target data.Exchange) error
-	Total() (float64, error)
 	Portfolio() common.Portfolio
-
+	SellAll() error
 }
 
 type Simulator struct {
@@ -153,8 +152,13 @@ func (s *Simulator) CancelAllOrders() error {
 func (s *Simulator) Total() (float64, error) {
 	return s.portfolio.Total(s.prices)
 }
+
 func (s *Simulator) Portfolio() common.Portfolio {
 	return s.portfolio
+}
+
+func (s *Simulator) SellAll() error {
+	panic("not implemented") // TODO: implement
 }
 
 func NewSimulator(portfolio common.Portfolio) Simulator {
