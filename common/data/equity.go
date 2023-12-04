@@ -2,16 +2,15 @@ package data
 
 import (
 	"time"
-
 	"xoney/internal"
 )
 
 type Equity struct {
-	startTime time.Time
+	startTime        time.Time
 	portfolioHistory []map[Currency]float64
-	mainHistory   []float64
-	Timestamp TimeStamp
-	timeframe TimeFrame
+	mainHistory      []float64
+	Timestamp        TimeStamp
+	timeframe        TimeFrame
 }
 
 func (e *Equity) Timeframe() TimeFrame {
@@ -41,6 +40,7 @@ func (e *Equity) AddPortfolio(portfolio map[Currency]float64) {
 	element := internal.MapCopy(portfolio)
 	e.portfolioHistory = internal.Append(e.portfolioHistory, element)
 }
+
 func (e *Equity) AddValue(value float64) {
 	e.mainHistory = internal.Append(e.mainHistory, value)
 	if e.Timestamp.Len() == 0 {
@@ -64,10 +64,10 @@ func NewEquity(
 	timestamp := NewTimeStamp(timeframe, capacity)
 
 	return &Equity{
-		startTime: start,
+		startTime:        start,
 		portfolioHistory: make([]map[Currency]float64, 0, internal.DefaultCapacity),
-		mainHistory:   history,
-		Timestamp: timestamp,
-		timeframe: timeframe,
+		mainHistory:      history,
+		Timestamp:        timestamp,
+		timeframe:        timeframe,
 	}
 }

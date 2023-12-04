@@ -3,22 +3,22 @@ package backtest
 import (
 	"fmt"
 	"time"
-
 	"xoney/common/data"
 	"xoney/events"
 	"xoney/exchange"
+
 	st "xoney/strategy"
 )
 
 type Backtester struct {
-	equity      data.Equity
-	simulator   exchange.Simulator
+	equity    data.Equity
+	simulator exchange.Simulator
 }
 
 func NewBacktester(simulator exchange.Simulator) *Backtester {
 	return &Backtester{
-		equity:      data.Equity{},
-		simulator:   simulator,
+		equity:    data.Equity{},
+		simulator: simulator,
 	}
 }
 

@@ -2,7 +2,6 @@ package strategy
 
 import (
 	"time"
-
 	"xoney/common/data"
 	"xoney/events"
 	"xoney/exchange"
@@ -31,7 +30,7 @@ type VectorizedTradable interface {
 	Tradable
 	Backtest(
 		simulator exchange.Simulator,
-		charts    data.ChartContainer,
+		charts data.ChartContainer,
 	) (data.Equity, error)
 }
 

@@ -30,7 +30,7 @@ type Order struct {
 func (o Order) Symbol() data.Symbol { return o.symbol }
 func (o Order) Type() OrderType     { return o.orderType }
 func (o Order) Side() OrderSide     { return o.side }
-func (o Order) ID() uint64            { return o.id }
+func (o Order) ID() uint64          { return o.id }
 func (o Order) Price() float64      { return o.price }
 func (o Order) Amount() float64     { return o.amount }
 

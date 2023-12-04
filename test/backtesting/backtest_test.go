@@ -4,11 +4,12 @@ import (
 	"os"
 	"testing"
 	"time"
-
-	bt "xoney/backtest"
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/exchange"
+
+	bt "xoney/backtest"
+
 	st "xoney/strategy"
 	testdata "xoney/testdata/backtesting"
 	dtr "xoney/testdata/dataread"
@@ -65,7 +66,6 @@ func TestBacktestReturnsEquity(t *testing.T) {
 	history := equity.Deposit()
 	balanceHistory := equity.PortfolioHistory()
 	balanceHistory[data.NewCurrency("Total", "")] = history
-
 
 	err = dtr.WriteMap(balanceHistory, "../../testdata/BBEquity.csv")
 	if err != nil {

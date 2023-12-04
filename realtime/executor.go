@@ -4,13 +4,10 @@ import (
 	"context"
 	"fmt"
 	"sync"
-
 	"xoney/common/data"
-	"xoney/internal"
-
 	ev "xoney/events"
 	conn "xoney/exchange"
-
+	"xoney/internal"
 	st "xoney/strategy"
 )
 

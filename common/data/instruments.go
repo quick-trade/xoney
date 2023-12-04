@@ -3,6 +3,7 @@ package data
 import (
 	"strings"
 	"time"
+
 	"xoney/errors"
 	"xoney/internal"
 )
@@ -23,9 +24,10 @@ func (c Currency) String() string {
 
 	return str.String()
 }
+
 func NewCurrency[E Exchange | string](asset string, exchange E) Currency {
 	return Currency{
-		Asset: asset,
+		Asset:    asset,
 		Exchange: Exchange(exchange),
 	}
 }
