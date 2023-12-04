@@ -1,5 +1,6 @@
 package internal
 
+// This constants can be modified to improve performance
 const (
 	DefaultCapacity    = 100
 	CapacityMultiplier = 10
