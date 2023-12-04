@@ -46,6 +46,10 @@ func (e *Executor) Run(ctx context.Context, system st.Tradable) error {
 		return fmt.Errorf("error during executing: %w", err)
 	}
 
+	if err := e.stop(); err != nil {
+		return fmt.Errorf("error during stopping: %w", err)
+	}
+
 	return nil
 }
 
