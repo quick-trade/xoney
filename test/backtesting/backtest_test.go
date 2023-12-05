@@ -10,34 +10,44 @@ import (
 
 	bt "xoney/backtest"
 
-	st "xoney/strategy"
 	testdata "xoney/testdata/backtesting"
 	dtr "xoney/testdata/dataread"
 )
 
 var (
-	charts     data.ChartContainer
-	instrument data.Instrument
+	btc15m data.Instrument
+	charts data.ChartContainer
 )
+
+
+func btc15min() data.Instrument {
+	btcUsd := data.NewSymbol("BTC", "USD", "BINANCE")
+	m15, _ := data.NewTimeFrame(time.Minute*15, "15m")
+
+	return data.NewInstrument(*btcUsd, *m15)
+}
+
+func getCharts() data.ChartContainer {
+	m15 := btc15m.Timeframe()
+	btc, err := dtr.LoadChartFromCSV("../../testdata/BTCUSDT15m.csv", m15)
+	if err != nil {
+		panic(err)
+	}
+
+	charts := make(data.ChartContainer, 1)
+
+	charts[btc15m] = btc
+
+	return charts
+}
+func btcStrategy() testdata.BBBStrategy {
+	return *testdata.NewBBStrategy(300, 1.5, btc15m)
+}
 
 func TestMain(m *testing.M) {
 	// Uploading chart data once
-	timeframe, err := data.NewTimeFrame(time.Minute*15, "15m")
-	if err != nil {
-		panic(err)
-	}
-
-	chart, err := dtr.LoadChartFromCSV("../../testdata/BTCUSDT15m.csv", *timeframe)
-	if err != nil {
-		panic(err)
-	}
-
-	charts = make(data.ChartContainer, 1)
-
-	sym := data.NewSymbol("BTC", "USD", "BINANCE")
-
-	instrument = data.NewInstrument(*sym, *timeframe)
-	charts[instrument] = chart
+	btc15m = btc15min()
+	charts = getCharts()
 
 	// Running all the tests
 	exitCode := m.Run()
@@ -53,9 +63,9 @@ func TestBacktestReturnsEquity(t *testing.T) {
 	simulator := exchange.NewSimulator(portfolio)
 	tester := bt.NewBacktester(simulator)
 
-	var system st.Tradable = testdata.NewBBStrategy(300, 1.5, instrument)
+	system := btcStrategy()
 
-	equity, err := tester.Backtest(charts, system)
+	equity, err := tester.Backtest(charts, &system)
 	if err != nil {
 		t.Error(err.Error())
 	}
