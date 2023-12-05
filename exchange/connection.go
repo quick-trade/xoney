@@ -1,6 +1,8 @@
 package exchange
 
 import (
+	"fmt"
+
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"
@@ -51,6 +53,7 @@ type Connector interface {
 type Simulator struct {
 	prices      map[data.Currency]float64
 	portfolio   common.Portfolio
+	startPortfolio common.Portfolio
 	limitOrders OrderHeap
 }
 
@@ -158,13 +161,34 @@ func (s *Simulator) Portfolio() common.Portfolio {
 }
 
 func (s *Simulator) SellAll() error {
-	panic("not implemented") // TODO: implement
+	mainAsset := s.portfolio.MainCurrency().Asset
+	balance := s.portfolio.Assets()
+
+	var firstErr error
+
+	for currency, price := range s.prices {
+		pair := data.NewSymbol(currency.Asset, mainAsset, currency.Exchange)
+
+		amount := balance[currency]
+
+		err := s.PlaceOrder(*NewOrder(*pair, Market, Sell, price, amount))
+		if firstErr == nil {
+			firstErr = fmt.Errorf("error during placing selling order: %w", err)
+		}
+	}
+
+	return firstErr
+}
+func (s *Simulator) Cleanup() {
+	s.CancelAllOrders()
+	s.portfolio = s.startPortfolio
 }
 
 func NewSimulator(portfolio common.Portfolio) Simulator {
 	return Simulator{
 		prices:      make(map[data.Currency]float64, internal.DefaultCapacity),
 		portfolio:   portfolio,
+		startPortfolio: portfolio,
 		limitOrders: newOrderHeap(internal.DefaultCapacity),
 	}
 }

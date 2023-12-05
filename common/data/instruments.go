@@ -52,23 +52,9 @@ func (s Symbol) String() string {
 func (s Symbol) Base() Currency     { return s.base }
 func (s Symbol) Quote() Currency    { return s.quote }
 func (s Symbol) Exchange() Exchange { return s.base.Exchange }
-func NewSymbol(param string, rest ...string) (*Symbol, error) {
-	// TODO: add another initialization methods
-	var symbol Symbol
-	switch len(rest) {
-	case 2:
-		symbol = symbolByBaseQuoteExchange(param, rest...)
-	}
+func NewSymbol[E Exchange | string](base, quote string, exchange E) *Symbol {
 
-	return &symbol, nil
-}
-
-func symbolByBaseQuoteExchange(param string, rest ...string) Symbol {
-	base := param
-	quote := rest[0]
-	exchange := Exchange(rest[1])
-
-	return Symbol{
+	return &Symbol{
 		base:  NewCurrency(base, exchange),
 		quote: NewCurrency(quote, exchange),
 	}

@@ -47,7 +47,8 @@ func (b *Backtester) setup(
 	charts data.ChartContainer,
 	system st.Tradable,
 ) error {
-	// TODO: add cleaning up an exchange
+	b.cleanup()
+
 	durations := system.MinDurations()
 	period := equityPeriod(charts, durations)
 
@@ -90,6 +91,9 @@ func (b *Backtester) runTest(
 	}
 
 	return nil
+}
+func (b *Backtester) cleanup() {
+	b.simulator.Cleanup()
 }
 
 func (b *Backtester) updatePrices(candle data.InstrumentCandle) error {

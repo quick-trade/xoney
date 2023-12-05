@@ -34,10 +34,7 @@ func TestMain(m *testing.M) {
 
 	charts = make(data.ChartContainer, 1)
 
-	sym, err := data.NewSymbol("BTC", "USD", "BINANCE")
-	if err != nil {
-		panic(err)
-	}
+	sym := data.NewSymbol("BTC", "USD", "BINANCE")
 
 	instrument = data.NewInstrument(*sym, *timeframe)
 	charts[instrument] = chart
