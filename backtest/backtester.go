@@ -50,11 +50,14 @@ func (b *Backtester) setup(
 	b.cleanup()
 
 	durations := system.MinDurations()
+	maxDuration := durations.Max()
 	period := equityPeriod(charts, durations)
 
-	b.equity = *generateEquity(charts, period, durations.Max())
+	b.equity = *generateEquity(charts, period, maxDuration)
 
-	err := system.Start(charts.ChartsByPeriod(period))
+	startPeriod := setupPeriod(charts, maxDuration)
+	strategyCharts := charts.ChartsByPeriod(startPeriod)
+	err := system.Start(strategyCharts)
 
 	return err
 }
@@ -175,4 +178,9 @@ func generateEquity(
 	length := int(duration/timeframe.Duration) + 1
 
 	return data.NewEquity(timeframe, period[0], length)
+}
+func setupPeriod(charts data.ChartContainer, maxDuration time.Duration) data.Period {
+	start := charts.FirstStart()
+	stop := start.Add(maxDuration)
+	return data.Period{start, stop}
 }

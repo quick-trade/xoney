@@ -168,6 +168,18 @@ func (c *ChartContainer) ChartsByPeriod(period Period) ChartContainer {
 	return result
 }
 
+func (c *ChartContainer) FirstStart() time.Time {
+	var first time.Time
+
+	for _, chart := range *c {
+		start := chart.Timestamp.Start()
+		if first.IsZero() || start.Before(first) {
+			first = start
+		}
+	}
+	return first
+}
+
 func (c *ChartContainer) sortedInstruments() []Instrument {
 	keys := make([]Instrument, 0, len(*c))
 

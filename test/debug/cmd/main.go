@@ -1,8 +1,6 @@
-package backtesting_test
+package main
 
 import (
-	"os"
-	"testing"
 	"time"
 	"xoney/common"
 	"xoney/common/data"
@@ -29,7 +27,7 @@ func btc15min() data.Instrument {
 
 func getCharts() data.ChartContainer {
 	m15 := btc15m.Timeframe()
-	btc, err := dtr.LoadChartFromCSV("../../testdata/BTCUSDT15m.csv", m15)
+	btc, err := dtr.LoadChartFromCSV("testdata/BTCUSDT15m.csv", m15)
 	if err != nil {
 		panic(err)
 	}
@@ -41,24 +39,17 @@ func getCharts() data.ChartContainer {
 	return charts
 }
 func btcStrategy() testdata.BBBStrategy {
-	return *testdata.NewBBStrategy(300, 1.5, btc15m)
+	return *testdata.NewBBStrategy(300, 2, btc15m)
 }
 
-func TestMain(m *testing.M) {
+func main() {
 	// Uploading chart data once
 	btc15m = btc15min()
 	charts = getCharts()
 
-	// Running all the tests
-	exitCode := m.Run()
-
-	os.Exit(exitCode)
-}
-
-func TestBacktestReturnsEquity(t *testing.T) {
 	currency := data.NewCurrency("USD", "BINANCE")
 	portfolio := common.NewPortfolio(currency)
-	portfolio.Set(currency, 20000)
+	portfolio.Set(currency, 17100)
 
 	simulator := exchange.NewSimulator(portfolio)
 	tester := bt.NewBacktester(simulator)
@@ -67,7 +58,7 @@ func TestBacktestReturnsEquity(t *testing.T) {
 
 	equity, err := tester.Backtest(charts, &system)
 	if err != nil {
-		t.Error(err.Error())
+		panic(err)
 	}
 
 	history := equity.Deposit()
@@ -77,8 +68,9 @@ func TestBacktestReturnsEquity(t *testing.T) {
 	balanceHistory[data.NewCurrency("UB", "")] = system.UB
 	balanceHistory[data.NewCurrency("LB", "")] = system.LB
 
-	err = dtr.WriteMap(balanceHistory, "../../testdata/BBEquity.csv")
+	err = dtr.WriteMap(balanceHistory, "testdata/BBEquity.csv")
 	if err != nil {
-		t.Error(err.Error())
+		panic(err)
 	}
+
 }
