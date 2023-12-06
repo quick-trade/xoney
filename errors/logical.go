@@ -77,7 +77,7 @@ type NotEnoughFundsError struct {
 func (e NotEnoughFundsError) Error() string {
 	var msg strings.Builder
 
-	msg.WriteString("Not enough funds in portfolio: ")
+	msg.WriteString("not enough funds in portfolio: ")
 	msg.WriteString(strconv.FormatFloat(e.Quantity, 'f', -1, 64))
 	msg.WriteString(", ")
 	msg.WriteString(e.Currency)

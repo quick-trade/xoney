@@ -195,7 +195,7 @@ func NewEntryAllDeposit(symbol data.Symbol, orderType, side string, price float6
 	} else if orderType == "limit" {
 		Type = exchange.Limit
 	} else {
-		return nil, errors.New("No such order type")
+		return nil, errors.New("no such order type")
 	}
 
 	var Side exchange.OrderSide
@@ -204,7 +204,7 @@ func NewEntryAllDeposit(symbol data.Symbol, orderType, side string, price float6
 	} else if side == "sell" {
 		Side = exchange.Sell
 	} else {
-		return nil, errors.New("No such order type")
+		return nil, errors.New("no such order type")
 	}
 
 	return &EntryAllDeposit{
