@@ -50,6 +50,3 @@ type Heap[T Equaler[T]] struct {
     - Если элемент отсутствует, то возвращает `0` и `ValueNotFoundError`
 - `Remove(v *T) error` - удаляет элемент за `O(n)`
     - Как и в `Index(v *T)`, при отсутствии элемента возвращает `ValueNotFoundError`
-
-# search
-Всевозможные алгоритмы поиска

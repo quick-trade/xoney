@@ -33,8 +33,3 @@ type VectorizedTradable interface {
 		charts data.ChartContainer,
 	) (data.Equity, error)
 }
-
-type Optimizable interface {
-	Tradable
-	Parameters() []Parameter
-}

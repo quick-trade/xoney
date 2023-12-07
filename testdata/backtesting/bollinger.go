@@ -99,6 +99,7 @@ func (b *BBBStrategy) fetchEvents(price float64) ([]events.Event, error) {
 		resultEvents = append(resultEvents, event)
 	}
 	b.prevSide = b.side
+
 	return resultEvents, err
 }
 
