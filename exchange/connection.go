@@ -114,6 +114,7 @@ func (s *MarginSimulator) updateLimits(high, low float64) error {
 	for i, order := range s.limitOrders.heap.Members {
 		if crossesPrice(order, high, low) {
 			s.limitOrders.heap.RemoveAt(i)
+
 			return s.executeMarketOrder(order)
 		}
 	}
@@ -147,6 +148,7 @@ func (s *MarginSimulator) UpdatePrice(candle data.InstrumentCandle) error {
 
 func (s *MarginSimulator) CancelAllOrders() error {
 	clear(s.limitOrders.heap.Members)
+
 	return nil
 }
 

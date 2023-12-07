@@ -178,6 +178,7 @@ func (c *ChartContainer) FirstStart() time.Time {
 			first = start
 		}
 	}
+
 	return first
 }
 
@@ -210,7 +211,9 @@ func (c ChartContainer) Candles() []InstrumentCandle {
 
 	for {
 		var minChart Chart
+
 		var minInstrument Instrument
+
 		var minKey int
 
 		minIndex := -1

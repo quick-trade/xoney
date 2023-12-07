@@ -93,6 +93,7 @@ func (e *Executor) processEvents(events []ev.Event) error {
 	errors := make(chan error, len(events))
 
 	var wg sync.WaitGroup
+
 	wg.Add(len(events))
 
 	for _, event := range events {

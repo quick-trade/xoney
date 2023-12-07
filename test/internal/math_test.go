@@ -15,6 +15,7 @@ func TestMean(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+
 	if mean != 5 {
 		t.Errorf("expected mean to be 5, got %v", mean)
 	}

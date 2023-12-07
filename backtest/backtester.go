@@ -184,5 +184,6 @@ func generateEquity(
 func setupPeriod(charts data.ChartContainer, maxDuration time.Duration) data.Period {
 	start := charts.FirstStart()
 	stop := start.Add(maxDuration)
+
 	return data.Period{start, stop}
 }
