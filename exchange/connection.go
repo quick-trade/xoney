@@ -2,6 +2,7 @@ package exchange
 
 import (
 	"fmt"
+
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"

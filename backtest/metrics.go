@@ -2,7 +2,6 @@ package backtest
 
 import (
 	"math"
-
 	"xoney/common/data"
 	"xoney/internal"
 )
