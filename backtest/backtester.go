@@ -3,10 +3,10 @@ package backtest
 import (
 	"fmt"
 	"time"
+
 	"xoney/common/data"
 	"xoney/events"
 	"xoney/exchange"
-
 	st "xoney/strategy"
 )
 
@@ -95,6 +95,7 @@ func (b *Backtester) runTest(
 
 	return nil
 }
+
 func (b *Backtester) cleanup() {
 	b.simulator.Cleanup()
 }
@@ -179,6 +180,7 @@ func generateEquity(
 
 	return data.NewEquity(timeframe, period[0], length)
 }
+
 func setupPeriod(charts data.ChartContainer, maxDuration time.Duration) data.Period {
 	start := charts.FirstStart()
 	stop := start.Add(maxDuration)

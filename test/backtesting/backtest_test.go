@@ -4,12 +4,11 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	bt "xoney/backtest"
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/exchange"
-
-	bt "xoney/backtest"
-
 	testdata "xoney/testdata/backtesting"
 	dtr "xoney/testdata/dataread"
 )
@@ -18,7 +17,6 @@ var (
 	btc15m data.Instrument
 	charts data.ChartContainer
 )
-
 
 func btc15min() data.Instrument {
 	btcUsd := data.NewSymbol("BTC", "USD", "BINANCE")
@@ -40,6 +38,7 @@ func getCharts() data.ChartContainer {
 
 	return charts
 }
+
 func btcStrategy() testdata.BBBStrategy {
 	return *testdata.NewBBStrategy(300, 1.5, btc15m)
 }

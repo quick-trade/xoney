@@ -3,7 +3,6 @@ package data
 import (
 	"strings"
 	"time"
-
 	"xoney/errors"
 	"xoney/internal"
 )
@@ -53,7 +52,6 @@ func (s Symbol) Base() Currency     { return s.base }
 func (s Symbol) Quote() Currency    { return s.quote }
 func (s Symbol) Exchange() Exchange { return s.base.Exchange }
 func NewSymbol[E Exchange | string](base, quote string, exchange E) *Symbol {
-
 	return &Symbol{
 		base:  NewCurrency(base, exchange),
 		quote: NewCurrency(quote, exchange),

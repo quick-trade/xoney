@@ -2,7 +2,6 @@ package exchange
 
 import (
 	"fmt"
-
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"
@@ -51,10 +50,10 @@ type Connector interface {
 }
 
 type Simulator struct {
-	prices      map[data.Currency]float64
-	portfolio   common.Portfolio
+	prices         map[data.Currency]float64
+	portfolio      common.Portfolio
 	startPortfolio common.Portfolio
-	limitOrders OrderHeap
+	limitOrders    OrderHeap
 }
 
 func (s *Simulator) CancelOrder(id uint64) error {
@@ -179,6 +178,7 @@ func (s *Simulator) SellAll() error {
 
 	return firstErr
 }
+
 func (s *Simulator) Cleanup() {
 	s.CancelAllOrders()
 	s.portfolio = s.startPortfolio
@@ -186,9 +186,9 @@ func (s *Simulator) Cleanup() {
 
 func NewSimulator(portfolio common.Portfolio) Simulator {
 	return Simulator{
-		prices:      make(map[data.Currency]float64, internal.DefaultCapacity),
-		portfolio:   portfolio,
+		prices:         make(map[data.Currency]float64, internal.DefaultCapacity),
+		portfolio:      portfolio,
 		startPortfolio: portfolio,
-		limitOrders: newOrderHeap(internal.DefaultCapacity),
+		limitOrders:    newOrderHeap(internal.DefaultCapacity),
 	}
 }
