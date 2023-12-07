@@ -12,10 +12,10 @@ import (
 
 type Backtester struct {
 	equity    data.Equity
-	simulator exchange.Simulator
+	simulator exchange.MarginSimulator
 }
 
-func NewBacktester(simulator exchange.Simulator) *Backtester {
+func NewBacktester(simulator exchange.MarginSimulator) *Backtester {
 	return &Backtester{
 		equity:    data.Equity{},
 		simulator: simulator,
@@ -27,7 +27,7 @@ func (b *Backtester) Backtest(
 	system st.Tradable,
 ) (data.Equity, error) {
 	if vecTradable, ok := system.(st.VectorizedTradable); ok {
-		return vecTradable.Backtest(b.simulator, charts)
+		return vecTradable.Backtest(&b.simulator, charts)
 	}
 
 	err := b.setup(charts, system)

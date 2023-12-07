@@ -49,18 +49,25 @@ type Connector interface {
 	SellAll() error
 }
 
-type Simulator struct {
+type Simulator interface {
+	Connector
+	Cleanup()
+	Total() (float64, error)
+	UpdatePrice(candle data.InstrumentCandle) error
+}
+
+type MarginSimulator struct {
 	prices         map[data.Currency]float64
 	portfolio      common.Portfolio
 	startPortfolio common.Portfolio
 	limitOrders    OrderHeap
 }
 
-func (s *Simulator) CancelOrder(id uint64) error {
+func (s *MarginSimulator) CancelOrder(id uint64) error {
 	return s.limitOrders.RemoveByID(id)
 }
 
-func (s *Simulator) PlaceOrder(order Order) error {
+func (s *MarginSimulator) PlaceOrder(order Order) error {
 	if order.orderType == Market {
 		return s.executeMarketOrder(order)
 	}
@@ -70,7 +77,7 @@ func (s *Simulator) PlaceOrder(order Order) error {
 	return nil
 }
 
-func (s *Simulator) executeMarketOrder(order Order) error {
+func (s *MarginSimulator) executeMarketOrder(order Order) error {
 	baseQuantity := order.amount
 	quoteQuantity := baseQuantity * order.price
 
@@ -85,33 +92,25 @@ func (s *Simulator) executeMarketOrder(order Order) error {
 	return s.executeSellOrder(base, quote, baseQuantity, quoteQuantity)
 }
 
-func (s *Simulator) executeBuyOrder(base, quote data.Currency, baseQuantity, quoteQuantity float64) error {
-	if quoteQuantity > s.portfolio.Balance(quote) {
-		return errors.NewNotEnoughFundsError(quote.String(), quoteQuantity)
-	}
-
+func (s *MarginSimulator) executeBuyOrder(base, quote data.Currency, baseQuantity, quoteQuantity float64) error {
 	s.portfolio.Increase(base, baseQuantity)
 	s.portfolio.Decrease(quote, quoteQuantity)
 
 	return nil
 }
 
-func (s *Simulator) executeSellOrder(base, quote data.Currency, baseQuantity, quoteQuantity float64) error {
-	if baseQuantity > s.portfolio.Balance(base) {
-		return errors.NewNotEnoughFundsError(quote.String(), quoteQuantity)
-	}
-
+func (s *MarginSimulator) executeSellOrder(base, quote data.Currency, baseQuantity, quoteQuantity float64) error {
 	s.portfolio.Decrease(base, baseQuantity)
 	s.portfolio.Increase(quote, quoteQuantity)
 
 	return nil
 }
 
-func (s *Simulator) executeLimitOrder(order Order) {
+func (s *MarginSimulator) executeLimitOrder(order Order) {
 	s.limitOrders.heap.Add(order)
 }
 
-func (s *Simulator) updateLimits(high, low float64) error {
+func (s *MarginSimulator) updateLimits(high, low float64) error {
 	for i, order := range s.limitOrders.heap.Members {
 		if crossesPrice(order, high, low) {
 			s.limitOrders.heap.RemoveAt(i)
@@ -121,7 +120,7 @@ func (s *Simulator) updateLimits(high, low float64) error {
 	return nil
 }
 
-func (s *Simulator) Transfer(quantity float64, currency data.Currency, target data.Exchange) error {
+func (s *MarginSimulator) Transfer(quantity float64, currency data.Currency, target data.Exchange) error {
 	if s.portfolio.Balance(currency) < quantity {
 		return errors.NewNotEnoughFundsError(currency.String(), quantity)
 	}
@@ -134,7 +133,7 @@ func (s *Simulator) Transfer(quantity float64, currency data.Currency, target da
 	return nil
 }
 
-func (s *Simulator) UpdatePrice(candle data.InstrumentCandle) error {
+func (s *MarginSimulator) UpdatePrice(candle data.InstrumentCandle) error {
 	symbol := candle.Symbol()
 	base := symbol.Base()
 	quote := symbol.Quote()
@@ -146,20 +145,20 @@ func (s *Simulator) UpdatePrice(candle data.InstrumentCandle) error {
 	return s.updateLimits(candle.High, candle.Low)
 }
 
-func (s *Simulator) CancelAllOrders() error {
+func (s *MarginSimulator) CancelAllOrders() error {
 	clear(s.limitOrders.heap.Members)
 	return nil
 }
 
-func (s *Simulator) Total() (float64, error) {
+func (s *MarginSimulator) Total() (float64, error) {
 	return s.portfolio.Total(s.prices)
 }
 
-func (s *Simulator) Portfolio() common.Portfolio {
+func (s *MarginSimulator) Portfolio() common.Portfolio {
 	return s.portfolio
 }
 
-func (s *Simulator) SellAll() error {
+func (s *MarginSimulator) SellAll() error {
 	mainAsset := s.portfolio.MainCurrency().Asset
 	balance := s.portfolio.Assets()
 
@@ -179,16 +178,65 @@ func (s *Simulator) SellAll() error {
 	return firstErr
 }
 
-func (s *Simulator) Cleanup() {
+func (s *MarginSimulator) Cleanup() {
 	s.CancelAllOrders()
 	s.portfolio = s.startPortfolio
 }
 
-func NewSimulator(portfolio common.Portfolio) Simulator {
-	return Simulator{
+func NewMarginSimulator(portfolio common.Portfolio) MarginSimulator {
+	return MarginSimulator{
 		prices:         make(map[data.Currency]float64, internal.DefaultCapacity),
 		portfolio:      portfolio,
 		startPortfolio: portfolio,
 		limitOrders:    newOrderHeap(internal.DefaultCapacity),
 	}
+}
+
+type SpotSimulator struct{ MarginSimulator }
+
+func (s *SpotSimulator) PlaceOrder(order Order) error {
+	if order.orderType == Market {
+		return s.executeMarketOrder(order)
+	}
+
+	s.executeLimitOrder(order)
+
+	return nil
+}
+
+func (s *SpotSimulator) executeMarketOrder(order Order) error {
+	baseQuantity := order.amount
+	quoteQuantity := baseQuantity * order.price
+
+	symbol := order.symbol
+	quote := symbol.Quote()
+	base := symbol.Base()
+
+	if order.side == Buy {
+		return s.executeBuyOrder(base, quote, baseQuantity, quoteQuantity)
+	}
+
+	return s.executeSellOrder(base, quote, baseQuantity, quoteQuantity)
+}
+
+func (s *SpotSimulator) executeBuyOrder(base, quote data.Currency, baseQuantity, quoteQuantity float64) error {
+	if quoteQuantity > s.portfolio.Balance(quote) {
+		return errors.NewNotEnoughFundsError(quote.String(), quoteQuantity)
+	}
+
+	s.portfolio.Increase(base, baseQuantity)
+	s.portfolio.Decrease(quote, quoteQuantity)
+
+	return nil
+}
+
+func (s *SpotSimulator) executeSellOrder(base, quote data.Currency, baseQuantity, quoteQuantity float64) error {
+	if baseQuantity > s.portfolio.Balance(base) {
+		return errors.NewNotEnoughFundsError(quote.String(), quoteQuantity)
+	}
+
+	s.portfolio.Decrease(base, baseQuantity)
+	s.portfolio.Increase(quote, quoteQuantity)
+
+	return nil
 }

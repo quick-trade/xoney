@@ -2,11 +2,12 @@ package main
 
 import (
 	"time"
-
-	bt "xoney/backtest"
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/exchange"
+
+	bt "xoney/backtest"
+
 	testdata "xoney/testdata/backtesting"
 	dtr "xoney/testdata/dataread"
 )
@@ -50,7 +51,7 @@ func main() {
 	portfolio := common.NewPortfolio(currency)
 	portfolio.Set(currency, 17100)
 
-	simulator := exchange.NewSimulator(portfolio)
+	simulator := exchange.NewMarginSimulator(portfolio)
 	tester := bt.NewBacktester(simulator)
 
 	system := btcStrategy()
