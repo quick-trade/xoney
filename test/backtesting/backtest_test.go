@@ -40,7 +40,7 @@ func getCharts() data.ChartContainer {
 }
 
 func btcStrategy() testdata.BBBStrategy {
-	return *testdata.NewBBStrategy(300, 1.5, btc15m)
+	return *testdata.NewBBStrategy(300, 2, btc15m)
 }
 
 func TestMain(m *testing.M) {
@@ -57,7 +57,7 @@ func TestMain(m *testing.M) {
 func TestBacktestReturnsEquity(t *testing.T) {
 	currency := data.NewCurrency("USD", "BINANCE")
 	portfolio := common.NewPortfolio(currency)
-	portfolio.Set(currency, 20000)
+	portfolio.Set(currency, 17100)
 
 	simulator := exchange.NewSimulator(portfolio)
 	tester := bt.NewBacktester(simulator)
