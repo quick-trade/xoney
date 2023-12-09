@@ -66,21 +66,13 @@ func (b *Backtester) runTest(
 	charts data.ChartContainer,
 	system st.Tradable,
 ) error {
-	start := b.equity.Start()
-	timeframe := b.equity.Timeframe().Duration
-	nextTime := start.Add(timeframe)
-
 	for _, candle := range charts.Candles() {
 		if err := b.updatePrices(candle); err != nil {
 			return err
 		}
 
-		if candle.TimeClose.After(nextTime) {
-			if err := b.updateBalance(); err != nil {
-				return err
-			}
-
-			nextTime = nextTime.Add(timeframe)
+		if err := b.updateBalance(); err != nil {
+			return err
 		}
 
 		events, err := system.Next(candle)
@@ -110,7 +102,7 @@ func (b *Backtester) updateBalance() error {
 		return err
 	}
 
-	b.equity.AddValue(totalBalance)
+	b.equity.AddValue(totalBalance) // TODO: fix
 
 	b.equity.AddPortfolio(b.simulator.Portfolio().Assets())
 
