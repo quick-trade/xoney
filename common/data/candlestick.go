@@ -47,7 +47,7 @@ func (t *TimeStamp) Append(moments ...time.Time) {
 	t.Timestamp = internal.Append(t.Timestamp, moments...)
 }
 
-func (t TimeStamp) sliceIdx(start, stop int) TimeStamp {
+func (t TimeStamp) Slice(start, stop int) TimeStamp {
 	return TimeStamp{
 		timeframe: t.timeframe,
 		Timestamp: t.Timestamp[start:stop],
@@ -114,7 +114,7 @@ func (c *Chart) Add(candle Candle) {
 	c.Low = internal.Append(c.Low, candle.Low)
 	c.Close = internal.Append(c.Close, candle.Close)
 	c.Volume = internal.Append(c.Volume, candle.Volume)
-	c.Timestamp.Extend(1)
+	c.Timestamp.Append(candle.TimeClose)
 }
 
 func (c *Chart) Slice(period Period) Chart {
@@ -134,7 +134,7 @@ func (c *Chart) Slice(period Period) Chart {
 		Low:       c.Low[start:stop],
 		Close:     c.Close[start:stop],
 		Volume:    c.Volume[start:stop],
-		Timestamp: c.Timestamp.sliceIdx(start, stop),
+		Timestamp: c.Timestamp.Slice(start, stop),
 	}
 }
 
@@ -252,8 +252,6 @@ func findIndexBeforeOrAtTime(
 	series TimeStamp,
 	moment time.Time,
 ) (int, error) {
-	lastIndex := len(series.Timestamp) - 1
-
 	if len(series.Timestamp) == 0 {
 		return -1, errors.NewZeroLengthError("timestamp series")
 	}
@@ -263,11 +261,26 @@ func findIndexBeforeOrAtTime(
 		return -1, errors.ValueNotFoundError{}
 	}
 
-	idx := int(moment.Sub(begin) / series.timeframe.Duration)
-
-	if idx > lastIndex {
-		idx = lastIndex
-	}
+	idx := binarySearch(series, moment)
 
 	return idx, nil
+}
+func binarySearch(series TimeStamp, target time.Time) int {
+	low, high := 0, len(series.Timestamp)-1
+
+	for low <= high {
+		mid := (low + high) / 2
+		midTime := series.At(mid)
+
+		switch {
+		case midTime.Before(target):
+			low = mid + 1
+		case midTime.After(target):
+			high = mid - 1
+		default:
+			return mid
+		}
+	}
+
+	return -1
 }

@@ -4,8 +4,8 @@ import (
 	"math"
 	"time"
 
-	"xoney/common/data"
 	"errors"
+	"xoney/common/data"
 	"xoney/events"
 	"xoney/exchange"
 	"xoney/internal"
@@ -62,12 +62,6 @@ func (b BBBStrategy) MinDurations() strategy.Durations {
 	}
 }
 
-func (b *BBBStrategy) Parameters() []strategy.Parameter {
-	return []strategy.Parameter{
-		strategy.NewIntParameter("Period", 1, 600),
-		strategy.NewFloatParameter("Deviation", 0, 4),
-	}
-}
 func (b *BBBStrategy) computeBollinger(price float64) {
 	b.prices = append(b.prices[1:], price)
 
