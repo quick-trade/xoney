@@ -12,10 +12,10 @@ import (
 
 type Backtester struct {
 	equity    data.Equity
-	simulator exchange.MarginSimulator
+	simulator exchange.Simulator
 }
 
-func NewBacktester(simulator exchange.MarginSimulator) *Backtester {
+func NewBacktester(simulator exchange.Simulator) *Backtester {
 	return &Backtester{
 		equity:    data.Equity{},
 		simulator: simulator,
@@ -27,7 +27,7 @@ func (b *Backtester) Backtest(
 	system st.Tradable,
 ) (data.Equity, error) {
 	if vecTradable, ok := system.(st.VectorizedTradable); ok {
-		return vecTradable.Backtest(&b.simulator, charts)
+		return vecTradable.Backtest(b.simulator, charts)
 	}
 
 	err := b.setup(charts, system)
@@ -111,7 +111,7 @@ func (b *Backtester) updateBalance() error {
 
 func (b *Backtester) processEvents(events []events.Event) error {
 	for _, e := range events {
-		if err := e.Occur(&b.simulator); err != nil {
+		if err := e.Occur(b.simulator); err != nil {
 			return err
 		}
 	}
