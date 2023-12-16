@@ -7,15 +7,13 @@ import (
 )
 
 type Metric interface {
-	IsPositive() bool
 	Evaluate(equity data.Equity) float64
 }
 
 type SharpeRatio struct {
-	Rf float64
+	RF float64
 }
 
-func (s SharpeRatio) IsPositive() bool { return true }
 func (s SharpeRatio) Evaluate(equity data.Equity) float64 {
 	returns := internal.Diff(equity.Deposit())
 	mean, err := internal.RawMoment(returns, 1)
@@ -28,14 +26,13 @@ func (s SharpeRatio) Evaluate(equity data.Equity) float64 {
 
 	inYear := equity.Timeframe().CandlesPerYear
 
-	return (mean*inYear - s.Rf) / std
+	return (mean*inYear - s.RF) / std
 }
 
 type CARA struct {
 	Theta float64
 }
 
-func (c CARA) IsPositive() bool { return true }
 func (c CARA) Evaluate(equity data.Equity) float64 {
 	returns := internal.Diff(equity.Deposit())
 
