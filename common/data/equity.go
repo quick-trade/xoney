@@ -41,12 +41,12 @@ func (e *Equity) AddPortfolio(portfolio map[Currency]float64) {
 	e.portfolioHistory = internal.Append(e.portfolioHistory, element)
 }
 
-func (e *Equity) AddValue(value float64) {
+func (e *Equity) AddValue(value float64, timestamp time.Time) {
 	e.mainHistory = internal.Append(e.mainHistory, value)
 	if e.Timestamp.Len() == 0 {
 		e.Timestamp.Append(e.startTime)
 	} else {
-		e.Timestamp.Extend(1)
+		e.Timestamp.Append(timestamp)
 	}
 }
 

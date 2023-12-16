@@ -71,7 +71,8 @@ func (b *Backtester) runTest(
 			return err
 		}
 
-		if err := b.updateBalance(); err != nil {
+		timestamp := candle.TimeClose
+		if err := b.updateBalance(timestamp); err != nil {
 			return err
 		}
 
@@ -96,13 +97,13 @@ func (b *Backtester) updatePrices(candle data.InstrumentCandle) error {
 	return b.simulator.UpdatePrice(candle)
 }
 
-func (b *Backtester) updateBalance() error {
+func (b *Backtester) updateBalance(timestamp time.Time) error {
 	totalBalance, err := b.simulator.Total()
 	if err != nil {
 		return err
 	}
 
-	b.equity.AddValue(totalBalance) // TODO: fix
+	b.equity.AddValue(totalBalance, timestamp)
 
 	b.equity.AddPortfolio(b.simulator.Portfolio().Assets())
 
