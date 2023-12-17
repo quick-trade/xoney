@@ -45,7 +45,7 @@ func NewOrder(symbol data.Symbol, orderType OrderType, side OrderSide, price, am
 		side:      side,
 		price:     price,
 		amount:    amount,
-		id:        0, // BUGFIX: make exchange id or random
+		id:        0, // TODO: make exchange id or random
 	}
 }
 
