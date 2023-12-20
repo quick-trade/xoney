@@ -1,6 +1,7 @@
 package events
 
 import (
+	"fmt"
 	"xoney/exchange"
 )
 
@@ -20,14 +21,31 @@ func NewOpenOrder(order exchange.Order) *OpenOrder {
 	return &OpenOrder{order: order}
 }
 
-type CloseOrder struct {
-	id uint64
+type CancelOrder struct {
+	id exchange.OrderID
 }
 
-func (o *CloseOrder) Occur(connector exchange.Connector) error {
+func (o *CancelOrder) Occur(connector exchange.Connector) error {
 	return connector.CancelOrder(o.id)
 }
 
-func NewCloseOrder(id uint64) *CloseOrder {
-	return &CloseOrder{id: id}
+func NewCloseOrder(id exchange.OrderID) *CancelOrder {
+	return &CancelOrder{id: id}
+}
+
+type EditOrder struct {
+	cancelID exchange.OrderID
+	order exchange.Order
+}
+
+func (e *EditOrder) Occur(connector exchange.Connector) error {
+	if err := connector.CancelOrder(e.cancelID); err != nil {
+		return fmt.Errorf("error canceling order: %w", err)
+	}
+
+	if err := connector.PlaceOrder(e.order); err != nil {
+		return fmt.Errorf("error placing order: %w", err)
+	}
+
+	return nil
 }

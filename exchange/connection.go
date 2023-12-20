@@ -14,17 +14,17 @@ type OrderHeap struct {
 	heap structures.Heap[Order]
 }
 
-func (o OrderHeap) IndexByID(id uint64) (int, error) {
+func (o OrderHeap) IndexByID(id OrderID) (int, error) {
 	for index, order := range o.heap.Members {
 		if order.ID() == id {
 			return index, nil
 		}
 	}
 
-	return -1, errors.NewNoLimitOrderError(id)
+	return -1, errors.NewNoLimitOrderError(uint64(id))
 }
 
-func (o *OrderHeap) RemoveByID(id uint64) error {
+func (o *OrderHeap) RemoveByID(id OrderID) error {
 	index, err := o.IndexByID(id)
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func newOrderHeap(capacity int) OrderHeap {
 
 type Connector interface {
 	PlaceOrder(order Order) error
-	CancelOrder(id uint64) error
+	CancelOrder(id OrderID) error
 	CancelAllOrders() error
 	Transfer(quantity float64, currency data.Currency, target data.Exchange) error
 	Portfolio() common.Portfolio
@@ -64,7 +64,7 @@ type MarginSimulator struct {
 	limitOrders    OrderHeap
 }
 
-func (s *MarginSimulator) CancelOrder(id uint64) error {
+func (s *MarginSimulator) CancelOrder(id OrderID) error {
 	return s.limitOrders.RemoveByID(id)
 }
 
