@@ -35,7 +35,7 @@ func (b *Backtester) Backtest(
 		return b.equity, fmt.Errorf("error during backtest setup: %w", err)
 	}
 
-	err = b.runTest(charts, system)
+	err = b.runTest(charts, system) // TODO: BUGFIX: charts here is not corrected by MinDurations
 	if err != nil {
 		return b.equity, fmt.Errorf("error during backtest: %w", err)
 	}
