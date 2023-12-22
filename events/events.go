@@ -49,3 +49,9 @@ func (e *EditOrder) Occur(connector exchange.Connector) error {
 
 	return nil
 }
+func NewEditOrder(cancelID exchange.OrderID, newOrder exchange.Order) *EditOrder {
+	return &EditOrder{
+		cancelID: cancelID,
+		order: newOrder,
+	}
+}
