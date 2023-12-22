@@ -37,6 +37,8 @@ func NewExecutor(connector conn.Connector, supplier DataSupplier) *Executor {
 }
 
 func (e *Executor) Run(ctx context.Context, system st.Tradable) error {
+	e.system = system
+
 	if err := e.setup(); err != nil {
 		return fmt.Errorf("error during setup: %w", err)
 	}
