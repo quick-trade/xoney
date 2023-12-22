@@ -45,6 +45,7 @@ func (o Order) CrossesPrice(high, low float64) bool {
 	if o.side == Buy {
 		return low < o.price
 	}
+
 	return high > o.price
 }
 

@@ -3,6 +3,7 @@ package data
 import (
 	"sort"
 	"time"
+
 	"xoney/errors"
 	"xoney/internal"
 )
@@ -222,9 +223,11 @@ func (c ChartContainer) Candles() []InstrumentCandle {
 			minKey = instIdx
 			idx := pointers[instIdx]
 			chart := c[inst]
+
 			if idx >= chart.Len() {
 				break
 			}
+
 			moment := chart.Timestamp.At(idx)
 
 			if minIndex == -1 || moment.Before(minTime) {
@@ -238,6 +241,7 @@ func (c ChartContainer) Candles() []InstrumentCandle {
 		if minIndex == -1 {
 			break
 		}
+
 		candle, _ := minChart.CandleByIndex(minIndex)
 		instCandle := InstrumentCandle{Candle: *candle, Instrument: minInstrument}
 		result = internal.Append(result, instCandle)
@@ -265,6 +269,7 @@ func findIndexBeforeOrAtTime(
 
 	return idx, nil
 }
+
 func binarySearch(series TimeStamp, target time.Time) int {
 	low, high := 0, len(series.Timestamp)-1
 

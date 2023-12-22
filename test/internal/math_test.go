@@ -2,7 +2,6 @@ package internal_test
 
 import (
 	"testing"
-
 	"xoney/internal"
 )
 
@@ -13,6 +12,7 @@ func array() []float64 {
 func TestMean(t *testing.T) {
 	arr := array()
 	mean, err := internal.RawMoment(arr, 1)
+
 	if err != nil {
 		t.Error(err.Error())
 	}

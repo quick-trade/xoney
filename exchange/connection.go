@@ -2,7 +2,6 @@ package exchange
 
 import (
 	"fmt"
-
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"
@@ -32,6 +31,7 @@ func (o *OrderHeap) RemoveByID(id OrderID) error {
 
 	return o.heap.RemoveAt(index)
 }
+
 func (o *OrderHeap) OrderByID(id OrderID) (Order, error) {
 	index, err := o.IndexByID(id)
 	if err != nil {
@@ -127,6 +127,7 @@ func (s *MarginSimulator) updateLimits(high, low float64) error {
 			return s.executeMarketOrder(order)
 		}
 	}
+
 	return nil
 }
 

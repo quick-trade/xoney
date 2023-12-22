@@ -1,8 +1,8 @@
 package internal
 
 import (
-	"sync"
 	"math/rand"
+	"sync"
 )
 
 var mu sync.Mutex

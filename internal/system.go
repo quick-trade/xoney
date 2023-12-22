@@ -36,5 +36,12 @@ func MapKeys[K comparable, V any](m map[K]V) []K {
 	for k := range m {
 		keys = append(keys, k)
 	}
+
 	return keys
+}
+
+func Contains[K comparable, V any](m map[K]V, key K) bool {
+	_, ok := m[key]
+
+	return ok
 }

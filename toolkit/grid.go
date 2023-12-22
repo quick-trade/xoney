@@ -2,26 +2,27 @@ package toolkit
 
 import (
 	"time"
-
 	"xoney/common/data"
 	"xoney/events"
 	"xoney/exchange"
 	"xoney/internal"
+
 	st "xoney/strategy"
 )
 
 type LevelID uint64
 
 type GridLevel struct {
-	price float64
+	price  float64
 	amount float64
-	id LevelID
+	id     LevelID
 }
+
 func NewGridLevel(price, amount float64) *GridLevel {
 	return &GridLevel{
-		price: price,
+		price:  price,
 		amount: amount,
-		id: LevelID(internal.RandomUint64()),
+		id:     LevelID(internal.RandomUint64()),
 	}
 }
 
@@ -58,7 +59,7 @@ func (g *grid) setLevels(levels []GridLevel) []events.Event {
 
 	for _, level := range canceled {
 		order := g.orders[level.id]
-		
+
 		var cancelOrder events.Event = events.NewCloseOrder(order.ID())
 		orderEvents = internal.Append(orderEvents, cancelOrder)
 
@@ -69,6 +70,7 @@ func (g *grid) setLevels(levels []GridLevel) []events.Event {
 
 	return orderEvents
 }
+
 func (g *grid) checkCanceledLevels(levels []GridLevel) []GridLevel {
 	// The map is needed to quickly find keys
 	paramLevels := make(map[LevelID]struct{})
@@ -77,6 +79,7 @@ func (g *grid) checkCanceledLevels(levels []GridLevel) []GridLevel {
 	}
 
 	var canceledLevels []GridLevel
+
 	for _, level := range g.levels {
 		if !internal.Contains(paramLevels, level.id) {
 			canceledLevels = internal.Append(canceledLevels, level)
@@ -85,6 +88,7 @@ func (g *grid) checkCanceledLevels(levels []GridLevel) []GridLevel {
 
 	return canceledLevels
 }
+
 func (g *grid) updateOrders(candle data.Candle) []events.Event {
 	orderEvents := make([]events.Event, 0, len(g.levels))
 
@@ -104,6 +108,7 @@ func (g *grid) updateOrders(candle data.Candle) []events.Event {
 
 	return orderEvents
 }
+
 func (g *grid) editOrder(level GridLevel, currPrice float64) events.Event {
 	newOrder := orderByLevel(level, currPrice, g.symbol)
 
@@ -119,10 +124,10 @@ func newGrid(symbol data.Symbol) *grid {
 	orders := make(map[LevelID]exchange.Order, internal.DefaultCapacity)
 
 	return &grid{
-		symbol: symbol,
-		levels: levels,
+		symbol:   symbol,
+		levels:   levels,
 		executed: 0,
-		orders: orders,
+		orders:   orders,
 	}
 }
 
@@ -133,9 +138,8 @@ type GridGenerator interface {
 	Next(candle data.Candle) ([]GridLevel, error)
 }
 
-
 type GridBot struct {
-	grid grid
+	grid     grid
 	strategy GridGenerator
 }
 
@@ -166,7 +170,7 @@ func NewGridBot(strategy GridGenerator) *GridBot {
 	symbol := instrument.Symbol()
 
 	return &GridBot{
-		grid: *newGrid(symbol),
+		grid:     *newGrid(symbol),
 		strategy: strategy,
 	}
 }

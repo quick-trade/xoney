@@ -2,6 +2,7 @@ package events
 
 import (
 	"fmt"
+
 	"xoney/exchange"
 )
 
@@ -35,7 +36,7 @@ func NewCloseOrder(id exchange.OrderID) *CancelOrder {
 
 type EditOrder struct {
 	cancelID exchange.OrderID
-	order exchange.Order
+	order    exchange.Order
 }
 
 func (e *EditOrder) Occur(connector exchange.Connector) error {
@@ -49,9 +50,10 @@ func (e *EditOrder) Occur(connector exchange.Connector) error {
 
 	return nil
 }
+
 func NewEditOrder(cancelID exchange.OrderID, newOrder exchange.Order) *EditOrder {
 	return &EditOrder{
 		cancelID: cancelID,
-		order: newOrder,
+		order:    newOrder,
 	}
 }
