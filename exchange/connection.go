@@ -121,7 +121,7 @@ func (s *MarginSimulator) executeLimitOrder(order Order) {
 
 func (s *MarginSimulator) updateLimits(high, low float64) error {
 	for i, order := range s.limitOrders.heap.Members {
-		if crossesPrice(order, high, low) {
+		if order.CrossesPrice(high, low) {
 			s.limitOrders.heap.RemoveAt(i)
 
 			return s.executeMarketOrder(order)
@@ -235,10 +235,7 @@ func (s *SpotSimulator) executeBuyOrder(base, quote data.Currency, baseQuantity,
 		return errors.NewNotEnoughFundsError(quote.String(), quoteQuantity)
 	}
 
-	s.portfolio.Increase(base, baseQuantity)
-	s.portfolio.Decrease(quote, quoteQuantity)
-
-	return nil
+	return s.MarginSimulator.executeBuyOrder(base, quote, baseQuantity, quoteQuantity)
 }
 
 func (s *SpotSimulator) executeSellOrder(base, quote data.Currency, baseQuantity, quoteQuantity float64) error {
@@ -246,8 +243,5 @@ func (s *SpotSimulator) executeSellOrder(base, quote data.Currency, baseQuantity
 		return errors.NewNotEnoughFundsError(quote.String(), quoteQuantity)
 	}
 
-	s.portfolio.Decrease(base, baseQuantity)
-	s.portfolio.Increase(quote, quoteQuantity)
-
-	return nil
+	return s.MarginSimulator.executeSellOrder(base, quote, baseQuantity, quoteQuantity)
 }

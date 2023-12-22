@@ -40,6 +40,13 @@ func (o Order) IsEqual(other *Order) bool {
 	return o.id == other.id
 }
 
+func (o Order) CrossesPrice(high, low float64) bool {
+	if o.side == Buy {
+		return low < o.price
+	}
+	return high > o.price
+}
+
 func NewOrder(symbol data.Symbol, orderType OrderType, side OrderSide, price, amount float64) *Order {
 	return &Order{
 		symbol:    symbol,
@@ -49,11 +56,4 @@ func NewOrder(symbol data.Symbol, orderType OrderType, side OrderSide, price, am
 		amount:    amount,
 		id:        0, // TODO: make exchange id or random
 	}
-}
-
-func crossesPrice(order Order, high, low float64) bool {
-	if order.side == Buy {
-		return low < order.price
-	}
-	return high > order.price
 }
