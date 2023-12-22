@@ -60,7 +60,7 @@ type Connector interface {
 
 type Simulator interface {
 	Connector
-	Cleanup()
+	Cleanup() error
 	Total() (float64, error)
 	UpdatePrice(candle data.InstrumentCandle) error
 }
@@ -123,6 +123,9 @@ func (s *MarginSimulator) updateLimits(high, low float64) error {
 	for i, order := range s.limitOrders.heap.Members {
 		if order.CrossesPrice(high, low) {
 			s.limitOrders.heap.RemoveAt(i)
+			// Removing an element in a loop by index in this case is safe
+			// because at the first operation we exit the loop,
+			// without causing errors/collisions
 
 			return s.executeMarketOrder(order)
 		}
@@ -190,9 +193,11 @@ func (s *MarginSimulator) SellAll() error {
 	return firstErr
 }
 
-func (s *MarginSimulator) Cleanup() {
-	s.CancelAllOrders()
+func (s *MarginSimulator) Cleanup() error {
+	err := s.CancelAllOrders()
 	s.portfolio = s.startPortfolio
+
+	return fmt.Errorf("order cleanup failed: %w", err)
 }
 
 func NewMarginSimulator(portfolio common.Portfolio) MarginSimulator {

@@ -200,6 +200,7 @@ func (c *ChartContainer) sortedInstruments() []Instrument {
 }
 
 func (c ChartContainer) Candles() []InstrumentCandle {
+	// It is just merging from merge-sort algorithm
 	sumLength := 0
 	for _, chart := range c {
 		sumLength += chart.Len()

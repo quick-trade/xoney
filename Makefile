@@ -10,7 +10,8 @@ depguard,\
 gci,\
 varnamelen,\
 gomnd,\
-gofumpt
+gofumpt,\
+ifshort
 
 fmt :
 	go fmt ./... && \
