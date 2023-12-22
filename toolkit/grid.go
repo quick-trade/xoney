@@ -6,6 +6,7 @@ import (
 	"xoney/common/data"
 	"xoney/events"
 	"xoney/exchange"
+	"xoney/internal"
 	st "xoney/strategy"
 )
 
@@ -16,11 +17,11 @@ type GridLevel struct {
 	amount float64
 	id LevelID
 }
-func NewGridLevel(price, amount float64, id LevelID) *GridLevel {
+func NewGridLevel(price, amount float64) *GridLevel {
 	return &GridLevel{
 		price: price,
 		amount: amount,
-		id: id,
+		id: LevelID(internal.RandomUint64()),
 	}
 }
 
@@ -51,20 +52,38 @@ type grid struct {
 
 func (g *grid) setLevels(levels []GridLevel) []events.Event {
 	orderEvents := make([]events.Event, 0, len(g.levels))
-	
+
 	// Modified and added levels are processing in g.updateOrders()
 	canceled := g.checkCanceledLevels(levels)
 
 	for _, level := range canceled {
 		order := g.orders[level.id]
-		orderEvents = append(orderEvents, events.NewCloseOrder(order.ID()))
+		
+		var cancelOrder events.Event = events.NewCloseOrder(order.ID())
+		orderEvents = internal.Append(orderEvents, cancelOrder)
 
 		delete(g.orders, level.id)
 	}
+
+	g.levels = levels
+
 	return orderEvents
 }
 func (g *grid) checkCanceledLevels(levels []GridLevel) []GridLevel {
-	panic("TODO: implement")
+	// The map is needed to quickly find keys
+	paramLevels := make(map[LevelID]struct{})
+	for _, level := range levels {
+		paramLevels[level.id] = struct{}{}
+	}
+
+	var canceledLevels []GridLevel
+	for _, level := range g.levels {
+		if !internal.Contains(paramLevels, level.id) {
+			canceledLevels = internal.Append(canceledLevels, level)
+		}
+	}
+
+	return canceledLevels
 }
 func (g *grid) updateOrders(candle data.Candle) []events.Event {
 	orderEvents := make([]events.Event, 0, len(g.levels))
@@ -80,7 +99,7 @@ func (g *grid) updateOrders(candle data.Candle) []events.Event {
 			continue
 		}
 
-		orderEvents = append(orderEvents, g.editOrder(level, candle.Close))
+		orderEvents = internal.Append(orderEvents, g.editOrder(level, candle.Close))
 	}
 
 	return orderEvents
@@ -93,6 +112,18 @@ func (g *grid) editOrder(level GridLevel, currPrice float64) events.Event {
 	}
 
 	return events.NewOpenOrder(newOrder)
+}
+
+func newGrid(symbol data.Symbol) *grid {
+	levels := make([]GridLevel, 0)
+	orders := make(map[LevelID]exchange.Order, internal.DefaultCapacity)
+
+	return &grid{
+		symbol: symbol,
+		levels: levels,
+		executed: 0,
+		orders: orders,
+	}
 }
 
 type GridGenerator interface {
@@ -120,11 +151,22 @@ func (g *GridBot) Next(candle data.InstrumentCandle) ([]events.Event, error) {
 		return nil, err
 	}
 
-	g.grid.setLevels(levels)
+	levelEvents := g.grid.setLevels(levels)
+	updateEvents := g.grid.updateOrders(candle.Candle)
 
-	return g.grid.updateOrders(candle.Candle), nil
+	return internal.Append(levelEvents, updateEvents...), nil
 }
 
 func (g *GridBot) Start(charts data.ChartContainer) error {
 	return g.strategy.Start(charts[g.strategy.Instrument()])
+}
+
+func NewGridBot(strategy GridGenerator) *GridBot {
+	instrument := strategy.Instrument()
+	symbol := instrument.Symbol()
+
+	return &GridBot{
+		grid: *newGrid(symbol),
+		strategy: strategy,
+	}
 }
