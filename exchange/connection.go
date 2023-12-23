@@ -197,7 +197,10 @@ func (s *MarginSimulator) Cleanup() error {
 	err := s.CancelAllOrders()
 	s.portfolio = s.startPortfolio
 
-	return fmt.Errorf("order cleanup failed: %w", err)
+	if err != nil {
+		return fmt.Errorf("order cleanup failed: %w", err)
+	}
+	return nil
 }
 
 func NewMarginSimulator(portfolio common.Portfolio) MarginSimulator {

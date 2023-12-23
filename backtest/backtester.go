@@ -47,7 +47,10 @@ func (b *Backtester) setup(
 	charts data.ChartContainer,
 	system st.Tradable,
 ) error {
-	b.cleanup()
+	err := b.cleanup()
+	if err != nil {
+		return err
+	}
 
 	durations := system.MinDurations()
 	maxDuration := durations.Max()
@@ -57,7 +60,7 @@ func (b *Backtester) setup(
 
 	startPeriod := setupPeriod(charts, maxDuration)
 	strategyCharts := charts.ChartsByPeriod(startPeriod)
-	err := system.Start(strategyCharts)
+	err = system.Start(strategyCharts)
 
 	return err
 }
@@ -89,8 +92,13 @@ func (b *Backtester) runTest(
 	return nil
 }
 
-func (b *Backtester) cleanup() {
-	b.simulator.Cleanup()
+func (b *Backtester) cleanup() error {
+	err := b.simulator.Cleanup()
+	if err != nil {
+		return fmt.Errorf("failed to cleanup: %w", err)
+	}
+	
+	return nil
 }
 
 func (b *Backtester) updatePrices(candle data.InstrumentCandle) error {

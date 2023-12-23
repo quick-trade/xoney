@@ -108,8 +108,11 @@ func (b *VectorizedBollinger) Backtest(
 	initialDepo := simulator.Portfolio().Balance(b.instrument.Symbol().Quote())
 
 	chart := charts[b.instrument]
-	equity := *data.NewEquity(b.instrument.Timeframe(), time.Now(), len(chart.Close))
-	equity.AddValue(initialDepo)
+
+	startIndex := b.Period - 1
+	start := chart.Timestamp.At(startIndex)
+	equity := *data.NewEquity(b.instrument.Timeframe(), start, len(chart.Close))
+	equity.AddValue(initialDepo, start)
 
 	price := chart.Close
 	flag := NEUTRAL
@@ -122,13 +125,14 @@ func (b *VectorizedBollinger) Backtest(
 
 	average, _ := internal.RawMoment(price[:b.Period+1], 1)
 
-	for i := b.Period - 1; i < len(price); i++ {
+	for i := startIndex; i < len(price); i++ {
 		diff = price[i] - price[i-1]
+		moment := chart.Timestamp.At(i)
 
 		if flag == BUY {
-			equity.AddValue(equity.Now() + diff)
+			equity.AddValue(equity.Now() + diff, moment)
 		} else if flag == SELL {
-			equity.AddValue(equity.Now() - diff)
+			equity.AddValue(equity.Now() - diff, moment)
 		}
 
 		average += (price[i] - price[i-b.Period+1]) / float64(b.Period)
