@@ -119,12 +119,12 @@ func (g *grid) editOrder(level GridLevel, currPrice float64) events.Event {
 	return events.NewOpenOrder(newOrder)
 }
 
-func newGrid(symbol data.Symbol) *grid {
+func newGrid() *grid {
 	levels := make([]GridLevel, 0)
 	orders := make(map[LevelID]exchange.Order, internal.DefaultCapacity)
 
 	return &grid{
-		symbol:   symbol,
+		symbol:   data.Symbol{},
 		levels:   levels,
 		executed: 0,
 		orders:   orders,
@@ -132,7 +132,6 @@ func newGrid(symbol data.Symbol) *grid {
 }
 
 type GridGenerator interface {
-	Instrument() data.Instrument
 	MinDuration() time.Duration
 	Start(chart data.Chart) error
 	Next(candle data.Candle) ([]GridLevel, error)
@@ -141,11 +140,12 @@ type GridGenerator interface {
 type GridBot struct {
 	grid     grid
 	strategy GridGenerator
+	instrument data.Instrument
 }
 
 func (g *GridBot) MinDurations() st.Durations {
 	return st.Durations{
-		g.strategy.Instrument(): g.strategy.MinDuration(),
+		g.instrument: g.strategy.MinDuration(),
 	}
 }
 
@@ -162,15 +162,13 @@ func (g *GridBot) Next(candle data.InstrumentCandle) ([]events.Event, error) {
 }
 
 func (g *GridBot) Start(charts data.ChartContainer) error {
-	return g.strategy.Start(charts[g.strategy.Instrument()])
+	return g.strategy.Start(charts[g.instrument])
 }
 
-func NewGridBot(strategy GridGenerator) *GridBot {
-	instrument := strategy.Instrument()
-	symbol := instrument.Symbol()
-
+func NewGridBot(strategy GridGenerator, instrument data.Instrument) *GridBot {
 	return &GridBot{
-		grid:     *newGrid(symbol),
+		grid:     *newGrid(),
 		strategy: strategy,
+		instrument: instrument,
 	}
 }
