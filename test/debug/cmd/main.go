@@ -7,6 +7,8 @@ import (
 	"xoney/exchange"
 
 	bt "xoney/backtest"
+	st "xoney/strategy"
+	tk "xoney/toolkit"
 
 	testdata "xoney/testdata/backtesting"
 	dtr "xoney/testdata/dataread"
@@ -38,28 +40,38 @@ func getCharts() data.ChartContainer {
 	return charts
 }
 
-func btcStrategy() testdata.BBBStrategy {
+func btcBBStrategy() testdata.BBBStrategy {
 	return *testdata.NewBBStrategy(300, 2, btc15m)
 }
 
-func main() {
-	// Uploading chart data once
-	btc15m = btc15min()
-	charts = getCharts()
-
+func portfolio() common.Portfolio {
 	currency := data.NewCurrency("USD", "BINANCE")
 	portfolio := common.NewPortfolio(currency)
-	portfolio.Set(currency, 17100)
+	portfolio.Set(currency, 20000)
+
+	return portfolio
+}
+func backtester() bt.Backtester {
+	portfolio := portfolio()
 
 	simulator := exchange.NewMarginSimulator(portfolio)
 	tester := bt.NewBacktester(&simulator)
 
-	system := btcStrategy()
+	return *tester
+}
+func backtest(system st.Tradable) data.Equity {
+	tester := backtester()
 
-	equity, err := tester.Backtest(charts, &system)
+	equity, err := tester.Backtest(charts, system)
 	if err != nil {
 		panic(err)
 	}
+	return equity
+}
+
+func debugBollinger() {
+	system := btcBBStrategy()
+	equity := backtest(&system)
 
 	history := equity.Deposit()
 	balanceHistory := equity.PortfolioHistory()
@@ -68,8 +80,31 @@ func main() {
 	balanceHistory[data.NewCurrency("UB", "")] = system.UB
 	balanceHistory[data.NewCurrency("LB", "")] = system.LB
 
-	err = dtr.WriteMap(balanceHistory, "testdata/BBEquity.csv")
+	err := dtr.WriteMap(balanceHistory, "testdata/BBEquity.csv")
 	if err != nil {
 		panic(err)
 	}
+}
+
+func gridBot() *tk.GridBot {
+	generator := testdata.NewAutoGrid(100, 20, 4, 0.5)
+	return tk.NewGridBot(generator, btc15m)
+}
+
+func debugGrid() {
+	bot := gridBot()
+	equity := backtest(bot)
+
+	err := dtr.WriteMap(equity.PortfolioHistory(), "testdata/BBEquity.csv")
+	if err != nil {
+		panic(err)
+	}
+}
+func main() {
+	// Uploading chart data once
+	btc15m = btc15min()
+	charts = getCharts()
+
+	// debugBollinger()
+	debugGrid()
 }

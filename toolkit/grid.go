@@ -1,6 +1,7 @@
 package toolkit
 
 import (
+	"math"
 	"time"
 	"xoney/common/data"
 	"xoney/events"
@@ -49,64 +50,113 @@ type grid struct {
 	levels   []GridLevel
 	executed LevelID
 	orders   map[LevelID]exchange.Order
+	spent float64
 }
 
-func (g *grid) setLevels(levels []GridLevel) []events.Event {
-	orderEvents := make([]events.Event, 0, len(g.levels))
-
-	// Modified and added levels are processing in g.updateOrders()
-	canceled := g.checkCanceledLevels(levels)
-
-	for _, level := range canceled {
-		order := g.orders[level.id]
-
-		var cancelOrder events.Event = events.NewCloseOrder(order.ID())
-		orderEvents = internal.Append(orderEvents, cancelOrder)
-
-		delete(g.orders, level.id)
+func (g *grid) SetLevels(levels []GridLevel, candle data.Candle) []events.Event {
+	if g.checkNewGrid(levels) {
+		return g.setNewGrid(levels, candle)
 	}
+	return []events.Event{}
+}
+func (g *grid) setNewGrid(levels []GridLevel, candle data.Candle) []events.Event {
+	cancelEvents := g.cancelLevelsOrders(g.levels)
+	sellAll := g.undoExecuted(candle)
 
 	g.levels = levels
 
+	if sellAll != nil {
+		cancelEvents = internal.Append(cancelEvents, sellAll)
+	}
+
+	return cancelEvents
+}
+func (g *grid) cancelLevelsOrders(canceled []GridLevel) []events.Event {
+	orderEvents := make([]events.Event, 0, len(g.levels))
+
+	var cancelOrder events.Event
+	for _, level := range canceled {
+		order, ok := g.orders[level.id]
+
+		if ok {
+			cancelOrder = events.NewCloseOrder(order.ID())
+			orderEvents = internal.Append(orderEvents, cancelOrder)
+
+			delete(g.orders, level.id)
+		}
+	}
 	return orderEvents
 }
 
-func (g *grid) checkCanceledLevels(levels []GridLevel) []GridLevel {
-	// The map is needed to quickly find keys
-	paramLevels := make(map[LevelID]struct{})
-	for _, level := range levels {
-		paramLevels[level.id] = struct{}{}
+func (g *grid) checkNewGrid(levels []GridLevel) bool {
+	if len(g.levels) != len(levels) { return false }
+
+	// The map is needed to quickly find ID's
+	gridLevelsIDs := make(map[LevelID]struct{})
+	for _, level := range g.levels {
+		gridLevelsIDs[level.id] = struct{}{}
 	}
 
-	var canceledLevels []GridLevel
-
-	for _, level := range g.levels {
-		if !internal.Contains(paramLevels, level.id) {
-			canceledLevels = internal.Append(canceledLevels, level)
+	for _, level := range levels {
+		if !internal.Contains(gridLevelsIDs, level.id) {
+			return false
 		}
 	}
 
-	return canceledLevels
+	return true
 }
 
-func (g *grid) updateOrders(candle data.Candle) []events.Event {
+func (g *grid) UpdateOrders(candle data.Candle) []events.Event {
 	orderEvents := make([]events.Event, 0, len(g.levels))
 
 	for _, level := range g.levels {
-		order, ok := g.orders[level.id]
-		if ok && order.CrossesPrice(candle.High, candle.Low) {
-			g.executed = level.id
-			delete(g.orders, level.id)
-		}
+		g.processIfExecuted(level, candle)
 
-		if level.id == g.executed {
-			continue
+		if level.id != g.executed {
+			orderEvents = internal.Append(orderEvents, g.editOrder(level, candle.Close))
 		}
-
-		orderEvents = internal.Append(orderEvents, g.editOrder(level, candle.Close))
 	}
 
 	return orderEvents
+}
+func (g *grid) processIfExecuted(level GridLevel, candle data.Candle) {
+	order, ok := g.orders[level.id]
+	if ok && order.CrossesPrice(candle.High, candle.Low) {
+		g.executed = level.id
+		g.registerOrderExpenses(order)
+
+		delete(g.orders, level.id)
+	}
+}
+func (g *grid) registerOrderExpenses(order exchange.Order) {
+	if order.Side() == exchange.Buy {
+		g.spent += order.Amount()
+	} else {
+		g.spent -= order.Amount()
+	}
+}
+func (g *grid) undoExecuted(candle data.Candle) events.Event {
+	price := candle.Close
+	amount := math.Abs(g.spent)
+
+	if amount == 0 { return nil }
+
+	var side exchange.OrderSide
+	if g.spent > 0 {
+		side = exchange.Sell
+	} else {
+		side = exchange.Buy
+	}
+
+	return events.NewOpenOrder(
+		*exchange.NewOrder(
+			g.symbol,
+			exchange.Market,
+			side,
+			price,
+			amount,
+		),
+	)
 }
 
 func (g *grid) editOrder(level GridLevel, currPrice float64) events.Event {
@@ -132,9 +182,9 @@ func newGrid() *grid {
 }
 
 type GridGenerator interface {
-	MinDuration() time.Duration
+	MinDuration(timeframe data.TimeFrame) time.Duration
 	Start(chart data.Chart) error
-	Next(candle data.Candle) ([]GridLevel, error)
+	Next(candle data.Candle) ([]GridLevel, error) // new levels can be nil
 }
 
 type GridBot struct {
@@ -145,7 +195,7 @@ type GridBot struct {
 
 func (g *GridBot) MinDurations() st.Durations {
 	return st.Durations{
-		g.instrument: g.strategy.MinDuration(),
+		g.instrument: g.strategy.MinDuration(g.instrument.Timeframe()),
 	}
 }
 
@@ -155,8 +205,13 @@ func (g *GridBot) Next(candle data.InstrumentCandle) ([]events.Event, error) {
 		return nil, err
 	}
 
-	levelEvents := g.grid.setLevels(levels)
-	updateEvents := g.grid.updateOrders(candle.Candle)
+	var levelEvents []events.Event
+	if levels != nil {
+		levelEvents = g.grid.SetLevels(levels, candle.Candle)
+	}
+
+	updateEvents := g.grid.UpdateOrders(candle.Candle)
+
 
 	return internal.Append(levelEvents, updateEvents...), nil
 }
