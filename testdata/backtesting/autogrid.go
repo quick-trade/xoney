@@ -53,7 +53,7 @@ func (a *AutoGrid) updateBounds() {
 	a.generateGrid()
 }
 func (a *AutoGrid) generateGrid() {
-	clear(a.levels)
+	a.levels = make([]tk.GridLevel, 0, len(a.levels))
 
 	prices := linspace(a.priceBounds, a.nLevels)
 
