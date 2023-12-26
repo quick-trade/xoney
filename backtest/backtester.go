@@ -97,7 +97,7 @@ func (b *Backtester) cleanup() error {
 	if err != nil {
 		return fmt.Errorf("failed to cleanup: %w", err)
 	}
-	
+
 	return nil
 }
 
