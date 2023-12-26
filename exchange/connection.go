@@ -160,7 +160,7 @@ func (s *MarginSimulator) UpdatePrice(candle data.InstrumentCandle) error {
 }
 
 func (s *MarginSimulator) CancelAllOrders() error {
-	clear(s.limitOrders.heap.Members)
+	s.limitOrders.heap.Members = make([]Order, 0, internal.DefaultCapacity)
 
 	return nil
 }
