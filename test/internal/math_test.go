@@ -3,6 +3,7 @@ package internal_test
 import (
 	"testing"
 	"xoney/internal"
+	"xoney/errors"
 )
 
 func array() []float64 {
@@ -19,5 +20,33 @@ func TestMean(t *testing.T) {
 
 	if mean != 5 {
 		t.Errorf("expected mean to be 5, got %v", mean)
+	}
+}
+
+func TestZeroLen(t *testing.T) {
+	arr := []float64{}
+	_, err := internal.RawMoment(arr, 1)
+
+	expected := errors.NewZeroLengthError("series")
+	if err != expected {
+		t.Errorf("there is no correct error, got %v", err)
+	}
+}
+
+func TestDiff(t *testing.T) {
+	arr := []float64{1,2,3,13}
+
+	diff := internal.Diff(arr)
+	expected := []float64{1,1,10}
+
+	if len(diff) != len(expected) {
+		t.Error("incorrect diff length")
+	}
+
+	for i := range diff {
+		if diff[i] != expected[i] {
+			t.Errorf("incorrect diff: expected %v, got %v", expected, diff)
+			break
+		}
 	}
 }

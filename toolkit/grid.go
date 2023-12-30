@@ -1,7 +1,10 @@
 package toolkit
 
 import (
+	"encoding/csv"
+	"fmt"
 	"math"
+	"os"
 	"time"
 	"xoney/common/data"
 	"xoney/events"
@@ -50,7 +53,7 @@ type grid struct {
 	levels   []GridLevel
 	executed LevelID
 	orders   map[LevelID]exchange.Order
-	spent float64
+	spent    float64
 }
 
 func (g *grid) SetLevels(levels []GridLevel, candle data.Candle) []events.Event {
@@ -74,22 +77,26 @@ func (g *grid) setNewGrid(levels []GridLevel, candle data.Candle) []events.Event
 func (g *grid) cancelLevelsOrders(canceled []GridLevel) []events.Event {
 	orderEvents := make([]events.Event, 0, len(g.levels))
 
-	var cancelOrder events.Event
 	for _, level := range canceled {
-		order, ok := g.orders[level.id]
-
-		if ok {
-			cancelOrder = events.NewCloseOrder(order.ID())
-			orderEvents = internal.Append(orderEvents, cancelOrder)
-
-			delete(g.orders, level.id)
+		if event := g.cancelLevelOrder(level); event != nil {
+			orderEvents = append(orderEvents, event)
 		}
 	}
 	return orderEvents
 }
+func (g *grid) cancelLevelOrder(level GridLevel) events.Event {
+	order, ok := g.orders[level.id]
 
+	if ok {
+		delete(g.orders, level.id)
+
+		return events.NewCloseOrder(order.ID())
+	}
+
+	return nil
+}
 func (g *grid) checkNewGrid(levels []GridLevel) bool {
-	if len(g.levels) != len(levels) { return false }
+	if len(g.levels) != len(levels) { return true }
 
 	// The map is needed to quickly find ID's
 	gridLevelsIDs := make(map[LevelID]struct{})
@@ -99,33 +106,34 @@ func (g *grid) checkNewGrid(levels []GridLevel) bool {
 
 	for _, level := range levels {
 		if !internal.Contains(gridLevelsIDs, level.id) {
-			return false
+			return true
 		}
 	}
-
-	return true
+	return false
 }
 
 func (g *grid) UpdateOrders(candle data.Candle) []events.Event {
 	orderEvents := make([]events.Event, 0, len(g.levels))
 
 	for _, level := range g.levels {
-		g.processIfExecuted(level, candle)
+		g.processIfExecuted(level.id, candle)
 
-		if level.id != g.executed {
-			orderEvents = internal.Append(orderEvents, g.editOrder(level, candle.Close))
+		if level.id == g.executed { continue }
+
+		editOrder := g.adjustOrderIfNeeded(level, candle.Close)
+		if editOrder != nil {
+			orderEvents = internal.Append(orderEvents, editOrder)
 		}
 	}
-
 	return orderEvents
 }
-func (g *grid) processIfExecuted(level GridLevel, candle data.Candle) {
-	order, ok := g.orders[level.id]
+func (g *grid) processIfExecuted(levelID LevelID, candle data.Candle) {
+	order, ok := g.orders[levelID]
 	if ok && order.CrossesPrice(candle.High, candle.Low) {
-		g.executed = level.id
+		g.executed = levelID
 		g.registerOrderExpenses(order)
 
-		delete(g.orders, level.id)
+		delete(g.orders, levelID)
 	}
 }
 func (g *grid) registerOrderExpenses(order exchange.Order) {
@@ -159,22 +167,31 @@ func (g *grid) undoExecuted(candle data.Candle) events.Event {
 	)
 }
 
-func (g *grid) editOrder(level GridLevel, currPrice float64) events.Event {
+func (g *grid) adjustOrderIfNeeded(level GridLevel, currPrice float64) events.Event {
 	newOrder := orderByLevel(level, currPrice, g.symbol)
 
-	if order, ok := g.orders[level.id]; ok {
-		return events.NewEditOrder(order.ID(), newOrder)
+	// check if adjusting the order is unnecessary
+	existingOrder, ok := g.orders[level.id]
+	if ok && existingOrder.IsEqual(&newOrder) {
+		return nil
 	}
+
+	g.orders[level.id] = newOrder
+
+	if ok {
+		return events.NewEditOrder(existingOrder.ID(), newOrder)
+	}
+
 
 	return events.NewOpenOrder(newOrder)
 }
 
-func newGrid() *grid {
+func newGrid(symbol data.Symbol) *grid {
 	levels := make([]GridLevel, 0)
 	orders := make(map[LevelID]exchange.Order, internal.DefaultCapacity)
 
 	return &grid{
-		symbol:   data.Symbol{},
+		symbol:   symbol,
 		levels:   levels,
 		executed: 0,
 		orders:   orders,
@@ -188,9 +205,10 @@ type GridGenerator interface {
 }
 
 type GridBot struct {
-	grid     grid
-	strategy GridGenerator
+	grid       grid
+	strategy   GridGenerator
 	instrument data.Instrument
+	currentLog []string
 }
 
 func (g *GridBot) MinDurations() st.Durations {
@@ -210,10 +228,30 @@ func (g *GridBot) Next(candle data.InstrumentCandle) ([]events.Event, error) {
 		levelEvents = g.grid.SetLevels(levels, candle.Candle)
 	}
 
+
+
+	if levels != nil {
+		g.currentLog = []string{
+			fmt.Sprintf("%f", candle.Close),
+			fmt.Sprintf("%d", candle.TimeClose.UnixMilli()),
+		}
+		for _, level := range levels {
+			p := fmt.Sprintf("%f", level.price)
+			g.currentLog = append(g.currentLog, p)
+		}
+		g.currentLog = append(g.currentLog, fmt.Sprintf("%f", g.grid.spent))
+	}
+	if len(g.currentLog) != 0 {
+		g.currentLog[0] = fmt.Sprintf("%f", candle.Close)
+		g.currentLog[1] = fmt.Sprintf("%d", candle.TimeClose.UnixMilli())
+		writeToFile("/home/vlad/Desktop/development/quick_trade/xoney/testdata/gridLevels.csv", g.currentLog)
+	}
+
 	updateEvents := g.grid.UpdateOrders(candle.Candle)
 
+	result := internal.Append(levelEvents, updateEvents...)
 
-	return internal.Append(levelEvents, updateEvents...), nil
+	return result, nil
 }
 
 func (g *GridBot) Start(charts data.ChartContainer) error {
@@ -222,8 +260,38 @@ func (g *GridBot) Start(charts data.ChartContainer) error {
 
 func NewGridBot(strategy GridGenerator, instrument data.Instrument) *GridBot {
 	return &GridBot{
-		grid:     *newGrid(),
-		strategy: strategy,
+		grid:       *newGrid(instrument.Symbol()),
+		strategy:   strategy,
 		instrument: instrument,
 	}
+}
+
+
+
+
+
+
+
+
+
+
+// TODO: DELETE
+func writeToFile(filename string, info []string) error {
+	// Открываем файл для записи
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModeAppend)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Создаем писателя CSV
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Записываем строки в CSV файл
+	if err := writer.Write(info); err != nil {
+		return err
+	}
+
+	return nil
 }

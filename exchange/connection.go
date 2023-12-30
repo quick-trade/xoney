@@ -119,19 +119,21 @@ func (s *MarginSimulator) executeLimitOrder(order Order) {
 	s.limitOrders.heap.Add(order)
 }
 
-func (s *MarginSimulator) updateLimits(high, low float64) error {
-	for i, order := range s.limitOrders.heap.Members {
-		if order.CrossesPrice(high, low) {
-			s.limitOrders.heap.RemoveAt(i)
-			// Removing an element in a loop by index in this case is safe
-			// because at the first operation we exit the loop,
-			// without causing errors/collisions
+func (s *MarginSimulator) updateLimits(symbol data.Symbol, high, low float64) error {
+	var err error = nil
 
-			return s.executeMarketOrder(order)
+	s.limitOrders.heap.Filter(func(order *Order) bool {
+		if order.symbol == symbol && order.CrossesPrice(high, low) {
+			execErr := s.executeMarketOrder(*order)
+			if execErr != nil { err = execErr; println("НЕ ПОЛУЧИЛОСЬ ОБНОВИТБ ОРДЕР") }
+
+			return false
 		}
-	}
 
-	return nil
+		return true
+	})
+
+	return err
 }
 
 func (s *MarginSimulator) Transfer(quantity float64, currency data.Currency, target data.Exchange) error {
@@ -156,7 +158,7 @@ func (s *MarginSimulator) UpdatePrice(candle data.InstrumentCandle) error {
 		s.prices[base] = candle.Close
 	}
 
-	return s.updateLimits(candle.High, candle.Low)
+	return s.updateLimits(symbol, candle.High, candle.Low)
 }
 
 func (s *MarginSimulator) CancelAllOrders() error {
@@ -195,7 +197,7 @@ func (s *MarginSimulator) SellAll() error {
 
 func (s *MarginSimulator) Cleanup() error {
 	err := s.CancelAllOrders()
-	s.portfolio = s.startPortfolio
+	s.portfolio = s.startPortfolio.Copy()
 
 	if err != nil {
 		return fmt.Errorf("order cleanup failed: %w", err)
@@ -207,7 +209,7 @@ func NewMarginSimulator(portfolio common.Portfolio) MarginSimulator {
 	return MarginSimulator{
 		prices:         make(map[data.Currency]float64, internal.DefaultCapacity),
 		portfolio:      portfolio,
-		startPortfolio: portfolio,
+		startPortfolio: portfolio.Copy(),
 		limitOrders:    newOrderHeap(internal.DefaultCapacity),
 	}
 }

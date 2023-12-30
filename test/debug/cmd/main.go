@@ -87,7 +87,7 @@ func debugBollinger() {
 }
 
 func gridBot() *tk.GridBot {
-	generator := testdata.NewAutoGrid(100, 10, 4, 0.5)
+	generator := testdata.NewAutoGrid(100, 2, 1.5, 0.5)
 	return tk.NewGridBot(generator, btc15m)
 }
 

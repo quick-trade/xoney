@@ -56,6 +56,19 @@ func (h *Heap[T]) Remove(v *T) error {
 	return h.RemoveAt(idx)
 }
 
+func (h *Heap[T]) Filter(keep func(*T) bool) {
+	// Removing an element in a loop by index in this case is safe
+	// because we removing elements from the end,
+	// without causing errors/collisions
+
+	for i := h.Len()-1; i >= 0; i-- {
+		member := &h.Members[i]
+		if !keep(member) {
+			h.RemoveAt(i)
+		}
+	}
+}
+
 func NewHeap[T Equaler[T]](capacity int) *Heap[T] {
 	return &Heap[T]{Members: make([]T, 0, capacity)}
 }

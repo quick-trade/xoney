@@ -54,6 +54,12 @@ func (p *Portfolio) Decrease(currency data.Currency, quantity float64) {
 	p.assets[currency] -= quantity
 }
 func (p Portfolio) MainCurrency() data.Currency { return p.mainCurrency }
+func (p Portfolio) Copy() Portfolio {
+	return Portfolio{
+		assets: internal.MapCopy(p.assets),
+		mainCurrency: p.mainCurrency,
+	}
+}
 func NewPortfolio(mainCurrency data.Currency) Portfolio {
 	return Portfolio{
 		assets:       make(map[data.Currency]float64, internal.DefaultCapacity),

@@ -38,7 +38,22 @@ func (o Order) Price() float64      { return o.price }
 func (o Order) Amount() float64     { return o.amount }
 
 func (o Order) IsEqual(other *Order) bool {
-	return o.internalID == other.internalID
+	if other.amount != o.amount {
+		return false
+	}
+	if other.symbol != o.symbol {
+		return false
+	}
+	if other.orderType != o.orderType {
+		return false
+	}
+	if other.side != o.side {
+		return false
+	}
+	if other.price != o.price {
+		return false
+	}
+	return true
 }
 
 func (o Order) CrossesPrice(high, low float64) bool {
