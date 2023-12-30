@@ -24,10 +24,10 @@ func (e *Equity) PortfolioHistory() map[Currency][]float64 {
 	result := make(map[Currency][]float64, len(last))
 
 	for currency := range last {
-		result[currency] = make([]float64, 0, len(e.mainHistory))
+		result[currency] = make([]float64, 0, len(e.portfolioHistory))
 	}
 
-	for i := range e.mainHistory {
+	for i := range e.portfolioHistory {
 		for currency := range last {
 			value := e.portfolioHistory[i][currency]
 			result[currency] = internal.Append(result[currency], value)
