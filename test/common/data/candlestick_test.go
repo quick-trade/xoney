@@ -13,6 +13,25 @@ func newTestTimeFrame() data.TimeFrame {
 	return *tf
 }
 
+func newChart() data.Chart {
+	rawChart := data.RawChart(newTestTimeFrame(), 10)
+
+	// Adding candles to the chart
+	for i := 0; i < 5; i++ {
+		candle := data.NewCandle(
+			float64(i*10),
+			float64(i*10+10),
+			float64(i*10-5),
+			float64(i*10+5),
+			float64(i*100),
+			time.Now().Add(time.Duration(i) * time.Minute),
+		)
+		rawChart.Add(*candle)
+	}
+
+	return rawChart
+}
+
 func TestTimeStampTimeframe(t *testing.T) {
 	timeframe := newTestTimeFrame()
 	ts := data.NewTimeStamp(timeframe, 10)
@@ -312,20 +331,7 @@ func TestChartSlice(t *testing.T) {
 
 func TestChartSliceError(t *testing.T) {
 	// Creating a raw chart with a time frame of 1 minute and capacity 10
-	rawChart := data.RawChart(newTestTimeFrame(), 10)
-
-	// Adding candles to the chart
-	for i := 0; i < 5; i++ {
-		candle := data.NewCandle(
-			float64(i*10),
-			float64(i*10+10),
-			float64(i*10-5),
-			float64(i*10+5),
-			float64(i*100),
-			time.Now().Add(time.Duration(i) * time.Minute),
-		)
-		rawChart.Add(*candle)
-	}
+	rawChart := newChart()
 
 	// Slicing the chart with an incorrect period
 	period := data.NewPeriod(
@@ -344,20 +350,7 @@ func TestChartSliceError(t *testing.T) {
 
 func TestChartLen(t *testing.T) {
 	// Creating a raw chart with a time frame of 1 minute and capacity 10
-	rawChart := data.RawChart(newTestTimeFrame(), 10)
-
-	// Adding candles to the chart
-	for i := 0; i < 5; i++ {
-		candle := data.NewCandle(
-			float64(i*10),
-			float64(i*10+10),
-			float64(i*10-5),
-			float64(i*10+5),
-			float64(i*100),
-			time.Now().Add(time.Duration(i) * time.Minute),
-		)
-		rawChart.Add(*candle)
-	}
+	rawChart := newChart()
 
 	// Checking the length of the chart
 	expectedLength := 5
@@ -365,5 +358,26 @@ func TestChartLen(t *testing.T) {
 
 	if resultLength != expectedLength {
 		t.Errorf("Expected length: %v, got: %v", expectedLength, resultLength)
+	}
+}
+func TestChartSlicePeriodEndsBeforeStart(t *testing.T) {
+	// Создание Chart с таймфреймом 1 минута и емкостью 10
+	chart := newChart()
+
+	// Создание периода, который заканчивается раньше, чем начинается Chart
+	period := data.NewPeriod(
+		time.Now().Add(-5 * time.Minute),
+		time.Now().Add(-2 * time.Minute),
+	)
+
+	// Вызов метода Slice
+	sliced := chart.Slice(period)
+
+	// Проверка, что возвращается новый Chart с нулевой емкостью
+	expectedCapacity := 0
+	resultCapacity := cap(sliced.Close)
+
+	if resultCapacity != expectedCapacity {
+		t.Errorf("Expected capacity: %v, got: %v", expectedCapacity, resultCapacity)
 	}
 }

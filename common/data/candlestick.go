@@ -130,12 +130,10 @@ func (c *Chart) Slice(period Period) Chart {
 		return RawChart(c.Timestamp.timeframe, 0)
 	}
 
-	stop, err := findIndexBeforeOrAtTime(c.Timestamp, period.End)
+	stop, _ := findIndexBeforeOrAtTime(c.Timestamp, period.End)
+	// Any errors that might occur would be related
+	// to the processing of the period start.
 	stop += 1
-
-	if err != nil {
-		stop = c.Len() - 1
-	}
 
 	return Chart{
 		Open:      c.Open[start:stop],
