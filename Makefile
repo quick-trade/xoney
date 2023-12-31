@@ -1,5 +1,5 @@
 COVERAGE := testdata/coverage.txt
-TESTPATH := ./test/...
+TESTPATH := ./...
 
 setup :
 	export PATH=$$PATH:$(shell go env GOPATH)/bin

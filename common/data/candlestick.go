@@ -125,8 +125,10 @@ func (c *Chart) Slice(period Period) Chart {
 	}
 
 	stop, err := findIndexBeforeOrAtTime(c.Timestamp, period[1])
+	stop += 1
+
 	if err != nil {
-		return RawChart(c.Timestamp.timeframe, 0)
+		stop = c.Len() - 1
 	}
 
 	return Chart{
@@ -273,20 +275,22 @@ func findIndexBeforeOrAtTime(
 
 func binarySearch(series TimeStamp, target time.Time) int {
 	low, high := 0, len(series.Timestamp)-1
+	var result int
 
 	for low <= high {
 		mid := (low + high) / 2
 		midTime := series.At(mid)
 
 		switch {
-		case midTime.Before(target):
-			low = mid + 1
-		case midTime.After(target):
-			high = mid - 1
-		default:
-			return mid
+			case midTime.Before(target):
+				low = mid + 1
+				result = mid
+			case midTime.After(target):
+				high = mid - 1
+			default:
+				return mid
 		}
 	}
 
-	return -1
+	return result
 }
