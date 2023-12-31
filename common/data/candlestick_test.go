@@ -3,6 +3,7 @@ package data
 import (
 	"testing"
 	"time"
+    "reflect"
 
 	"xoney/errors"
 )
@@ -42,4 +43,28 @@ func TestFindIndexBeforeOrAtTime(t *testing.T) {
     if index != expectedIndex {
         t.Errorf("Expected index: %d, got: %d", expectedIndex, index)
     }
+}
+
+func TestSortedInstruments(t *testing.T) {
+	// Создание инструментов и добавление их в контейнер
+    m1, _ := NewTimeFrame(time.Minute, "1m")
+    h1, _ := NewTimeFrame(time.Hour, "1h")
+	instrument1 := NewInstrument(*NewSymbol("BTC", "USD", "BINANCE"), *m1)
+	instrument2 := NewInstrument(*NewSymbol("ETH", "USD", "BINANCE"), *h1)
+
+	container := ChartContainer{
+		instrument1: RawChart(instrument1.timeframe, 10),
+		instrument2: RawChart(instrument2.timeframe, 10),
+	}
+
+	// Вызов приватного метода
+	result := container.sortedInstruments()
+
+	// Ожидаемый порядок инструментов по duration
+	expectedOrder := []Instrument{instrument1, instrument2}
+
+	// Сравнение результата с ожидаемым порядком
+	if !reflect.DeepEqual(result, expectedOrder) {
+		t.Errorf("Expected order: %v, got: %v", expectedOrder, result)
+	}
 }
