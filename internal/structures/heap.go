@@ -61,7 +61,7 @@ func (h *Heap[T]) Filter(keep func(*T) bool) {
 	// because we removing elements from the end,
 	// without causing errors/collisions
 
-	for i := h.Len()-1; i >= 0; i-- {
+	for i := h.Len() - 1; i >= 0; i-- {
 		member := &h.Members[i]
 		if !keep(member) {
 			h.RemoveAt(i)

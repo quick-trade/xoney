@@ -1,10 +1,7 @@
 package toolkit
 
 import (
-	"encoding/csv"
-	"fmt"
 	"math"
-	"os"
 	"time"
 	"xoney/common/data"
 	"xoney/events"
@@ -62,6 +59,7 @@ func (g *grid) SetLevels(levels []GridLevel, candle data.Candle) []events.Event 
 	}
 	return []events.Event{}
 }
+
 func (g *grid) setNewGrid(levels []GridLevel, candle data.Candle) []events.Event {
 	cancelEvents := g.cancelLevelsOrders(g.levels)
 	sellAll := g.undoExecuted(candle)
@@ -74,6 +72,7 @@ func (g *grid) setNewGrid(levels []GridLevel, candle data.Candle) []events.Event
 
 	return cancelEvents
 }
+
 func (g *grid) cancelLevelsOrders(canceled []GridLevel) []events.Event {
 	orderEvents := make([]events.Event, 0, len(g.levels))
 
@@ -84,6 +83,7 @@ func (g *grid) cancelLevelsOrders(canceled []GridLevel) []events.Event {
 	}
 	return orderEvents
 }
+
 func (g *grid) cancelLevelOrder(level GridLevel) events.Event {
 	order, ok := g.orders[level.id]
 
@@ -95,8 +95,11 @@ func (g *grid) cancelLevelOrder(level GridLevel) events.Event {
 
 	return nil
 }
+
 func (g *grid) checkNewGrid(levels []GridLevel) bool {
-	if len(g.levels) != len(levels) { return true }
+	if len(g.levels) != len(levels) {
+		return true
+	}
 
 	// The map is needed to quickly find ID's
 	gridLevelsIDs := make(map[LevelID]struct{})
@@ -118,7 +121,9 @@ func (g *grid) UpdateOrders(candle data.Candle) []events.Event {
 	for _, level := range g.levels {
 		g.processIfExecuted(level.id, candle)
 
-		if level.id == g.executed { continue }
+		if level.id == g.executed {
+			continue
+		}
 
 		editOrder := g.adjustOrderIfNeeded(level, candle.Close)
 		if editOrder != nil {
@@ -127,6 +132,7 @@ func (g *grid) UpdateOrders(candle data.Candle) []events.Event {
 	}
 	return orderEvents
 }
+
 func (g *grid) processIfExecuted(levelID LevelID, candle data.Candle) {
 	order, ok := g.orders[levelID]
 	if ok && order.CrossesPrice(candle.High, candle.Low) {
@@ -136,6 +142,7 @@ func (g *grid) processIfExecuted(levelID LevelID, candle data.Candle) {
 		delete(g.orders, levelID)
 	}
 }
+
 func (g *grid) registerOrderExpenses(order exchange.Order) {
 	if order.Side() == exchange.Buy {
 		g.spent += order.Amount()
@@ -143,11 +150,14 @@ func (g *grid) registerOrderExpenses(order exchange.Order) {
 		g.spent -= order.Amount()
 	}
 }
+
 func (g *grid) undoExecuted(candle data.Candle) events.Event {
 	price := candle.Close
 	amount := math.Abs(g.spent)
 
-	if amount == 0 { return nil }
+	if amount == 0 {
+		return nil
+	}
 
 	var side exchange.OrderSide
 	if g.spent > 0 {
@@ -182,7 +192,6 @@ func (g *grid) adjustOrderIfNeeded(level GridLevel, currPrice float64) events.Ev
 		return events.NewEditOrder(existingOrder.ID(), newOrder)
 	}
 
-
 	return events.NewOpenOrder(newOrder)
 }
 
@@ -195,6 +204,7 @@ func newGrid(symbol data.Symbol) *grid {
 		levels:   levels,
 		executed: 0,
 		orders:   orders,
+		spent:    0,
 	}
 }
 
@@ -208,7 +218,6 @@ type GridBot struct {
 	grid       grid
 	strategy   GridGenerator
 	instrument data.Instrument
-	currentLog []string
 }
 
 func (g *GridBot) MinDurations() st.Durations {
@@ -228,25 +237,6 @@ func (g *GridBot) Next(candle data.InstrumentCandle) ([]events.Event, error) {
 		levelEvents = g.grid.SetLevels(levels, candle.Candle)
 	}
 
-
-
-	if levels != nil {
-		g.currentLog = []string{
-			fmt.Sprintf("%f", candle.Close),
-			fmt.Sprintf("%d", candle.TimeClose.UnixMilli()),
-		}
-		for _, level := range levels {
-			p := fmt.Sprintf("%f", level.price)
-			g.currentLog = append(g.currentLog, p)
-		}
-		g.currentLog = append(g.currentLog, fmt.Sprintf("%f", g.grid.spent))
-	}
-	if len(g.currentLog) != 0 {
-		g.currentLog[0] = fmt.Sprintf("%f", candle.Close)
-		g.currentLog[1] = fmt.Sprintf("%d", candle.TimeClose.UnixMilli())
-		writeToFile("/home/vlad/Desktop/development/quick_trade/xoney/testdata/gridLevels.csv", g.currentLog)
-	}
-
 	updateEvents := g.grid.UpdateOrders(candle.Candle)
 
 	result := internal.Append(levelEvents, updateEvents...)
@@ -264,34 +254,4 @@ func NewGridBot(strategy GridGenerator, instrument data.Instrument) *GridBot {
 		strategy:   strategy,
 		instrument: instrument,
 	}
-}
-
-
-
-
-
-
-
-
-
-
-// TODO: DELETE
-func writeToFile(filename string, info []string) error {
-	// Открываем файл для записи
-	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModeAppend)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Создаем писателя CSV
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
-
-	// Записываем строки в CSV файл
-	if err := writer.Write(info); err != nil {
-		return err
-	}
-
-	return nil
 }

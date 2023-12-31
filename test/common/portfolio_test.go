@@ -11,12 +11,13 @@ import (
 func usd() data.Currency {
 	return data.NewCurrency("USD", "NYSE")
 }
+
 func portfolio() common.Portfolio {
 	return common.NewPortfolio(usd())
 }
 
 func TestSet(t *testing.T) {
-	USD :=usd()
+	USD := usd()
 	p := portfolio()
 	p.Set(USD, 100)
 
@@ -26,7 +27,7 @@ func TestSet(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
-	USD :=usd()
+	USD := usd()
 	p := portfolio()
 	p.Set(USD, 100)
 
@@ -37,7 +38,6 @@ func TestCopy(t *testing.T) {
 		t.Error("Portfolio.Copy() is not working properly")
 	}
 }
-
 
 func TestPortfolioTotal(t *testing.T) {
 	// Create a new Portfolio with a main currency
@@ -74,12 +74,12 @@ func TestPortfolioTotal(t *testing.T) {
 	_, err = portfolio.Total(prices)
 
 	// Compare the actual and expected error
-	if _, ok := err.(errors.MissingCurrencyError); !ok{
-		t.Error(prices, )
+	if _, ok := err.(errors.MissingCurrencyError); !ok {
+		t.Error(prices)
 		t.Errorf("Expected MissingCurrencyError, got: %v", err)
 	}
-
 }
+
 func TestPortfolioBalance(t *testing.T) {
 	// Create a new Portfolio with a main currency
 	mainCurrency := data.NewCurrency("USD", "EXCHANGE")

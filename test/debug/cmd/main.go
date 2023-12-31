@@ -7,11 +7,11 @@ import (
 	"xoney/exchange"
 
 	bt "xoney/backtest"
-	st "xoney/strategy"
-	tk "xoney/toolkit"
 
+	st "xoney/strategy"
 	testdata "xoney/testdata/backtesting"
 	dtr "xoney/testdata/dataread"
+	tk "xoney/toolkit"
 )
 
 var (
@@ -51,6 +51,7 @@ func portfolio() common.Portfolio {
 
 	return portfolio
 }
+
 func backtester() bt.Backtester {
 	portfolio := portfolio()
 
@@ -59,6 +60,7 @@ func backtester() bt.Backtester {
 
 	return *tester
 }
+
 func backtest(system st.Tradable) data.Equity {
 	tester := backtester()
 
@@ -88,6 +90,7 @@ func debugBollinger() {
 
 func gridBot() *tk.GridBot {
 	generator := testdata.NewAutoGrid(100, 2, 1.5, 0.5)
+
 	return tk.NewGridBot(generator, btc15m)
 }
 
@@ -104,6 +107,7 @@ func debugGrid() {
 		panic(err)
 	}
 }
+
 func main() {
 	// Uploading chart data once
 	btc15m = btc15min()

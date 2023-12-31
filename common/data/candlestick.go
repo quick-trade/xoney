@@ -12,6 +12,7 @@ type Period struct {
 	Start time.Time
 	End   time.Time
 }
+
 func NewPeriod(start, end time.Time) Period {
 	return Period{Start: start, End: end}
 }
@@ -133,7 +134,7 @@ func (c *Chart) Slice(period Period) Chart {
 	stop, _ := findIndexBeforeOrAtTime(c.Timestamp, period.End)
 	// Any errors that might occur would be related
 	// to the processing of the period start.
-	stop += 1
+	stop++
 
 	return Chart{
 		Open:      c.Open[start:stop],
@@ -279,6 +280,7 @@ func findIndexBeforeOrAtTime(
 
 func binarySearch(series TimeStamp, target time.Time) int {
 	low, high := 0, len(series.Timestamp)-1
+
 	var result int
 
 	for low <= high {
@@ -286,13 +288,13 @@ func binarySearch(series TimeStamp, target time.Time) int {
 		midTime := series.At(mid)
 
 		switch {
-			case midTime.Before(target):
-				low = mid + 1
-				result = mid
-			case midTime.After(target):
-				high = mid - 1
-			default:
-				return mid
+		case midTime.Before(target):
+			low = mid + 1
+			result = mid
+		case midTime.After(target):
+			high = mid - 1
+		default:
+			return mid
 		}
 	}
 

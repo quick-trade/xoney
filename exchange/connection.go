@@ -120,12 +120,14 @@ func (s *MarginSimulator) executeLimitOrder(order Order) {
 }
 
 func (s *MarginSimulator) updateLimits(symbol data.Symbol, high, low float64) error {
-	var err error = nil
+	var err error
 
 	s.limitOrders.heap.Filter(func(order *Order) bool {
 		if order.symbol == symbol && order.CrossesPrice(high, low) {
 			execErr := s.executeMarketOrder(*order)
-			if execErr != nil { err = execErr; println("НЕ ПОЛУЧИЛОСЬ ОБНОВИТБ ОРДЕР") }
+			if execErr != nil {
+				err = execErr
+			}
 
 			return false
 		}

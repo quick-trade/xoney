@@ -1,14 +1,15 @@
-package exchange
+package exchange_test
 
 import (
 	"testing"
-	"xoney/exchange"
 	"xoney/common/data"
+	"xoney/exchange"
 )
 
 func btc() data.Symbol {
 	return *data.NewSymbol("BTC", "USD", "BINANCE")
 }
+
 func eth() data.Symbol {
 	return *data.NewSymbol("ETH", "USD", "BINANCE")
 }
@@ -22,6 +23,7 @@ func orderBTC() *exchange.Order {
 		1.0,
 	)
 }
+
 func orderBTCLimit() *exchange.Order {
 	return exchange.NewOrder(
 		btc(),
@@ -31,6 +33,7 @@ func orderBTCLimit() *exchange.Order {
 		1.0,
 	)
 }
+
 func orderBTC4k() *exchange.Order {
 	return exchange.NewOrder(
 		btc(),
@@ -40,6 +43,7 @@ func orderBTC4k() *exchange.Order {
 		1.0,
 	)
 }
+
 func orderETH() *exchange.Order {
 	return exchange.NewOrder(
 		eth(),
@@ -49,6 +53,7 @@ func orderETH() *exchange.Order {
 		5.0,
 	)
 }
+
 func orderETHBuy() *exchange.Order {
 	return exchange.NewOrder(
 		eth(),
@@ -58,6 +63,7 @@ func orderETHBuy() *exchange.Order {
 		5.0,
 	)
 }
+
 func orderETHlikeBTC() *exchange.Order {
 	return exchange.NewOrder(
 		eth(),
@@ -67,6 +73,7 @@ func orderETHlikeBTC() *exchange.Order {
 		1.0,
 	)
 }
+
 func orderETH1() *exchange.Order {
 	return exchange.NewOrder(
 		eth(),
@@ -77,12 +84,9 @@ func orderETH1() *exchange.Order {
 	)
 }
 
-
 func TestOrderMethods(t *testing.T) {
-
 	order1 := orderBTC()
 	order2 := orderETH()
-
 
 	if result := order1.Symbol(); result != btc() {
 		t.Errorf("Expected Symbol: BTCUSD, got: %s", result)

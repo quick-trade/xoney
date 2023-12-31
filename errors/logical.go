@@ -21,7 +21,7 @@ func (e ZeroLengthError) Error() string {
 	msg.WriteString(e.Character)
 	msg.WriteString(" has 0 length.")
 
-	return e.Character
+	return msg.String()
 }
 
 type IncorrectDurationError struct {

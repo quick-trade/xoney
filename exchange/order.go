@@ -41,18 +41,23 @@ func (o Order) IsEqual(other *Order) bool {
 	if other.amount != o.amount {
 		return false
 	}
+
 	if other.symbol != o.symbol {
 		return false
 	}
+
 	if other.orderType != o.orderType {
 		return false
 	}
+
 	if other.side != o.side {
 		return false
 	}
+
 	if other.price != o.price {
 		return false
 	}
+
 	return true
 }
 

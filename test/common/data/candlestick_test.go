@@ -10,6 +10,7 @@ import (
 
 func newTestTimeFrame() data.TimeFrame {
 	tf, _ := data.NewTimeFrame(time.Minute*10, "10m")
+
 	return *tf
 }
 
@@ -24,7 +25,7 @@ func newChart() data.Chart {
 			float64(i*10-5),
 			float64(i*10+5),
 			float64(i*100),
-			time.Now().Add(time.Duration(i) * time.Minute),
+			time.Now().Add(time.Duration(i)*time.Minute),
 		)
 		rawChart.Add(*candle)
 	}
@@ -79,12 +80,13 @@ func TestTimeStampExtend(t *testing.T) {
 
 	// Testing the extended values
 	expected := ts.Timestamp[5]
-	result := ts.Timestamp[4].Add(time.Minute*10)
+	result := ts.Timestamp[4].Add(time.Minute * 10)
 
 	if result != expected {
 		t.Errorf("Expected: %v, got: %v", expected, result)
 	}
 }
+
 func TestTimeStampAppend(t *testing.T) {
 	timeframe := newTestTimeFrame()
 	ts := data.NewTimeStamp(timeframe, 10)
@@ -184,8 +186,6 @@ func TestTimeStampLen(t *testing.T) {
 	}
 }
 
-
-
 func TestChartAdd(t *testing.T) {
 	// Creating a raw chart with a time frame of 1 minute and capacity 10
 	rawChart := data.RawChart(newTestTimeFrame(), 10)
@@ -205,7 +205,6 @@ func TestChartAdd(t *testing.T) {
 	// Checking the values of the added candle
 	expectedCandle := *candle
 	resultCandle, err := rawChart.CandleByIndex(0)
-
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -234,7 +233,6 @@ func TestChartAddEmptyCandle(t *testing.T) {
 	// Checking the values of the added candle
 	expectedCandle := *emptyCandle
 	resultCandle, err := rawChart.CandleByIndex(0)
-
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -271,7 +269,7 @@ func TestChartSlice(t *testing.T) {
 	timeStart := time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	// Checking the result for raw chart
-	sliced := chart.Slice(data.Period{})
+	sliced := chart.Slice(data.NewPeriod(timeStart, timeStart.Add(time.Hour*999)))
 	if sliced.Len() != 0 {
 		t.Error("Expected slice length to be 0 with raw source")
 	}
@@ -284,7 +282,7 @@ func TestChartSlice(t *testing.T) {
 			float64(i*10-5),
 			float64(i*10+5),
 			float64(100500),
-			timeStart.Add(time.Minute * time.Duration(10*i)),
+			timeStart.Add(time.Minute*time.Duration(10*i)),
 		)
 
 		chart.Add(*candle)
@@ -292,8 +290,8 @@ func TestChartSlice(t *testing.T) {
 
 	// Slicing the chart
 	sliced = chart.Slice(data.NewPeriod(
-		timeStart.Add(11 * time.Minute),
-		timeStart.Add(30 * time.Minute),
+		timeStart.Add(11*time.Minute),
+		timeStart.Add(30*time.Minute),
 	))
 
 	// Checking the length of the sliced chart
@@ -335,8 +333,8 @@ func TestChartSliceError(t *testing.T) {
 
 	// Slicing the chart with an incorrect period
 	period := data.NewPeriod(
-		time.Now().Add(3 * time.Minute),
-		time.Now().Add(2 * time.Minute),
+		time.Now().Add(3*time.Minute),
+		time.Now().Add(2*time.Minute),
 	)
 	sliced := rawChart.Slice(period)
 
@@ -360,14 +358,15 @@ func TestChartLen(t *testing.T) {
 		t.Errorf("Expected length: %v, got: %v", expectedLength, resultLength)
 	}
 }
+
 func TestChartSlicePeriodEndsBeforeStart(t *testing.T) {
 	// Создание Chart с таймфреймом 1 минута и емкостью 10
 	chart := newChart()
 
 	// Создание периода, который заканчивается раньше, чем начинается Chart
 	period := data.NewPeriod(
-		time.Now().Add(-5 * time.Minute),
-		time.Now().Add(-2 * time.Minute),
+		time.Now().Add(-5*time.Minute),
+		time.Now().Add(-2*time.Minute),
 	)
 
 	// Вызов метода Slice

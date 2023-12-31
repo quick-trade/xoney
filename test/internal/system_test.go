@@ -1,9 +1,9 @@
 package internal_test
 
 import (
-	"testing"
 	"reflect"
 	"sort"
+	"testing"
 
 	"xoney/internal"
 )
@@ -54,16 +54,19 @@ func TestMapKeys(t *testing.T) {
 	if len(resultMixedType) != len(expectedMixedType) {
 		success = false
 	} else {
-		for _, v_r := range resultMixedType {
+		for _, vReal := range resultMixedType {
 			found := false
-			for _, v_e := range expectedMixedType {
-				if v_e == v_r { found = true }
+			for _, vExp := range expectedMixedType {
+				if vExp == vReal {
+					found = true
+				}
 			}
 
-			if !found { success = false }
+			if !found {
+				success = false
+			}
 		}
 	}
-
 
 	if !success {
 		t.Errorf("Expected: %v, got: %v", expectedMixedType, resultMixedType)

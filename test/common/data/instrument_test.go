@@ -44,6 +44,7 @@ func Daily() data.TimeFrame {
 	if err != nil {
 		panic("Error creating TimeFrame")
 	}
+
 	return *tf
 }
 
@@ -104,7 +105,7 @@ func TestEquityPortfolioHistory(t *testing.T) {
 	}
 }
 
-// Helper function to check if two slices are equal
+// Helper function to check if two slices are equal.
 func isEqual(a, b []float64) bool {
 	if len(a) != len(b) {
 		return false
@@ -114,22 +115,24 @@ func isEqual(a, b []float64) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
-// Helper function to check if two maps of slices are equal
+// Helper function to check if two maps of slices are equal.
 func isEqualMap(a, b map[data.Currency][]float64) bool {
 	if len(a) != len(b) {
 		return false
 	}
+
 	for key := range a {
 		if !isEqual(a[key], b[key]) {
 			return false
 		}
 	}
+
 	return true
 }
-
 
 func TestEquityNow(t *testing.T) {
 	// Create a new Equity instance

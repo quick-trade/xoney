@@ -3,8 +3,8 @@ package internal_test
 import (
 	"testing"
 
-	"xoney/internal/structures"
 	"xoney/errors"
+	"xoney/internal/structures"
 )
 
 type MockEqualer int
@@ -49,7 +49,7 @@ func TestHeapFilter(t *testing.T) {
 		return *e == 24
 	})
 
-	if h.Contains(&elem1) || !h.Contains(&elem2)  || h.Contains(&elem3) {
+	if h.Contains(&elem1) || !h.Contains(&elem2) || h.Contains(&elem3) {
 		t.Errorf("Expected heap to only contain %v after filtering, but it didn't", elem1)
 	}
 }
@@ -92,6 +92,7 @@ func TestHeapLen(t *testing.T) {
 		t.Errorf("Expected heap length to be 2, but got %d", length)
 	}
 }
+
 func TestHeapIndexError(t *testing.T) {
 	// Create a Heap with some elements
 	myHeap := structures.NewHeap[MockEqualer](5)
@@ -125,6 +126,7 @@ func TestHeapNotFoundError(t *testing.T) {
 		t.Errorf("Expected ValueNotFoundError, got: %v", err)
 	}
 }
+
 func TestHeapRemoveError(t *testing.T) {
 	// Create a Heap with some elements
 	myHeap := structures.NewHeap[MockEqualer](5)

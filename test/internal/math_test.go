@@ -2,8 +2,8 @@ package internal_test
 
 import (
 	"testing"
-	"xoney/internal"
 	"xoney/errors"
+	"xoney/internal"
 )
 
 func array() []float64 {
@@ -12,8 +12,8 @@ func array() []float64 {
 
 func TestMean(t *testing.T) {
 	arr := array()
-	mean, err := internal.RawMoment(arr, 1)
 
+	mean, err := internal.RawMoment(arr, 1)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -28,16 +28,16 @@ func TestZeroLen(t *testing.T) {
 	_, err := internal.RawMoment(arr, 1)
 
 	expected := errors.NewZeroLengthError("series")
-	if err != expected {
+	if err.Error() != expected.Error() {
 		t.Errorf("there is no correct error, got %v", err)
 	}
 }
 
 func TestDiff(t *testing.T) {
-	arr := []float64{1,2,3,13}
+	arr := []float64{1, 2, 3, 13}
 
 	diff := internal.Diff(arr)
-	expected := []float64{1,1,10}
+	expected := []float64{1, 1, 10}
 
 	if len(diff) != len(expected) {
 		t.Error("incorrect diff length")
@@ -46,6 +46,7 @@ func TestDiff(t *testing.T) {
 	for i := range diff {
 		if diff[i] != expected[i] {
 			t.Errorf("incorrect diff: expected %v, got %v", expected, diff)
+
 			break
 		}
 	}
