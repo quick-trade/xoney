@@ -152,7 +152,7 @@ func equityPeriod(
 		}
 	}
 
-	return data.Period{firstStart, latestEnd}
+	return data.NewPeriod(firstStart, latestEnd)
 }
 
 func maxTimeFrame(charts data.ChartContainer) data.TimeFrame {
@@ -176,15 +176,15 @@ func generateEquity(
 	period = period.ShiftedStart(-maxDuration)
 
 	timeframe := maxTimeFrame(charts)
-	duration := period[1].Sub(period[0])
+	duration := period.End.Sub(period.Start)
 	length := int(duration/timeframe.Duration) + 1
 
-	return data.NewEquity(timeframe, period[0], length)
+	return data.NewEquity(timeframe, period.Start, length)
 }
 
 func setupPeriod(charts data.ChartContainer, maxDuration time.Duration) data.Period {
 	start := charts.FirstStart()
 	stop := start.Add(maxDuration)
 
-	return data.Period{start, stop}
+	return data.NewPeriod(start, stop)
 }

@@ -272,10 +272,10 @@ func TestChartSlice(t *testing.T) {
 	}
 
 	// Slicing the chart
-	sliced = chart.Slice(data.Period{
+	sliced = chart.Slice(data.NewPeriod(
 		timeStart.Add(11 * time.Minute),
 		timeStart.Add(30 * time.Minute),
-	})
+	))
 
 	// Checking the length of the sliced chart
 	expectedLength := 3
@@ -301,10 +301,10 @@ func TestChartSlice(t *testing.T) {
 		}
 	}
 
-	sliced = chart.Slice(data.Period{
+	sliced = chart.Slice(data.NewPeriod(
 		timeStart,
 		timeStart.Add(time.Hour*24), // outside of range
-	})
+	))
 	if sliced.Len() != chart.Len() {
 		t.Errorf("Expected length: %d, got: %d", chart.Len(), sliced.Len())
 	}
@@ -328,10 +328,10 @@ func TestChartSliceError(t *testing.T) {
 	}
 
 	// Slicing the chart with an incorrect period
-	period := data.Period{
+	period := data.NewPeriod(
 		time.Now().Add(3 * time.Minute),
 		time.Now().Add(2 * time.Minute),
-	}
+	)
 	sliced := rawChart.Slice(period)
 
 	// Checking the error for an incorrect period

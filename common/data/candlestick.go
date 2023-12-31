@@ -8,10 +8,16 @@ import (
 	"xoney/internal"
 )
 
-type Period [2]time.Time
+type Period struct {
+	Start time.Time
+	End   time.Time
+}
+func NewPeriod(start, end time.Time) Period {
+	return Period{Start: start, End: end}
+}
 
 func (p Period) ShiftedStart(shift time.Duration) Period {
-	p[0] = p[0].Add(shift)
+	p.Start = p.Start.Add(shift)
 
 	return p
 }
@@ -119,12 +125,12 @@ func (c *Chart) Add(candle Candle) {
 }
 
 func (c *Chart) Slice(period Period) Chart {
-	start, err := findIndexBeforeOrAtTime(c.Timestamp, period[0])
+	start, err := findIndexBeforeOrAtTime(c.Timestamp, period.Start)
 	if err != nil {
 		return RawChart(c.Timestamp.timeframe, 0)
 	}
 
-	stop, err := findIndexBeforeOrAtTime(c.Timestamp, period[1])
+	stop, err := findIndexBeforeOrAtTime(c.Timestamp, period.End)
 	stop += 1
 
 	if err != nil {
