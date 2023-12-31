@@ -95,6 +95,12 @@ type InstrumentCandle struct {
 	Candle
 	Instrument
 }
+func NewInstrumentCandle(candle Candle, instrument Instrument) *InstrumentCandle {
+	return &InstrumentCandle{
+		Candle: candle,
+		Instrument: instrument,
+	}
+}
 
 type Chart struct {
 	Open      []float64

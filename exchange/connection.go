@@ -32,15 +32,6 @@ func (o *OrderHeap) RemoveByID(id OrderID) error {
 	return o.heap.RemoveAt(index)
 }
 
-func (o *OrderHeap) OrderByID(id OrderID) (Order, error) {
-	index, err := o.IndexByID(id)
-	if err != nil {
-		return Order{}, err
-	}
-
-	return o.heap.Members[index], nil
-}
-
 func newOrderHeap(capacity int) OrderHeap {
 	return OrderHeap{
 		heap: structures.Heap[Order]{

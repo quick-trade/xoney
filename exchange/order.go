@@ -63,10 +63,10 @@ func (o Order) IsEqual(other *Order) bool {
 
 func (o Order) CrossesPrice(high, low float64) bool {
 	if o.side == Buy {
-		return low < o.price
+		return low <= o.price
 	}
 
-	return high > o.price
+	return high >= o.price
 }
 
 func NewOrder(symbol data.Symbol, orderType OrderType, side OrderSide, price, amount float64) *Order {

@@ -6,17 +6,13 @@ import (
 	"xoney/exchange"
 )
 
-func btc() data.Symbol {
-	return *data.NewSymbol("BTC", "USD", "BINANCE")
-}
-
 func eth() data.Symbol {
 	return *data.NewSymbol("ETH", "USD", "BINANCE")
 }
 
 func orderBTC() *exchange.Order {
 	return exchange.NewOrder(
-		btc(),
+		btcUSD(),
 		exchange.Market,
 		exchange.Buy,
 		50000.0,
@@ -26,7 +22,7 @@ func orderBTC() *exchange.Order {
 
 func orderBTCLimit() *exchange.Order {
 	return exchange.NewOrder(
-		btc(),
+		btcUSD(),
 		exchange.Limit,
 		exchange.Buy,
 		50000.0,
@@ -36,7 +32,7 @@ func orderBTCLimit() *exchange.Order {
 
 func orderBTC4k() *exchange.Order {
 	return exchange.NewOrder(
-		btc(),
+		btcUSD(),
 		exchange.Market,
 		exchange.Buy,
 		4000.0,
@@ -88,7 +84,7 @@ func TestOrderMethods(t *testing.T) {
 	order1 := orderBTC()
 	order2 := orderETH()
 
-	if result := order1.Symbol(); result != btc() {
+	if result := order1.Symbol(); result != btcUSD() {
 		t.Errorf("Expected Symbol: BTCUSD, got: %s", result)
 	}
 
