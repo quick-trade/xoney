@@ -346,3 +346,88 @@ func TestMarginSimulator_Transfer_TargetExchangeUpdate(t *testing.T) {
 		t.Errorf("Expected updated balance in the target exchange after successful transfer: %v, got: %v", transferAmount, simulator.Portfolio().Balance(data.NewCurrency("USD", targetExchange)))
 	}
 }
+
+
+
+func TestMarginSimulator_SellAll_SuccessfulSell(t *testing.T) {
+	simulator := marginSimulator()
+	initialBalanceUSD := simulator.Portfolio().Balance(usd())
+	initialBalanceBTC := simulator.Portfolio().Balance(btc())
+
+	// Set prices for BTC and ETH
+	candleBTC := data.NewCandle(50000.0, 51000.0, 49000.0, 50500.0, 0, timeStart())
+	simulator.UpdatePrice(*data.NewInstrumentCandle(*candleBTC, instrument()))
+
+	candleETH := data.NewCandle(3000.0, 3100.0, 2900.0, 3050.0, 0, timeStart())
+	simulator.UpdatePrice(*data.NewInstrumentCandle(*candleETH, instrument()))
+
+	// Execute SellAll
+	err := simulator.SellAll()
+
+	// Check if there is no error
+	if err != nil {
+		t.Errorf("Unexpected error during successful SellAll: %v", err)
+	}
+
+	// Check if the balance of USD increased by selling BTC
+	expectedBalanceUSD := initialBalanceUSD + initialBalanceBTC*50500.0
+	if simulator.Portfolio().Balance(usd()) != expectedBalanceUSD {
+		t.Errorf("Expected USD balance after successful SellAll: %v, got: %v", expectedBalanceUSD, simulator.Portfolio().Balance(usd()))
+	}
+
+	// Check if the balance of BTC became zero
+	if simulator.Portfolio().Balance(btc()) != 0 {
+		t.Errorf("Expected BTC balance to be zero after successful SellAll, got: %v", simulator.Portfolio().Balance(btc()))
+	}
+
+	// Check if the balance of ETH remains unchanged
+	if simulator.Portfolio().Balance(data.NewCurrency("ETH", "BINANCE")) != 0 {
+		t.Errorf("Expected ETH balance to remain unchanged after successful SellAll, got: %v", simulator.Portfolio().Balance(data.NewCurrency("ETH", "BINANCE")))
+	}
+}
+
+func TestMarginSimulator_SellAll_ErrorPlacingOrder(t *testing.T) {
+	simulator := marginSimulator()
+	initialBalanceUSD := simulator.Portfolio().Balance(usd())
+	initialBalanceBTC := simulator.Portfolio().Balance(btc())
+
+	// Set prices for BTC and ETH
+	candleBTC := data.NewCandle(50000.0, 51000.0, 49000.0, 50500.0, 0, timeStart())
+	simulator.UpdatePrice(*data.NewInstrumentCandle(*candleBTC, instrument()))
+
+	// Execute SellAll
+	err := simulator.SellAll()
+	if err != nil {
+		t.Errorf("Unexpected error, got: %v", err)
+	}
+
+	// Check if the balances remain unchanged
+	if simulator.Portfolio().Balance(usd()) != initialBalanceUSD {
+		t.Errorf("Expected USD balance to remain unchanged after error placing order: %v, got: %v", initialBalanceUSD, simulator.Portfolio().Balance(usd()))
+	}
+	if simulator.Portfolio().Balance(btc()) != initialBalanceBTC {
+		t.Errorf("Expected BTC balance to remain unchanged after error placing order: %v, got: %v", initialBalanceBTC, simulator.Portfolio().Balance(btc()))
+	}
+}
+
+func TestMarginSimulator_SellAll_NoOrdersPlaced(t *testing.T) {
+	simulator := marginSimulator()
+	initialBalanceUSD := simulator.Portfolio().Balance(usd())
+	initialBalanceBTC := simulator.Portfolio().Balance(btc())
+
+	// Execute SellAll when there are no prices set
+	err := simulator.SellAll()
+
+	// Check if there is no error
+	if err != nil {
+		t.Errorf("Unexpected error during SellAll with no prices set: %v", err)
+	}
+
+	// Check if the balances remain unchanged
+	if simulator.Portfolio().Balance(usd()) != initialBalanceUSD {
+		t.Errorf("Expected USD balance to remain unchanged after SellAll with no prices set: %v, got: %v", initialBalanceUSD, simulator.Portfolio().Balance(usd()))
+	}
+	if simulator.Portfolio().Balance(btc()) != initialBalanceBTC {
+		t.Errorf("Expected BTC balance to remain unchanged after SellAll with no prices set: %v, got: %v", initialBalanceBTC, simulator.Portfolio().Balance(btc()))
+	}
+}

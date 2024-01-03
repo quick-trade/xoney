@@ -180,7 +180,7 @@ func (s *MarginSimulator) SellAll() error {
 		amount := balance[currency]
 
 		err := s.PlaceOrder(*NewOrder(*pair, Market, Sell, price, amount))
-		if firstErr == nil {
+		if firstErr == nil && err != nil {
 			firstErr = fmt.Errorf("error during placing selling order: %w", err)
 		}
 	}
@@ -190,7 +190,6 @@ func (s *MarginSimulator) SellAll() error {
 
 func (s *MarginSimulator) Cleanup() error {
 	err := s.CancelAllOrders()
-	s.portfolio = s.startPortfolio.Copy()
 
 	if err != nil {
 		return fmt.Errorf("order cleanup failed: %w", err)
