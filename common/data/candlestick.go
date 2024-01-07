@@ -3,7 +3,6 @@ package data
 import (
 	"sort"
 	"time"
-
 	"xoney/errors"
 	"xoney/internal"
 )
@@ -95,9 +94,10 @@ type InstrumentCandle struct {
 	Candle
 	Instrument
 }
+
 func NewInstrumentCandle(candle Candle, instrument Instrument) *InstrumentCandle {
 	return &InstrumentCandle{
-		Candle: candle,
+		Candle:     candle,
 		Instrument: instrument,
 	}
 }

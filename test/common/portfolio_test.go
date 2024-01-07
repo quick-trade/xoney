@@ -2,7 +2,6 @@ package common_test
 
 import (
 	"testing"
-
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"

@@ -3,10 +3,10 @@ package backtest
 import (
 	"fmt"
 	"time"
-
 	"xoney/common/data"
 	"xoney/events"
 	"xoney/exchange"
+
 	st "xoney/strategy"
 )
 
@@ -108,7 +108,7 @@ func (b *Backtester) updatePrices(candle data.InstrumentCandle) error {
 func (b *Backtester) updateBalance(timestamp time.Time) error {
 	totalBalance, err := b.simulator.Total()
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting total balance: %w", err)
 	}
 
 	b.equity.AddValue(totalBalance, timestamp)

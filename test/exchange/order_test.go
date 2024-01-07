@@ -2,6 +2,7 @@ package exchange_test
 
 import (
 	"testing"
+
 	"xoney/common/data"
 	"xoney/exchange"
 )

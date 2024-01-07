@@ -2,6 +2,7 @@ package exchange
 
 import (
 	"fmt"
+
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"
@@ -190,7 +191,6 @@ func (s *MarginSimulator) SellAll() error {
 
 func (s *MarginSimulator) Cleanup() error {
 	err := s.CancelAllOrders()
-
 	if err != nil {
 		return fmt.Errorf("order cleanup failed: %w", err)
 	}

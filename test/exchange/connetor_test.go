@@ -1,19 +1,19 @@
 package exchange_test
 
 import (
+	goErrors "errors"
 	"testing"
 	"time"
-	goErrors "errors"
-
 	"xoney/common"
 	"xoney/common/data"
-	"xoney/exchange"
 	"xoney/errors"
+	"xoney/exchange"
 )
 
 func usd() data.Currency {
 	return data.NewCurrency("USD", "BINANCE")
 }
+
 func btc() data.Currency {
 	return data.NewCurrency("BTC", "BINANCE")
 }
@@ -21,14 +21,17 @@ func btc() data.Currency {
 func timeStart() time.Time {
 	return time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
 }
+
 func btcUSD() data.Symbol {
 	return *data.NewSymbol("BTC", "USD", "BINANCE")
 }
+
 func timeframe() data.TimeFrame {
 	timeframe, _ := data.NewTimeFrame(time.Hour, "1h")
 
 	return *timeframe
 }
+
 func instrument() data.Instrument {
 	return data.NewInstrument(btcUSD(), timeframe())
 }
@@ -52,7 +55,6 @@ func TestMarginSimulator_PlaceMarketOrder_Buy(t *testing.T) {
 	order := exchange.NewOrder(symbol, exchange.Market, exchange.Buy, price, amount)
 
 	err := simulator.PlaceOrder(*order)
-
 	if err != nil {
 		t.Errorf("Error placing market buy order: %v", err)
 	}
@@ -72,12 +74,11 @@ func TestMarginSimulator_PlaceMarketOrder_Sell(t *testing.T) {
 	order := exchange.NewOrder(symbol, exchange.Market, exchange.Sell, price, amount)
 
 	err := simulator.PlaceOrder(*order)
-
 	if err != nil {
 		t.Errorf("Error placing market sell order: %v", err)
 	}
 
-	expectedBalance := 5000.0 + amount * price
+	expectedBalance := 5000.0 + amount*price
 	expectedBTC := -amount
 	if simulator.Portfolio().Balance(usd()) != expectedBalance {
 		t.Errorf("Expected balance after market sell order: %v, got: %v", expectedBalance, simulator.Portfolio().Balance(usd()))
@@ -85,7 +86,6 @@ func TestMarginSimulator_PlaceMarketOrder_Sell(t *testing.T) {
 	if simulator.Portfolio().Balance(btc) != expectedBTC {
 		t.Errorf("Expected balance after market sell order: %v, got: %v", expectedBalance, simulator.Portfolio().Balance(usd()))
 	}
-
 }
 
 func TestMarginSimulator_ExecuteLimitOrder_ImmediateExecution(t *testing.T) {
@@ -97,7 +97,6 @@ func TestMarginSimulator_ExecuteLimitOrder_ImmediateExecution(t *testing.T) {
 	// Place a limit order that should be executed immediately
 	limitOrder := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price, amount)
 	err := simulator.PlaceOrder(*limitOrder)
-
 	if err != nil {
 		t.Errorf("Error placing limit order: %v", err)
 	}
@@ -125,6 +124,7 @@ func TestMarginSimulator_ExecuteLimitOrder_ImmediateExecution(t *testing.T) {
 		t.Errorf("Expected balance after immediate limit order: %v, got: %v", amount, balance)
 	}
 }
+
 func TestMarginSimulator_ExecuteLimitOrder_DelayedExecution(t *testing.T) {
 	simulator := marginSimulator()
 	symbol := data.NewSymbol("BTC", "USD", "BINANCE")
@@ -134,7 +134,6 @@ func TestMarginSimulator_ExecuteLimitOrder_DelayedExecution(t *testing.T) {
 	// Place a limit order that should be executed after two updates
 	limitOrder := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price, amount)
 	err := simulator.PlaceOrder(*limitOrder)
-
 	if err != nil {
 		t.Errorf("Error placing limit order: %v", err)
 	}
@@ -183,7 +182,6 @@ func TestMarginSimulator_ExecuteMultipleLimitOrders(t *testing.T) {
 	// Place two limit orders
 	limitOrder1 := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price1, amount1)
 	err := simulator.PlaceOrder(*limitOrder1)
-
 	if err != nil {
 		t.Errorf("Error placing limit order 1: %v", err)
 	}
@@ -277,7 +275,6 @@ func TestMarginSimulator_Transfer_SuccessfulTransfer(t *testing.T) {
 	// Transfer 1000 USD to another exchange
 	transferAmount := 1000.0
 	err := simulator.Transfer(transferAmount, usd(), data.Exchange("OtherExchange"))
-
 	// Check if there is no error
 	if err != nil {
 		t.Errorf("Unexpected error during successful transfer: %v", err)
@@ -324,7 +321,6 @@ func TestMarginSimulator_Transfer_TargetExchangeUpdate(t *testing.T) {
 	transferAmount := 1000.0
 	targetExchange := data.Exchange("OtherExchange")
 	err := simulator.Transfer(transferAmount, usd(), targetExchange)
-
 	// Check if there is no error
 	if err != nil {
 		t.Errorf("Unexpected error during successful transfer: %v", err)
@@ -347,8 +343,6 @@ func TestMarginSimulator_Transfer_TargetExchangeUpdate(t *testing.T) {
 	}
 }
 
-
-
 func TestMarginSimulator_SellAll_SuccessfulSell(t *testing.T) {
 	simulator := marginSimulator()
 	initialBalanceUSD := simulator.Portfolio().Balance(usd())
@@ -363,7 +357,6 @@ func TestMarginSimulator_SellAll_SuccessfulSell(t *testing.T) {
 
 	// Execute SellAll
 	err := simulator.SellAll()
-
 	// Check if there is no error
 	if err != nil {
 		t.Errorf("Unexpected error during successful SellAll: %v", err)
@@ -417,7 +410,6 @@ func TestMarginSimulator_SellAll_NoOrdersPlaced(t *testing.T) {
 
 	// Execute SellAll when there are no prices set
 	err := simulator.SellAll()
-
 	// Check if there is no error
 	if err != nil {
 		t.Errorf("Unexpected error during SellAll with no prices set: %v", err)
