@@ -98,11 +98,7 @@ func debugGrid() {
 	bot := gridBot()
 	equity := backtest(bot)
 
-	history := equity.Deposit()
-	balanceHistory := equity.PortfolioHistory()
-	balanceHistory[data.NewCurrency("Total", "")] = history
-
-	err := dtr.WriteMap(balanceHistory, "testdata/BBEquity.csv")
+	err := dtr.WriteMap(equity.PortfolioHistory(), "testdata/BBEquity.csv")
 	if err != nil {
 		panic(err)
 	}
