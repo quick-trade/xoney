@@ -28,7 +28,7 @@ func TestFindIndexBeforeOrAtTime(t *testing.T) {
 	momentBefore := timeStart.Add(-time.Minute)
 	_, err = findIndexBeforeOrAtTime(nonEmptySeries, momentBefore)
 
-	if _, ok := err.(errors.ValueNotFoundError); !ok {
+	if _, ok := err.(errors.ValueNotFoundError); !ok || err.Error() != "value not found." {
 		t.Errorf("Expected ValueNotFoundError, got: %T", err)
 	}
 

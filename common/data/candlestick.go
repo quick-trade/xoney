@@ -158,7 +158,7 @@ func (c *Chart) Len() int {
 
 func (c *Chart) CandleByIndex(index int) (*Candle, error) {
 	if index >= c.Len() {
-		return nil, errors.OutOfIndexError{Index: index}
+		return nil, errors.NewOutOfIndexError(index)
 	}
 
 	return NewCandle(

@@ -107,6 +107,9 @@ func TestHeapIndexError(t *testing.T) {
 	if _, ok := err.(errors.OutOfIndexError); !ok {
 		t.Errorf("Expected OutOfIndexError, got: %v", err)
 	}
+	if err.Error() != "index 5 is out of range." {
+		t.Errorf("Expected 5 as incorrect index, got: %v", err)
+	}
 }
 
 func TestHeapNotFoundError(t *testing.T) {
