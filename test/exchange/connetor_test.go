@@ -4,6 +4,7 @@ import (
 	goErrors "errors"
 	"testing"
 	"time"
+
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"
@@ -45,6 +46,10 @@ func portfolioUSD() common.Portfolio {
 
 func marginSimulator() exchange.MarginSimulator {
 	return exchange.NewMarginSimulator(portfolioUSD())
+}
+
+func spotSimulator() exchange.SpotSimulator {
+	return exchange.NewSpotSimulator(portfolioUSD())
 }
 
 func TestMarginSimulator_PlaceMarketOrder_Buy(t *testing.T) {
@@ -421,5 +426,179 @@ func TestMarginSimulator_SellAll_NoOrdersPlaced(t *testing.T) {
 	}
 	if simulator.Portfolio().Balance(btc()) != initialBalanceBTC {
 		t.Errorf("Expected BTC balance to remain unchanged after SellAll with no prices set: %v, got: %v", initialBalanceBTC, simulator.Portfolio().Balance(btc()))
+	}
+}
+
+func TestSpotSimulator_ExecuteMarketOrder_Buy(t *testing.T) {
+	simulator := spotSimulator()
+	symbol := btcUSD()
+	price := 50000.0
+	amount := 0.1
+
+	// Execute a market buy order
+	marketOrder := exchange.NewOrder(symbol, exchange.Market, exchange.Buy, price, amount)
+	err := simulator.PlaceOrder(*marketOrder)
+	// Check if there is no error
+	if err != nil {
+		t.Errorf("Unexpected error during market buy order execution: %v", err)
+	}
+
+	// Check if the balance of USD decreased by the order amount * price
+	expectedBalanceUSD := 5000.0 - amount*price
+	if simulator.Portfolio().Balance(usd()) != expectedBalanceUSD {
+		t.Errorf("Expected USD balance after market buy order: %v, got: %v", expectedBalanceUSD, simulator.Portfolio().Balance(usd()))
+	}
+
+	// Check if the balance of BTC increased by the order amount
+	expectedBalanceBTC := amount
+	if simulator.Portfolio().Balance(btc()) != expectedBalanceBTC {
+		t.Errorf("Expected BTC balance after market buy order: %v, got: %v", expectedBalanceBTC, simulator.Portfolio().Balance(btc()))
+	}
+}
+
+func TestSpotSimulator_PlaceOrder_MarketBuy_Success(t *testing.T) {
+	simulator := spotSimulator()
+	symbol := btcUSD()
+	price := 50000.0
+	amount := 0.1
+	order := exchange.NewOrder(symbol, exchange.Market, exchange.Buy, price, amount)
+
+	err := simulator.PlaceOrder(*order)
+	if err != nil {
+		t.Errorf("Unexpected error during successful market buy order placement: %v", err)
+	}
+
+	// Check if the balance of USD decreased by the quote quantity
+	expectedBalanceUSD := 5000.0 - amount*price
+	if simulator.Portfolio().Balance(usd()) != expectedBalanceUSD {
+		t.Errorf("Expected USD balance after successful market buy order placement: %v, got: %v", expectedBalanceUSD, simulator.Portfolio().Balance(usd()))
+	}
+
+	// Check if the balance of BTC increased by the base quantity
+	expectedBalanceBTC := amount
+	if simulator.Portfolio().Balance(btc()) != expectedBalanceBTC {
+		t.Errorf("Expected BTC balance after successful market buy order placement: %v, got: %v", expectedBalanceBTC, simulator.Portfolio().Balance(btc()))
+	}
+}
+
+func TestSpotSimulator_ExecuteMarketOrder_Buy_InsufficientFunds(t *testing.T) {
+	simulator := spotSimulator()
+	symbol := btcUSD()
+	amount := 5.0
+	price := 50000.0
+
+	// Execute market buy order with insufficient funds
+	err := simulator.PlaceOrder(*exchange.NewOrder(symbol, exchange.Market, exchange.Buy, price, amount))
+	if err == nil || !goErrors.Is(err, errors.NewNotEnoughFundsError(usd().String(), amount*price)) {
+		t.Errorf("Expected NotEnoughFundsError, got: %v", err)
+	}
+
+	// Check if the balances remain unchanged
+	if simulator.Portfolio().Balance(usd()) != 5000.0 {
+		t.Errorf("Expected USD balance to remain unchanged after insufficient funds: %v, got: %v", 5000.0, simulator.Portfolio().Balance(usd()))
+	}
+	if simulator.Portfolio().Balance(btc()) != 0.0 {
+		t.Errorf("Expected BTC balance to remain unchanged after insufficient funds: %v, got: %v", 0.0, simulator.Portfolio().Balance(btc()))
+	}
+}
+
+func TestSpotSimulator_ExecuteLimitOrder_Sell_InsufficientFunds(t *testing.T) {
+	simulator := spotSimulator()
+	symbol := btcUSD()
+	price := 50000.0
+	amount := 0.1
+
+	// Execute limit sell order
+	err := simulator.PlaceOrder(*exchange.NewOrder(symbol, exchange.Limit, exchange.Sell, price, amount))
+	if !goErrors.Is(err, errors.NewNotEnoughFundsError(btc().String(), amount)) {
+		t.Errorf("Expected NotEnoughFundsError, got: %v", err)
+	}
+
+	// Check if the balance of BTC increased by the order amount
+	expectedBalanceBTC := amount
+	if simulator.Portfolio().Balance(btc()) != 0 {
+		t.Errorf("Expected BTC balance after limit sell order: %v, got: %v", expectedBalanceBTC, simulator.Portfolio().Balance(btc()))
+	}
+
+	// Check if the balance of USD remains unchanged
+	if simulator.Portfolio().Balance(usd()) != 5000.0 {
+		t.Errorf("Expected USD balance to remain unchanged after limit sell order: %v, got: %v", 5000.0, simulator.Portfolio().Balance(usd()))
+	}
+}
+
+func TestSpotSimulator_PlaceLimitOrder_Sell_InsufficientFunds(t *testing.T) {
+	simulator := spotSimulator()
+	symbol := btcUSD()
+	price := 50000.0
+	amount := 0.1
+
+	// Execute limit sell order with insufficient funds
+	err := simulator.PlaceOrder(*exchange.NewOrder(symbol, exchange.Limit, exchange.Sell, price, amount))
+	if err == nil || !goErrors.Is(err, errors.NewNotEnoughFundsError(btc().String(), amount)) {
+		t.Errorf("Expected NotEnoughFundsError, got: %v", err)
+	}
+
+	// Check if the balances remain unchanged
+	if simulator.Portfolio().Balance(btc()) != 0.0 {
+		t.Errorf("Expected BTC balance to remain unchanged after insufficient funds: %v, got: %v", 0.0, simulator.Portfolio().Balance(btc()))
+	}
+
+	if simulator.Portfolio().Balance(usd()) != 5000.0 {
+		t.Errorf("Expected USD balance to remain unchanged after insufficient funds: %v, got: %v", 5000.0, simulator.Portfolio().Balance(usd()))
+	}
+}
+
+func TestSpotSimulator_PlaceLimitOrder_Buy_Success(t *testing.T) {
+	simulator := spotSimulator()
+	symbol := btcUSD()
+	price := 50000.0
+	amount := 0.1
+
+	// Execute limit buy order
+	err := simulator.PlaceOrder(*exchange.NewOrder(symbol, exchange.Limit, exchange.Buy, price, amount))
+	if err != nil {
+		t.Errorf("Unexpected error during successful limit buy order placement: %v", err)
+	}
+
+	// Set prices for BTC
+	candleBTC := data.NewCandle(price, price, price, price, 0, timeStart())
+	simulator.UpdatePrice(*data.NewInstrumentCandle(*candleBTC, instrument()))
+
+	// Check if the balance of USD decreased by the quote quantity
+	expectedBalanceUSD := 5000.0 - amount*price
+	if simulator.Portfolio().Balance(usd()) != expectedBalanceUSD {
+		t.Errorf("Expected USD balance after successful limit buy order placement: %v, got: %v", expectedBalanceUSD, simulator.Portfolio().Balance(usd()))
+	}
+
+	// Check if the balance of BTC increased by the base quantity
+	expectedBalanceBTC := amount
+	if simulator.Portfolio().Balance(btc()) != expectedBalanceBTC {
+		t.Errorf("Expected BTC balance after successful limit buy order placement: %v, got: %v", expectedBalanceBTC, simulator.Portfolio().Balance(btc()))
+	}
+}
+
+func TestSpotSimulator_PlaceLimitOrder_Buy_InsufficientFunds(t *testing.T) {
+	simulator := spotSimulator()
+	symbol := btcUSD()
+	price := 50000.0
+	amount := 5.0
+
+	// Set prices for BTC
+	candleBTC := data.NewCandle(price, price, price, price, 0, timeStart())
+	simulator.UpdatePrice(*data.NewInstrumentCandle(*candleBTC, instrument()))
+
+	// Execute limit buy order with insufficient funds
+	err := simulator.PlaceOrder(*exchange.NewOrder(symbol, exchange.Limit, exchange.Buy, price, amount))
+	if err == nil || !goErrors.Is(err, errors.NewNotEnoughFundsError(usd().String(), amount*price)) {
+		t.Errorf("Expected NotEnoughFundsError, got: %v", err)
+	}
+
+	// Check if the balances remain unchanged
+	if simulator.Portfolio().Balance(usd()) != 5000.0 {
+		t.Errorf("Expected USD balance to remain unchanged after insufficient funds: %v, got: %v", 5000.0, simulator.Portfolio().Balance(usd()))
+	}
+
+	if simulator.Portfolio().Balance(btc()) != 0.0 {
+		t.Errorf("Expected BTC balance to remain unchanged after insufficient funds: %v, got: %v", 0.0, simulator.Portfolio().Balance(btc()))
 	}
 }

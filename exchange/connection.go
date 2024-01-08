@@ -73,7 +73,7 @@ func (s *MarginSimulator) PlaceOrder(order Order) error {
 		return s.executeMarketOrder(order)
 	}
 
-	s.executeLimitOrder(order)
+	s.PlaceLimitOrder(order)
 
 	return nil
 }
@@ -107,7 +107,7 @@ func (s *MarginSimulator) executeSellOrder(base, quote data.Currency, baseQuanti
 	return nil
 }
 
-func (s *MarginSimulator) executeLimitOrder(order Order) {
+func (s *MarginSimulator) PlaceLimitOrder(order Order) {
 	s.limitOrders.heap.Add(order)
 }
 
@@ -208,17 +208,27 @@ func NewMarginSimulator(portfolio common.Portfolio) MarginSimulator {
 
 type SpotSimulator struct{ MarginSimulator }
 
+func NewSpotSimulator(portfolio common.Portfolio) SpotSimulator {
+	return SpotSimulator{
+		MarginSimulator: NewMarginSimulator(portfolio),
+	}
+}
+
 func (s *SpotSimulator) PlaceOrder(order Order) error {
+	if err := s.validOrder(order); err != nil {
+		return fmt.Errorf("error validating order: %w", err)
+	}
+
 	if order.orderType == Market {
 		return s.executeMarketOrder(order)
 	}
 
-	s.executeLimitOrder(order)
+	s.PlaceLimitOrder(order)
 
 	return nil
 }
 
-func (s *SpotSimulator) executeMarketOrder(order Order) error {
+func (s *SpotSimulator) validOrder(order Order) error {
 	baseQuantity := order.amount
 	quoteQuantity := baseQuantity * order.price
 
@@ -227,24 +237,14 @@ func (s *SpotSimulator) executeMarketOrder(order Order) error {
 	base := symbol.Base()
 
 	if order.side == Buy {
-		return s.executeBuyOrder(base, quote, baseQuantity, quoteQuantity)
+		if quoteQuantity > s.portfolio.Balance(quote) {
+			return errors.NewNotEnoughFundsError(quote.String(), quoteQuantity)
+		}
+	} else {
+		if baseQuantity > s.portfolio.Balance(base) {
+			return errors.NewNotEnoughFundsError(base.String(), baseQuantity)
+		}
 	}
 
-	return s.executeSellOrder(base, quote, baseQuantity, quoteQuantity)
-}
-
-func (s *SpotSimulator) executeBuyOrder(base, quote data.Currency, baseQuantity, quoteQuantity float64) error {
-	if quoteQuantity > s.portfolio.Balance(quote) {
-		return errors.NewNotEnoughFundsError(quote.String(), quoteQuantity)
-	}
-
-	return s.MarginSimulator.executeBuyOrder(base, quote, baseQuantity, quoteQuantity)
-}
-
-func (s *SpotSimulator) executeSellOrder(base, quote data.Currency, baseQuantity, quoteQuantity float64) error {
-	if baseQuantity > s.portfolio.Balance(base) {
-		return errors.NewNotEnoughFundsError(quote.String(), quoteQuantity)
-	}
-
-	return s.MarginSimulator.executeSellOrder(base, quote, baseQuantity, quoteQuantity)
+	return nil
 }
