@@ -2,6 +2,7 @@ package common_test
 
 import (
 	"testing"
+
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"
@@ -73,10 +74,13 @@ func TestPortfolioTotal(t *testing.T) {
 	_, err = portfolio.Total(prices)
 
 	// Compare the actual and expected error
-	if _, ok := err.(errors.MissingCurrencyError); !ok {
-		t.Error(prices)
+	expected := errors.NewMissingCurrencyError(1)
+	expected.Add(btc.String())
+
+	if err.Error() != expected.Error() {
 		t.Errorf("Expected MissingCurrencyError, got: %v", err)
 	}
+
 }
 
 func TestPortfolioBalance(t *testing.T) {

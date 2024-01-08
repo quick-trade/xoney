@@ -3,6 +3,7 @@ package data_test
 import (
 	"testing"
 	"time"
+	goErrors "errors"
 
 	"xoney/common/data"
 	"xoney/errors"
@@ -33,9 +34,12 @@ func TestSymbolExchange(t *testing.T) {
 }
 
 func TestTimeFrameIncorrect(t *testing.T) {
-	_, err := data.NewTimeFrame(time.Duration(-1234), "incorrect tf")
+	duration := time.Duration(-1234)
+	_, err := data.NewTimeFrame(duration, "incorrect tf")
 
-	if _, ok := err.(errors.IncorrectDurationError); !ok {
+	expected := errors.NewIncorrectDurationError(time.Duration(-1234))
+
+	if !goErrors.Is(err, expected) {
 		t.Errorf("Expected IncorrectDurationError, got: %s", err.Error())
 	}
 }

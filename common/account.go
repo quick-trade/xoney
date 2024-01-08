@@ -23,7 +23,7 @@ func (p Portfolio) Total(prices map[data.Currency]float64) (float64, error) {
 				price = 1
 			} else {
 				success = false
-				err.Add(currency.Asset)
+				err.Add(currency.String())
 			}
 		}
 
