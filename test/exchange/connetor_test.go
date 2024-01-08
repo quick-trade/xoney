@@ -240,6 +240,9 @@ func TestMarginSimulator_CancelOrder_NonExistingOrder(t *testing.T) {
 	if !goErrors.Is(err, expectedError) {
 		t.Errorf("Expected NoLimitOrderError, got: %v", err)
 	}
+	if err.Error() != "there is no such limit order with ID: 123." {
+		t.Errorf("Incorrect text of error: %v", err)
+	}
 }
 
 func TestMarginSimulator_CancelOrder_ExistingOrder(t *testing.T) {
