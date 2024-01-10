@@ -10,7 +10,6 @@ import (
 	st "xoney/strategy"
 	testdata "xoney/testdata/backtesting"
 	dtr "xoney/testdata/dataread"
-	tk "xoney/toolkit"
 )
 
 var (
@@ -87,27 +86,11 @@ func debugBollinger() {
 	}
 }
 
-func gridBot() *tk.GridBot {
-	generator := testdata.NewAutoGrid(100, 2, 1.5, 0.5)
-
-	return tk.NewGridBot(generator, btc15m)
-}
-
-func debugGrid() {
-	bot := gridBot()
-	equity := backtest(bot)
-
-	err := dtr.WriteMap(equity.PortfolioHistory(), "testdata/BBEquity.csv")
-	if err != nil {
-		panic(err)
-	}
-}
 
 func main() {
 	// Uploading chart data once
 	btc15m = btc15min()
 	charts = getCharts()
 
-	// debugBollinger()
-	debugGrid()
+	debugBollinger()
 }

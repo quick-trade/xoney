@@ -238,7 +238,6 @@ func TestGridBot_Next(t *testing.T) {
 		},
 	}
 	openOrder.Occur(mockConnector)
-
 }
 
 func TestGridBot_Duration(t *testing.T) {
@@ -253,3 +252,20 @@ func TestGridBot_Duration(t *testing.T) {
 	}
 }
 
+
+// Test GridBot MinDurations method
+func TestGridBot_MinDurations(t *testing.T) {
+	generator := &MockGridGenerator{counter: 0}
+
+	// Create a GridBot
+	bot := NewGridBot(generator, btcUSD1h())
+
+	// Call the MinDurations method
+	durations := bot.MinDurations()
+
+	// Check if the duration for btcUSD1h is correct
+	expectedDuration := time.Hour
+	if durations[btcUSD1h()] != expectedDuration {
+		t.Errorf("Expected duration %v for btcUSD1h, got %v", expectedDuration, durations[btcUSD1h()])
+	}
+}
