@@ -223,8 +223,9 @@ func TestMarginSimulator_ExecuteMultipleLimitOrders(t *testing.T) {
 		t.Errorf("Error updating price: %v", err)
 	}
 
+	assets = simulator.Portfolio().Assets()
 	if assets[btc()] != amount2 {
-		t.Errorf("Incorrect order execution, balance: %fBTC", assets[btc()])
+		t.Errorf("Incorrect order execution, balance: %fBTC, expected: %fBTC", assets[btc()], amount2)
 	}
 }
 

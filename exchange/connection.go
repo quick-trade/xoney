@@ -166,7 +166,7 @@ func (s *MarginSimulator) Total() (float64, error) {
 }
 
 func (s *MarginSimulator) Portfolio() common.Portfolio {
-	return s.portfolio
+	return s.portfolio.Copy()
 }
 
 func (s *MarginSimulator) SellAll() error {
