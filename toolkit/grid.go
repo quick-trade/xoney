@@ -226,7 +226,7 @@ func (g *GridBot) MinDurations() st.Durations {
 	}
 }
 
-func (g *GridBot) Next(candle data.InstrumentCandle) ([]events.Event, error) {
+func (g *GridBot) Next(candle data.InstrumentCandle) (events.Event, error) {
 	levels, err := g.strategy.Next(candle.Candle)
 	if err != nil {
 		return nil, err
@@ -239,7 +239,8 @@ func (g *GridBot) Next(candle data.InstrumentCandle) ([]events.Event, error) {
 
 	updateEvents := g.grid.UpdateOrders(candle.Candle)
 
-	result := internal.Append(levelEvents, updateEvents...)
+	result := events.NewSequential(levelEvents...)
+	result.Add(updateEvents...)
 
 	return result, nil
 }

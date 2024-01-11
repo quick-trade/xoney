@@ -1,12 +1,11 @@
-package realtime
+package executing
 
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"xoney/common/data"
-	ev "xoney/events"
+	exec "xoney/internal/executing"
 	conn "xoney/exchange"
 	"xoney/internal"
 	st "xoney/strategy"
@@ -66,12 +65,12 @@ func (e *Executor) execute(ctx context.Context) error {
 	candleFlow := e.listenCandles(ctx)
 
 	for candle := range candleFlow {
-		events, err := e.system.Next(candle)
+		event, err := e.system.Next(candle)
 		if err != nil {
 			return err
 		}
 
-		if err := e.processEvents(events); err != nil {
+		if err := exec.ProcessEvent(e.connector, event); err != nil {
 			return err
 		}
 	}
@@ -88,31 +87,6 @@ func (e *Executor) listenCandles(ctx context.Context) <-chan data.InstrumentCand
 	instruments := internal.MapKeys(durations)
 
 	return e.supplier.StreamCandles(ctx, instruments)
-}
-
-func (e *Executor) processEvents(events []ev.Event) error {
-	errors := make(chan error, len(events))
-
-	var wg sync.WaitGroup
-
-	wg.Add(len(events))
-
-	for _, event := range events {
-		go func(event ev.Event) {
-			defer wg.Done()
-			errors <- event.Occur(e.connector)
-		}(event)
-	}
-
-	wg.Wait()
-
-	for err := range errors {
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (e *Executor) stop() error {

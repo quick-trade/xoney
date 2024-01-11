@@ -23,7 +23,7 @@ func (d Durations) Max() time.Duration {
 
 type Tradable interface {
 	Start(charts data.ChartContainer) error
-	Next(candle data.InstrumentCandle) ([]events.Event, error)
+	Next(candle data.InstrumentCandle) (events.Event, error)
 	MinDurations() Durations
 }
 

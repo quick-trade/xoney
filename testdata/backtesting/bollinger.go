@@ -46,7 +46,7 @@ func NewBBStrategy(period int, deviation float64, instrument data.Instrument) *B
 	}
 }
 
-func (b *BBBStrategy) Next(candle data.InstrumentCandle) ([]events.Event, error) {
+func (b *BBBStrategy) Next(candle data.InstrumentCandle) (events.Event, error) {
 	b.computeBollinger(candle.Close)
 	return b.fetchEvents(candle.Close)
 }
@@ -78,8 +78,8 @@ func (b *BBBStrategy) computeBollinger(price float64) {
     b.UB = append(b.UB, mean+b.Deviation*std)
     b.LB = append(b.LB, mean-b.Deviation*std)
 }
-func (b *BBBStrategy) fetchEvents(price float64) ([]events.Event, error) {
-	resultEvents := make([]events.Event, 0, 2)
+func (b *BBBStrategy) fetchEvents(price float64) (events.Event, error) {
+	resultEvents := events.NewSequential()
 
 	var event events.Event
 	var err error = nil
@@ -90,9 +90,10 @@ func (b *BBBStrategy) fetchEvents(price float64) ([]events.Event, error) {
 		} else if b.side == SELL {
 			event, err = NewEntryAllDeposit(b.instrument.Symbol(), "market", "sell", price)
 		}
-		resultEvents = append(resultEvents, event)
+		resultEvents.Add(event)
 	}
 	b.prevSide = b.side
+
 
 	return resultEvents, err
 }

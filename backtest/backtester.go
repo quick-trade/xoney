@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 	"xoney/common/data"
-	"xoney/events"
+	exec "xoney/internal/executing"
 	"xoney/exchange"
 
 	st "xoney/strategy"
@@ -79,13 +79,13 @@ func (b *Backtester) runTest(
 			return err
 		}
 
-		events, err := system.Next(candle)
+		event, err := system.Next(candle)
 		if err != nil {
 			return err
 		}
 
-		if err = b.processEvents(events); err != nil {
-			return fmt.Errorf("failed to process events: %w", err)
+		if err = exec.ProcessEvent(b.simulator, event); err != nil {
+			return err
 		}
 	}
 
@@ -114,16 +114,6 @@ func (b *Backtester) updateBalance(timestamp time.Time) error {
 	b.equity.AddValue(totalBalance, timestamp)
 
 	b.equity.AddPortfolio(b.simulator.Portfolio().Assets())
-
-	return nil
-}
-
-func (b *Backtester) processEvents(events []events.Event) error {
-	for _, e := range events {
-		if err := e.Occur(b.simulator); err != nil {
-			return err
-		}
-	}
 
 	return nil
 }

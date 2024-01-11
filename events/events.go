@@ -56,3 +56,24 @@ func NewEditOrder(cancelID exchange.OrderID, newOrder exchange.Order) *EditOrder
 		order:    newOrder,
 	}
 }
+
+type Sequential struct {
+	actions []Event
+}
+func (s *Sequential) Occur(connector exchange.Connector) error {
+	for _, action := range s.actions {
+		if err := action.Occur(connector); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (s *Sequential) Add(actions ...Event) {
+	s.actions = append(s.actions, actions...)
+}
+func (s *Sequential) Events() []Event {
+	return s.actions
+}
+func NewSequential(actions ...Event) *Sequential {
+	return &Sequential{actions: actions}
+}

@@ -135,10 +135,14 @@ func TestGridBot_Next(t *testing.T) {
 	candle := data.NewCandle(90, 110, 85, 105, 0, startTime())
 
 	// Call the Next method
-	Events, err := bot.Next(*data.NewInstrumentCandle(*candle, btcUSD1h()))
+	event, err := bot.Next(*data.NewInstrumentCandle(*candle, btcUSD1h()))
 	if err != nil {
 		t.Fatalf("Unexpected error in Next: %v", err)
 	}
+	if event == nil {
+		t.Fatalf("Expected an event, got nil")
+	}
+	Events := event.(*events.Sequential).Events()
 
 	// Check if events were generated
 	if len(Events) != 1 {
@@ -169,7 +173,8 @@ func TestGridBot_Next(t *testing.T) {
 
 	for i := 1; i < 4; i++ {
 		candle.TimeClose = candle.TimeClose.Add(timeframe().Duration)
-		Events, err = bot.Next(*data.NewInstrumentCandle(*candle, btcUSD1h()))
+		event, err = bot.Next(*data.NewInstrumentCandle(*candle, btcUSD1h()))
+		Events = event.(*events.Sequential).Events()
 		if err != nil {
 			t.Fatalf("Unexpected error in Next: %v", err)
 		}
@@ -182,7 +187,8 @@ func TestGridBot_Next(t *testing.T) {
 
 	candle.TimeClose = candle.TimeClose.Add(timeframe().Duration)
 
-	Events, err = bot.Next(*data.NewInstrumentCandle(*candle, btcUSD1h()))
+	event, err = bot.Next(*data.NewInstrumentCandle(*candle, btcUSD1h()))
+	Events = event.(*events.Sequential).Events()
 	if err != nil {
 		t.Fatalf("Unexpected error in Next: %v", err)
 	}
