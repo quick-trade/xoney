@@ -1,14 +1,14 @@
 package events_test
 
 import (
-	"testing"
 	"errors"
 	"fmt"
+	"testing"
 
+	"xoney/common"
+	"xoney/common/data"
 	"xoney/events"
 	"xoney/exchange"
-	"xoney/common/data"
-	"xoney/common"
 )
 
 
@@ -58,7 +58,7 @@ func (m *MockConnector) SellAll() error {
 
 func TestCancelOrder_Occur(t *testing.T) {
 	orderID := exchange.OrderID(123)
-	cancelOrder := events.NewCloseOrder(orderID)
+	cancelOrder := events.NewCancelOrder(orderID)
 
 	mockConnector := &MockConnector{}
 	err := cancelOrder.Occur(mockConnector)

@@ -90,7 +90,7 @@ func (g *grid) cancelLevelOrder(level GridLevel) events.Event {
 	if ok {
 		delete(g.orders, level.id)
 
-		return events.NewCloseOrder(order.ID())
+		return events.NewCancelOrder(order.ID())
 	}
 
 	return nil

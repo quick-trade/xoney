@@ -29,7 +29,7 @@ func (o *CancelOrder) Occur(connector exchange.Connector) error {
 	return connector.CancelOrder(o.id)
 }
 
-func NewCloseOrder(id exchange.OrderID) *CancelOrder {
+func NewCancelOrder(id exchange.OrderID) *CancelOrder {
 	return &CancelOrder{id: id}
 }
 
