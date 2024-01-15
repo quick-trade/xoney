@@ -80,6 +80,7 @@ type mockConnector struct {
 	TransferFunc        func(quantity float64, currency data.Currency, target data.Exchange) error
 	PortfolioFunc       func() common.Portfolio
 	SellAllFunc         func() error
+	GetPricesFunc       func(symbols []data.Symbol) <-chan exchange.SymbolPrice
 }
 
 func (m *mockConnector) PlaceOrder(order exchange.Order) error {
@@ -124,6 +125,12 @@ func (m *mockConnector) SellAll() error {
 	return nil
 }
 
+func (m *mockConnector) GetPrices(symbols []data.Symbol) <-chan exchange.SymbolPrice {
+	if m.GetPricesFunc != nil {
+		return m.GetPricesFunc(symbols)
+	}
+	return nil
+}
 
 func TestGridBot_Next(t *testing.T) {
 	generator := &MockGridGenerator{counter: 0}

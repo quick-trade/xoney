@@ -2,13 +2,30 @@ package toolkit
 
 import (
 	"xoney/common/data"
+	"xoney/common"
 	"xoney/events"
 	"xoney/exchange"
 
 	st "xoney/strategy"
 )
 
-type PortfolioWeights map[data.Currency]float64
+type PortfolioWeight struct {
+	quoteWeight float64
+	buyPrice float64
+}
+type PortfolioWeights map[data.Currency]PortfolioWeight
+func (f PortfolioWeights) isValid() bool {
+	sumWeights := 0.0
+
+	for _, weight := range f {
+		sumWeights += weight.quoteWeight
+	}
+
+	return sumWeights <= 1
+}
+func (f PortfolioWeights) Synchronize(current common.BaseDistribution) error {
+	panic("TODO: Implement")
+}
 
 type CapitalAllocator interface {
 	Start(charts data.ChartContainer) error
@@ -20,6 +37,8 @@ type RebalancePortfolio struct {
 	weights PortfolioWeights
 }
 func (r *RebalancePortfolio) Occur(connector exchange.Connector) error {
+	//baseDistribution := connector.Portfolio().Assets()
+	//var prices
 	panic("TODO: Implement")
 }
 func NewRebalancePortfolio(weights PortfolioWeights) *RebalancePortfolio {

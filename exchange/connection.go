@@ -2,6 +2,7 @@ package exchange
 
 import (
 	"fmt"
+	"math"
 
 	"xoney/common"
 	"xoney/common/data"
@@ -41,6 +42,16 @@ func newOrderHeap(capacity int) OrderHeap {
 	}
 }
 
+type SymbolPrice struct {
+	Symbol data.Symbol
+	Price  float64
+}
+func NewSymbolPrice(symbol data.Symbol, price float64) *SymbolPrice {
+	return &SymbolPrice{
+		Symbol: symbol,
+		Price:  price,
+	}
+}
 type Connector interface {
 	PlaceOrder(order Order) error
 	CancelOrder(id OrderID) error
@@ -48,6 +59,7 @@ type Connector interface {
 	Transfer(quantity float64, currency data.Currency, target data.Exchange) error
 	Portfolio() common.Portfolio
 	SellAll() error
+	GetPrices(symbols []data.Symbol) <-chan SymbolPrice
 }
 
 type Simulator interface {
@@ -58,7 +70,7 @@ type Simulator interface {
 }
 
 type MarginSimulator struct {
-	prices         map[data.Currency]float64
+	prices         map[data.Symbol]float64
 	portfolio      common.Portfolio
 	startPortfolio common.Portfolio
 	limitOrders    OrderHeap
@@ -145,11 +157,10 @@ func (s *MarginSimulator) Transfer(quantity float64, currency data.Currency, tar
 
 func (s *MarginSimulator) UpdatePrice(candle data.InstrumentCandle) error {
 	symbol := candle.Symbol()
-	base := symbol.Base()
 	quote := symbol.Quote()
 
 	if quote == s.portfolio.MainCurrency() {
-		s.prices[base] = candle.Close
+		s.prices[symbol] = candle.Close
 	}
 
 	return s.updateLimits(symbol, candle.High, candle.Low)
@@ -170,23 +181,43 @@ func (s *MarginSimulator) Portfolio() common.Portfolio {
 }
 
 func (s *MarginSimulator) SellAll() error {
-	mainAsset := s.portfolio.MainCurrency().Asset
 	balance := s.portfolio.Assets()
 
 	var firstErr error
 
-	for currency, price := range s.prices {
-		pair := data.NewSymbol(currency.Asset, mainAsset, currency.Exchange)
+	for symbol, price := range s.prices {
+		amount := balance[symbol.Base()]
 
-		amount := balance[currency]
-
-		err := s.PlaceOrder(*NewOrder(*pair, Market, Sell, price, amount))
+		err := s.PlaceOrder(
+			*NewOrder(symbol, Market, orderSideFromBalance(amount), price, math.Abs(amount)),
+		)
 		if firstErr == nil && err != nil {
 			firstErr = fmt.Errorf("error during placing selling order: %w", err)
 		}
 	}
 
 	return firstErr
+}
+func orderSideFromBalance(balance float64) OrderSide {
+	if balance > 0 {
+		return Sell
+	}
+	return Buy
+}
+
+func (s *MarginSimulator) GetPrices(symbols []data.Symbol) <-chan SymbolPrice {
+	prices := make(chan SymbolPrice, len(symbols))
+
+	defer close(prices)
+
+	for _, symbol := range symbols {
+		prices <- SymbolPrice{
+			Symbol: symbol,
+			Price:  s.prices[symbol],
+		}
+	}
+
+	return prices
 }
 
 func (s *MarginSimulator) Cleanup() error {
@@ -199,7 +230,7 @@ func (s *MarginSimulator) Cleanup() error {
 
 func NewMarginSimulator(portfolio common.Portfolio) MarginSimulator {
 	return MarginSimulator{
-		prices:         make(map[data.Currency]float64, internal.DefaultCapacity),
+		prices:         make(map[data.Symbol]float64, internal.DefaultCapacity),
 		portfolio:      portfolio,
 		startPortfolio: portfolio.Copy(),
 		limitOrders:    newOrderHeap(internal.DefaultCapacity),

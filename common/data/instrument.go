@@ -58,6 +58,12 @@ func NewSymbol[E Exchange | string](base, quote string, exchange E) *Symbol {
 		quote: NewCurrency(quote, exchange),
 	}
 }
+func NewSymbolFromCurrencies(base, quote Currency) *Symbol {
+	return &Symbol{
+		base:  base,
+		quote: quote,
+	}
+}
 
 type TimeFrame struct {
 	Duration       time.Duration

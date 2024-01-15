@@ -6,18 +6,21 @@ import (
 	"xoney/internal"
 )
 
+type BaseDistribution map[data.Currency]float64
+
 type Portfolio struct {
-	assets       map[data.Currency]float64
+	assets       BaseDistribution
 	mainCurrency data.Currency
 }
 
-func (p Portfolio) Total(prices map[data.Currency]float64) (float64, error) {
+func (p Portfolio) Total(prices map[data.Symbol]float64) (float64, error) {
 	total := 0.0
 	err := errors.NewMissingCurrencyError(internal.DefaultCapacity)
 	success := true
 
 	for currency, quantity := range p.assets {
-		price, ok := prices[currency]
+		symbol := data.NewSymbolFromCurrencies(currency, p.mainCurrency)
+		price, ok := prices[*symbol]
 		if !ok {
 			if currency.Asset == p.mainCurrency.Asset {
 				price = 1
@@ -40,7 +43,7 @@ func (p Portfolio) Total(prices map[data.Currency]float64) (float64, error) {
 func (p Portfolio) Balance(currency data.Currency) float64 {
 	return p.assets[currency]
 }
-func (p Portfolio) Assets() map[data.Currency]float64 { return p.assets }
+func (p Portfolio) Assets() BaseDistribution { return p.assets }
 
 func (p *Portfolio) Set(currency data.Currency, quantity float64) {
 	p.assets[currency] = quantity
