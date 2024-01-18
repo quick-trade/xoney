@@ -59,7 +59,7 @@ type Connector interface {
 	Transfer(quantity float64, currency data.Currency, target data.Exchange) error
 	Portfolio() common.Portfolio
 	SellAll() error
-	GetPrices(symbols []data.Symbol) <-chan SymbolPrice
+	GetPrices(symbols []data.Symbol) (<-chan SymbolPrice, error)
 }
 
 type Simulator interface {
@@ -70,7 +70,7 @@ type Simulator interface {
 }
 
 type MarginSimulator struct {
-	prices         map[data.Symbol]float64
+	prices         map[data.Currency]float64
 	portfolio      common.Portfolio
 	startPortfolio common.Portfolio
 	limitOrders    OrderHeap
@@ -157,10 +157,11 @@ func (s *MarginSimulator) Transfer(quantity float64, currency data.Currency, tar
 
 func (s *MarginSimulator) UpdatePrice(candle data.InstrumentCandle) error {
 	symbol := candle.Symbol()
+	base := symbol.Base()
 	quote := symbol.Quote()
 
 	if quote == s.portfolio.MainCurrency() {
-		s.prices[symbol] = candle.Close
+		s.prices[base] = candle.Close
 	}
 
 	return s.updateLimits(symbol, candle.High, candle.Low)
@@ -185,11 +186,12 @@ func (s *MarginSimulator) SellAll() error {
 
 	var firstErr error
 
-	for symbol, price := range s.prices {
-		amount := balance[symbol.Base()]
+	for currency, price := range s.prices {
+		amount := balance[currency]
 
+		symbol := data.NewSymbolFromCurrencies(currency, s.portfolio.MainCurrency())
 		err := s.PlaceOrder(
-			*NewOrder(symbol, Market, orderSideFromBalance(amount), price, math.Abs(amount)),
+			*NewOrder(*symbol, Market, orderSideFromBalance(amount), price, math.Abs(amount)),
 		)
 		if firstErr == nil && err != nil {
 			firstErr = fmt.Errorf("error during placing selling order: %w", err)
@@ -205,19 +207,21 @@ func orderSideFromBalance(balance float64) OrderSide {
 	return Buy
 }
 
-func (s *MarginSimulator) GetPrices(symbols []data.Symbol) <-chan SymbolPrice {
+func (s *MarginSimulator) GetPrices(symbols []data.Symbol) (<-chan SymbolPrice, error) {
 	prices := make(chan SymbolPrice, len(symbols))
 
 	defer close(prices)
 
+
 	for _, symbol := range symbols {
-		prices <- SymbolPrice{
-			Symbol: symbol,
-			Price:  s.prices[symbol],
+		if symbol.Quote() != s.portfolio.MainCurrency() {
+			return nil, fmt.Errorf("cannot get prices for non-main quote currency, got: %v", symbol.String())
 		}
+
+		prices <- *NewSymbolPrice(symbol, s.prices[symbol.Base()])
 	}
 
-	return prices
+	return prices, nil
 }
 
 func (s *MarginSimulator) Cleanup() error {
@@ -230,7 +234,7 @@ func (s *MarginSimulator) Cleanup() error {
 
 func NewMarginSimulator(portfolio common.Portfolio) MarginSimulator {
 	return MarginSimulator{
-		prices:         make(map[data.Symbol]float64, internal.DefaultCapacity),
+		prices:         make(common.BaseDistribution, internal.DefaultCapacity),
 		portfolio:      portfolio,
 		startPortfolio: portfolio.Copy(),
 		limitOrders:    newOrderHeap(internal.DefaultCapacity),

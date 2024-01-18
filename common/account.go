@@ -13,14 +13,13 @@ type Portfolio struct {
 	mainCurrency data.Currency
 }
 
-func (p Portfolio) Total(prices map[data.Symbol]float64) (float64, error) {
+func (p Portfolio) Total(prices map[data.Currency]float64) (float64, error) {
 	total := 0.0
 	err := errors.NewMissingCurrencyError(internal.DefaultCapacity)
 	success := true
 
 	for currency, quantity := range p.assets {
-		symbol := data.NewSymbolFromCurrencies(currency, p.mainCurrency)
-		price, ok := prices[*symbol]
+		price, ok := prices[currency]
 		if !ok {
 			if currency.Asset == p.mainCurrency.Asset {
 				price = 1

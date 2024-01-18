@@ -10,7 +10,11 @@ import (
 )
 
 func usd() data.Currency {
-	return data.NewCurrency("USD", "NYSE")
+	return data.NewCurrency("USD", "EXCHANGE")
+}
+
+func usdPair(currency data.Currency) data.Symbol {
+	return *data.NewSymbolFromCurrencies(currency, usd())
 }
 
 func portfolio() common.Portfolio {
@@ -79,7 +83,7 @@ func TestPortfolioTotal(t *testing.T) {
 	expected.Add(btc.String())
 
 	if err.Error() != expected.Error() {
-		t.Errorf("Expected MissingCurrencyError, got: %v", err)
+		t.Errorf("Expected %v, got: %v", expected, err)
 	}
 	if strings.Contains(err.Error(), ", ") {
 		t.Errorf("Unexpected ', ' in error, got: %v", err)

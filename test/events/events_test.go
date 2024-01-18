@@ -56,8 +56,8 @@ func (m *MockConnector) SellAll() error {
 	return nil
 }
 
-func (m *MockConnector) GetPrices(symbols []data.Symbol) <-chan exchange.SymbolPrice {
-	return nil
+func (m *MockConnector) GetPrices(symbols []data.Symbol) (<-chan exchange.SymbolPrice, error) {
+	return nil, nil
 }
 
 func TestCancelOrder_Occur(t *testing.T) {

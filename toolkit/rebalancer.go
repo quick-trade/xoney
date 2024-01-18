@@ -1,30 +1,66 @@
 package toolkit
 
 import (
-	"xoney/common/data"
+	"fmt"
+	"math"
 	"xoney/common"
+	"xoney/common/data"
 	"xoney/events"
 	"xoney/exchange"
 
 	st "xoney/strategy"
 )
 
-type PortfolioWeight struct {
-	quoteWeight float64
-	buyPrice float64
+type BaseWeight float64
+type PortfolioWeights map[data.Currency]BaseWeight
+func NewPortfolioWeights(distribution map[data.Currency]BaseWeight) (*PortfolioWeights, error) {
+	weights := PortfolioWeights(distribution)
+	if err := weights.isValid(); err != nil {
+		return nil, err
+	}
+	return &weights, nil
 }
-type PortfolioWeights map[data.Currency]PortfolioWeight
-func (f PortfolioWeights) isValid() bool {
+func (f PortfolioWeights) isValid() error {
 	sumWeights := 0.0
 
 	for _, weight := range f {
-		sumWeights += weight.quoteWeight
+		sumWeights += math.Abs(float64(weight))
 	}
 
-	return sumWeights <= 1
+	if sumWeights != 1 {
+		return fmt.Errorf("invalid portfolio weights: sum of abs(weights): %f", sumWeights)
+	}
+
+	return nil
 }
-func (f PortfolioWeights) Synchronize(current common.BaseDistribution) error {
-	panic("TODO: Implement")
+func (f PortfolioWeights) Synchronize(
+	current common.BaseDistribution,
+	prices map[data.Currency]float64,
+) (target common.BaseDistribution, err error) {
+	totalQuote := 0.0
+
+	// Calculate the total value of quote distribution
+	for currency, amount := range current {
+		price, ok := prices[currency]
+		if !ok {
+			return nil, fmt.Errorf("missing price for currency: %v", currency)
+		}
+		totalQuote += amount * price
+	}
+
+	// Calculate the target base distribution based on weights
+	target = make(common.BaseDistribution)
+
+	for currency, weight := range f {
+		price, ok := prices[currency]
+		if !ok {
+			return nil, fmt.Errorf("missing price for currency: %v", currency)
+		}
+
+		target[currency] = float64(weight) * totalQuote / price
+	}
+
+	return target, nil
 }
 
 type CapitalAllocator interface {
