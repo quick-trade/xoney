@@ -5,8 +5,10 @@ import (
 	"math"
 	"xoney/common"
 	"xoney/common/data"
+	"xoney/errors"
 	"xoney/events"
 	"xoney/exchange"
+	"xoney/internal"
 
 	st "xoney/strategy"
 )
@@ -33,35 +35,46 @@ func (f PortfolioWeights) isValid() error {
 
 	return nil
 }
-func (f PortfolioWeights) Synchronize(
+
+func (pw PortfolioWeights) Synchronize(
 	current common.BaseDistribution,
 	prices map[data.Currency]float64,
 ) (target common.BaseDistribution, err error) {
 	totalQuote := 0.0
+	totalQuoteWeight := 0.0
+	missingCurrencyErr := errors.NewMissingCurrencyError(internal.DefaultCapacity)
+	success := true
 
 	// Calculate the total value of quote distribution
 	for currency, amount := range current {
 		price, ok := prices[currency]
 		if !ok {
-			return nil, fmt.Errorf("missing price for currency: %v", currency)
+			missingCurrencyErr.Add(currency.String())
+			success = false
+		} else {
+			totalQuote += amount * price
+			totalQuoteWeight += float64(pw[currency]) * price
 		}
-		totalQuote += amount * price
+	}
+
+	if !success {
+		return nil, missingCurrencyErr
 	}
 
 	// Calculate the target base distribution based on weights
 	target = make(common.BaseDistribution)
 
-	for currency, weight := range f {
-		price, ok := prices[currency]
-		if !ok {
-			return nil, fmt.Errorf("missing price for currency: %v", currency)
-		}
+	for currency, weight := range pw {
+		target[currency] = float64(weight) * totalQuote / totalQuoteWeight
+	}
 
-		target[currency] = float64(weight) * totalQuote / price
+	if !success {
+		return nil, missingCurrencyErr
 	}
 
 	return target, nil
 }
+
 
 type CapitalAllocator interface {
 	Start(charts data.ChartContainer) error
