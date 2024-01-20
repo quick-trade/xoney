@@ -59,7 +59,7 @@ type Connector interface {
 	Transfer(quantity float64, currency data.Currency, target data.Exchange) error
 	Portfolio() common.Portfolio
 	SellAll() error
-	GetPrices(symbols []data.Symbol) (<-chan SymbolPrice, error)
+	GetPrices(symbols []data.Symbol) (<-chan SymbolPrice, <-chan error)
 }
 
 type Simulator interface {
@@ -207,21 +207,26 @@ func orderSideFromBalance(balance float64) OrderSide {
 	return Buy
 }
 
-func (s *MarginSimulator) GetPrices(symbols []data.Symbol) (<-chan SymbolPrice, error) {
+func (s *MarginSimulator) GetPrices(symbols []data.Symbol) (<-chan SymbolPrice, <-chan error) {
 	prices := make(chan SymbolPrice, len(symbols))
-
 	defer close(prices)
 
+	err := make(chan error)
+	defer close(err)
 
 	for _, symbol := range symbols {
 		if symbol.Quote() != s.portfolio.MainCurrency() {
-			return nil, fmt.Errorf("cannot get prices for non-main quote currency, got: %v", symbol.String())
+			err <- fmt.Errorf("cannot get prices for non-main quote currency, got: %v", symbol.String())
+
+			return prices, err
 		}
 
 		prices <- *NewSymbolPrice(symbol, s.prices[symbol.Base()])
 	}
 
-	return prices, nil
+	err <- nil
+
+	return prices, err
 }
 
 func (s *MarginSimulator) Cleanup() error {

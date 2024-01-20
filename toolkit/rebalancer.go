@@ -3,6 +3,8 @@ package toolkit
 import (
 	"fmt"
 	"math"
+	"sync"
+
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"
@@ -84,18 +86,171 @@ type CapitalAllocator interface {
 
 type RebalancePortfolio struct {
 	weights PortfolioWeights
+	currentDistribution common.BaseDistribution
+	lastPrices map[data.Currency]float64
+	mainCurrency data.Currency
 }
 func (r *RebalancePortfolio) Occur(connector exchange.Connector) error {
-	//baseDistribution := connector.Portfolio().Assets()
-	//var prices
-	panic("TODO: Implement")
+	target, err := r.getTargetDistribution(connector)
+	if err != nil {
+		return fmt.Errorf("failed to get target assets distribution: %w", err)
+	}
+
+	rebalanceEvents := r.rebalance(connector, target)
+	err = rebalanceEvents.Occur(connector)
+
+	if err != nil {
+		return fmt.Errorf("failed to rebalance assets: %w", err)
+	}
+
+	return nil
+}
+func (r *RebalancePortfolio) rebalance(connector exchange.Connector, target common.BaseDistribution) events.Event {
+	difference := r.calculateDifference(target)
+	sellDifferences, buyDifferences := r.sortDifference(difference)
+
+	sellEvents := r.newOrders(sellDifferences)
+	buyEvents := r.newOrders(buyDifferences)
+
+	return events.NewSequential(sellEvents, buyEvents)
+}
+func (r *RebalancePortfolio) newOrders(differences common.BaseDistribution) events.Event {
+	Events := make([]events.Event, 0, len(differences))
+	for currency, amount := range differences {
+		if amount == 0 { continue }
+
+		var side exchange.OrderSide
+
+		symbol := data.NewSymbolFromCurrencies(currency, r.mainCurrency) // Assuming r.mainCurrency is the quote currency
+		if amount < 0 {
+			side = exchange.Sell
+		} else {
+			side = exchange.Buy
+		}
+
+		price := r.lastPrices[currency]
+
+		order := exchange.NewOrder(*symbol, exchange.Market, side, price, math.Abs(amount))
+		openOrder := events.NewOpenOrder(*order)
+
+		Events = internal.Append(Events, events.Event(openOrder))
+	}
+
+	return events.NewParallel(Events...)
+}
+func (r *RebalancePortfolio) sortDifference(difference common.BaseDistribution) (sellDifferences, buyDifferences common.BaseDistribution) {
+	sellDifferences = make(common.BaseDistribution, len(difference))
+	buyDifferences = make(common.BaseDistribution, len(difference))
+
+	for currency, amount := range difference {
+		if amount < 0 {
+			sellDifferences[currency] = amount
+		} else if amount != 0 {
+			buyDifferences[currency] = amount
+		}
+	}
+
+	return sellDifferences, buyDifferences
+}
+func (r *RebalancePortfolio) calculateDifference(target common.BaseDistribution) common.BaseDistribution {
+	difference := make(common.BaseDistribution)
+	for currency, targetVolume := range target {
+		currentVolume, exists := r.currentDistribution[currency]
+		if exists {
+			difference[currency] = currentVolume - targetVolume
+		} else {
+			difference[currency] = -targetVolume
+		}
+	}
+	for currency, currentVolume := range r.currentDistribution {
+		if _, exists := target[currency]; !exists {
+			difference[currency] = currentVolume
+		}
+	}
+	return difference
+}
+
+func (r *RebalancePortfolio) getTargetDistribution(connector exchange.Connector) (common.BaseDistribution, error) {
+	portfolio := connector.Portfolio()
+
+	r.currentDistribution = portfolio.Assets()
+
+	r.mainCurrency = portfolio.MainCurrency()
+	symbols := make([]data.Symbol, 0, len(r.weights))
+
+	for currency := range r.weights {
+		symbol := data.NewSymbolFromCurrencies(currency, r.mainCurrency)
+		symbols = append(symbols, *symbol)
+	}
+
+	// Get the portfolio and prices asynchronously
+	var currentDistribution common.BaseDistribution
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		currentDistribution = connector.Portfolio().Assets()
+	}()
+
+	prices, err := r.getPrices(symbols, connector)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get prices: %w", err)
+	}
+
+	wg.Wait()
+
+
+	// Convert prices into a map where keys are Currencies and values are float64
+	r.lastPrices = make(map[data.Currency]float64)
+	for _, symbolPrice := range prices {
+		r.lastPrices[symbolPrice.Symbol.Base()] = symbolPrice.Price
+	}
+
+	target, err := r.weights.Synchronize(currentDistribution, r.lastPrices)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to synchronize portfolio with weights: %w", err)
+	}
+
+	return target, nil
+}
+
+func (r *RebalancePortfolio) getPrices(
+	symbols []data.Symbol,
+	connector exchange.Connector,
+) ([]exchange.SymbolPrice, error) {
+	pricesChan, err := connector.GetPrices(symbols)
+	prices := make([]exchange.SymbolPrice, 0, len(symbols))
+
+	for {
+		select {
+		case price, ok := <-pricesChan:
+			if ok {
+				prices = internal.Append(prices, price)
+			}
+		case e, ok := <-err:
+			if ok && e != nil {
+				return nil, e
+			}
+		}
+
+		if len(prices) == len(symbols) {
+			break
+		}
+	}
+	return prices, nil
 }
 func NewRebalancePortfolio(weights PortfolioWeights) *RebalancePortfolio {
-	return &RebalancePortfolio{weights: weights}
+	return &RebalancePortfolio{weights: weights, currentDistribution: nil}
 }
 
 type CapitalAllocationBot struct {
 	allocator CapitalAllocator
+}
+func NewCapitalAllocationBot(allocator CapitalAllocator) *CapitalAllocationBot {
+	return &CapitalAllocationBot{allocator: allocator}
 }
 func (c *CapitalAllocationBot) MinDurations() st.Durations {
 	return c.allocator.MinDurations()

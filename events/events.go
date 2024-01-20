@@ -2,7 +2,11 @@ package events
 
 import (
 	"fmt"
+	"sync"
+	"strings"
+
 	"xoney/exchange"
+	"xoney/internal"
 )
 
 type Event interface {
@@ -76,4 +80,41 @@ func (s *Sequential) Events() []Event {
 }
 func NewSequential(actions ...Event) *Sequential {
 	return &Sequential{actions: actions}
+}
+
+type Parallel struct {
+	actions []Event
+}
+func (p *Parallel) Occur(connector exchange.Connector) error {
+	var wg sync.WaitGroup
+	errorsChan := make(chan string, len(p.actions))
+
+	for _, action := range p.actions {
+		wg.Add(1)
+		go func(act Event) {
+			defer wg.Done()
+			if err := act.Occur(connector); err != nil {
+				errorsChan <- err.Error()
+			}
+		}(action)
+	}
+
+	wg.Wait()
+	close(errorsChan)
+
+	var errorsList []string
+	for err := range errorsChan {
+		errorsList = append(errorsList, err)
+	}
+
+	if len(errorsList) > 0 {
+		return fmt.Errorf("errors occurred in parallel execution: %s", strings.Join(errorsList, "; "))
+	}
+	return nil
+}
+func (p *Parallel) Add(actions ...Event) {
+	p.actions = internal.Append(p.actions, actions...)
+}
+func NewParallel(actions ...Event) *Parallel {
+	return &Parallel{actions: actions}
 }

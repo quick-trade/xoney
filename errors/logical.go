@@ -59,13 +59,7 @@ func (m MissingCurrencyError) Error() string {
 
 	msg.WriteString("missed currencies: ")
 
-	for i, currency := range m.currencies {
-		msg.WriteString(currency)
-
-		if i < len(m.currencies)-1 {
-			msg.WriteString(", ")
-		}
-	}
+	msg.WriteString(strings.Join(m.currencies, ", "))
 
 	msg.WriteRune('.')
 

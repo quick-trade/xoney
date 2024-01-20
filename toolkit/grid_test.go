@@ -80,7 +80,7 @@ type mockConnector struct {
 	TransferFunc        func(quantity float64, currency data.Currency, target data.Exchange) error
 	PortfolioFunc       func() common.Portfolio
 	SellAllFunc         func() error
-	GetPricesFunc       func(symbols []data.Symbol) (<-chan exchange.SymbolPrice, error)
+	GetPricesFunc       func(symbols []data.Symbol) (<-chan exchange.SymbolPrice, <-chan error)
 }
 
 func (m *mockConnector) PlaceOrder(order exchange.Order) error {
@@ -125,7 +125,7 @@ func (m *mockConnector) SellAll() error {
 	return nil
 }
 
-func (m *mockConnector) GetPrices(symbols []data.Symbol) (<-chan exchange.SymbolPrice, error) {
+func (m *mockConnector) GetPrices(symbols []data.Symbol) (<-chan exchange.SymbolPrice, <-chan error) {
 	if m.GetPricesFunc != nil {
 		return m.GetPricesFunc(symbols)
 	}

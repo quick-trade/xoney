@@ -56,7 +56,7 @@ func (m *MockConnector) SellAll() error {
 	return nil
 }
 
-func (m *MockConnector) GetPrices(symbols []data.Symbol) (<-chan exchange.SymbolPrice, error) {
+func (m *MockConnector) GetPrices(symbols []data.Symbol) (<-chan exchange.SymbolPrice, <-chan error) {
 	return nil, nil
 }
 
