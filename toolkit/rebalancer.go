@@ -96,7 +96,10 @@ func (r *RebalancePortfolio) Occur(connector exchange.Connector) error {
 		return fmt.Errorf("failed to get target assets distribution: %w", err)
 	}
 
-	rebalanceEvents := r.rebalance(connector, target)
+	rebalanceEvents, err := r.rebalance(connector, target)
+	if err != nil {
+		return fmt.Errorf("failed to initialize asset rebalance: %w", err)
+	}
 	err = rebalanceEvents.Occur(connector)
 
 	if err != nil {
@@ -105,38 +108,54 @@ func (r *RebalancePortfolio) Occur(connector exchange.Connector) error {
 
 	return nil
 }
-func (r *RebalancePortfolio) rebalance(connector exchange.Connector, target common.BaseDistribution) events.Event {
+func (r *RebalancePortfolio) rebalance(connector exchange.Connector, target common.BaseDistribution) (events.Event, error) {
 	difference := r.calculateDifference(target)
 	sellDifferences, buyDifferences := r.sortDifference(difference)
 
-	sellEvents := r.newOrders(sellDifferences)
-	buyEvents := r.newOrders(buyDifferences)
+	sellEvents, err := r.newOrders(sellDifferences)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create sell orders: %w", err)
+	}
 
-	return events.NewSequential(sellEvents, buyEvents)
+	buyEvents, err := r.newOrders(buyDifferences)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create buy orders: %w", err)
+	}
+
+	return events.NewSequential(sellEvents, buyEvents), nil
 }
-func (r *RebalancePortfolio) newOrders(differences common.BaseDistribution) events.Event {
+func (r *RebalancePortfolio) newOrders(differences common.BaseDistribution) (events.Event, error) {
 	Events := make([]events.Event, 0, len(differences))
 	for currency, amount := range differences {
-		if amount == 0 { continue }
+		if amount == 0 {
+			continue
+		}
 
 		var side exchange.OrderSide
 
-		symbol := data.NewSymbolFromCurrencies(currency, r.mainCurrency) // Assuming r.mainCurrency is the quote currency
+		// Assuming r.mainCurrency is the quote currency
+		symbol := data.NewSymbolFromCurrencies(currency, r.mainCurrency)
 		if amount < 0 {
 			side = exchange.Sell
 		} else {
 			side = exchange.Buy
 		}
 
-		price := r.lastPrices[currency]
+		price, priceExists := r.lastPrices[currency]
+		if !priceExists {
+			return nil, fmt.Errorf("failed to get the last price for %s", currency)
+		}
 
-		order := exchange.NewOrder(*symbol, exchange.Market, side, price, math.Abs(amount))
+		order, err := exchange.NewOrder(*symbol, exchange.Market, side, price, math.Abs(amount))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create a new order for %s: %w", currency, err)
+		}
+
 		openOrder := events.NewOpenOrder(*order)
-
 		Events = internal.Append(Events, events.Event(openOrder))
 	}
 
-	return events.NewParallel(Events...)
+	return events.NewParallel(Events...), nil
 }
 func (r *RebalancePortfolio) sortDifference(difference common.BaseDistribution) (sellDifferences, buyDifferences common.BaseDistribution) {
 	sellDifferences = make(common.BaseDistribution, len(difference))

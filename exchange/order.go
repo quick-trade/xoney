@@ -3,6 +3,7 @@ package exchange
 import (
 	"xoney/common/data"
 	"xoney/internal"
+	"xoney/errors"
 )
 
 type OrderType string
@@ -69,7 +70,10 @@ func (o Order) CrossesPrice(high, low float64) bool {
 	return high >= o.price
 }
 
-func NewOrder(symbol data.Symbol, orderType OrderType, side OrderSide, price, amount float64) *Order {
+func NewOrder(symbol data.Symbol, orderType OrderType, side OrderSide, price, amount float64) (*Order, error) {
+	if amount <= 0 {
+		return nil, errors.NewInvalidOrderAmountError(amount)
+	}
 	return &Order{
 		symbol:     symbol,
 		orderType:  orderType,
@@ -77,5 +81,5 @@ func NewOrder(symbol data.Symbol, orderType OrderType, side OrderSide, price, am
 		price:      price,
 		amount:     amount,
 		internalID: OrderID(internal.RandomUint64()),
-	}
+	}, nil
 }

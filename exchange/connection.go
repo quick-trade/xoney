@@ -189,10 +189,15 @@ func (s *MarginSimulator) SellAll() error {
 	for currency, price := range s.prices {
 		amount := balance[currency]
 
+		if amount == 0 {
+			continue
+		}
+
 		symbol := data.NewSymbolFromCurrencies(currency, s.portfolio.MainCurrency())
-		err := s.PlaceOrder(
-			*NewOrder(*symbol, Market, orderSideFromBalance(amount), price, math.Abs(amount)),
-		)
+
+		order, _ := NewOrder(*symbol, Market, orderSideFromBalance(amount), price, math.Abs(amount))
+		err := s.PlaceOrder(*order)
+
 		if firstErr == nil && err != nil {
 			firstErr = fmt.Errorf("error during placing selling order: %w", err)
 		}

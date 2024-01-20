@@ -12,73 +12,80 @@ func eth() data.Symbol {
 }
 
 func orderBTC() *exchange.Order {
-	return exchange.NewOrder(
+	order, _ := exchange.NewOrder(
 		btcUSD(),
 		exchange.Market,
 		exchange.Buy,
 		50000.0,
 		1.0,
 	)
+	return order
 }
 
 func orderBTCLimit() *exchange.Order {
-	return exchange.NewOrder(
+	order, _ := exchange.NewOrder(
 		btcUSD(),
 		exchange.Limit,
 		exchange.Buy,
 		50000.0,
 		1.0,
 	)
+	return order
 }
 
 func orderBTC4k() *exchange.Order {
-	return exchange.NewOrder(
+	order, _ := exchange.NewOrder(
 		btcUSD(),
 		exchange.Market,
 		exchange.Buy,
 		4000.0,
 		1.0,
 	)
+	return order
 }
 
 func orderETH() *exchange.Order {
-	return exchange.NewOrder(
+	order, _ := exchange.NewOrder(
 		eth(),
 		exchange.Limit,
 		exchange.Sell,
 		200.0,
 		5.0,
 	)
+	return order
 }
 
 func orderETHBuy() *exchange.Order {
-	return exchange.NewOrder(
+	order, _ := exchange.NewOrder(
 		eth(),
 		exchange.Limit,
 		exchange.Buy,
 		200.0,
 		5.0,
 	)
+	return order
 }
 
 func orderETHlikeBTC() *exchange.Order {
-	return exchange.NewOrder(
+	order, _ := exchange.NewOrder(
 		eth(),
 		exchange.Market,
 		exchange.Buy,
 		50000.0,
 		1.0,
 	)
+	return order
 }
 
 func orderETH1() *exchange.Order {
-	return exchange.NewOrder(
+	order, _ := exchange.NewOrder(
 		eth(),
 		exchange.Limit,
 		exchange.Sell,
 		200.0,
 		1.0,
 	)
+	return order
 }
 
 func TestOrderMethods(t *testing.T) {

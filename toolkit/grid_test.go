@@ -3,6 +3,7 @@ package toolkit
 import (
 	"testing"
 	"time"
+	"fmt"
 
 	"xoney/common/data"
 	"xoney/common"
@@ -33,7 +34,11 @@ func TestNewGridLevel(t *testing.T) {
 	price := 100.0
 	amount := 0.5
 
-	level := NewGridLevel(price, amount)
+	level, err := NewGridLevel(price, amount)
+
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
 
 	if level.price != price {
 		t.Errorf("Expected price: %v, got: %v", price, level.price)
@@ -64,13 +69,31 @@ func (g *MockGridGenerator) Start(chart data.Chart) error {
 func (g *MockGridGenerator) Next(candle data.Candle) ([]GridLevel, error) {
 	g.counter++
 
-	if g.counter == 5 {
-		// Return a new grid with price 105 and amount 0.1 on the fifth candle
-		return []GridLevel{*NewGridLevel(105, 0.1)}, nil
-	} else if g.counter == 1 {
-		return []GridLevel{*NewGridLevel(100, 0.5)}, nil
+	var levels []GridLevel
+	var level *GridLevel
+	var err error
+
+	switch g.counter {
+	case 5:
+		// Attempt to create a new grid with price 105 and amount 0.1 on the fifth candle
+		level, err = NewGridLevel(105, 0.1)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create grid level: %w", err)
+		}
+		levels = append(levels, *level)
+	case 1:
+		// Attempt to create a new grid with price 100 and amount 0.5 on the first candle
+		level, err = NewGridLevel(100, 0.5)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create grid level: %w", err)
+		}
+		levels = append(levels, *level)
 	}
-	return nil, nil
+
+	if len(levels) == 0 {
+		return nil, nil
+	}
+	return levels, nil
 }
 
 type mockConnector struct {

@@ -78,7 +78,7 @@ func TestCancelOrder_Occur(t *testing.T) {
 
 func TestEditOrder_Occur(t *testing.T) {
 	cancelID := exchange.OrderID(456)
-	newOrder := exchange.NewOrder(btcUSD(), exchange.Market, exchange.Buy, 50000.0, 0.1)
+	newOrder, _ := exchange.NewOrder(btcUSD(), exchange.Market, exchange.Buy, 50000.0, 0.1)
 	editOrder := events.NewEditOrder(cancelID, *newOrder)
 
 	mockConnector := &MockConnector{}
@@ -103,7 +103,7 @@ func TestEditOrder_Occur(t *testing.T) {
 
 func TestEditOrder_Error(t *testing.T) {
 	cancelID := exchange.OrderID(456)
-	newOrder := exchange.NewOrder(btcUSD(), exchange.Market, exchange.Buy, 50000.0, 0.1)
+	newOrder, _ := exchange.NewOrder(btcUSD(), exchange.Market, exchange.Buy, 50000.0, 0.1)
 	editOrder := events.NewEditOrder(cancelID, *newOrder)
 
 	mockConnector := &MockConnector{
@@ -125,7 +125,7 @@ func TestEditOrder_Error(t *testing.T) {
 
 func TestEditOrder_Occur_PlaceOrderError(t *testing.T) {
 	cancelID := exchange.OrderID(456)
-	newOrder := exchange.NewOrder(btcUSD(), exchange.Market, exchange.Buy, 50000.0, 0.1)
+	newOrder, _ := exchange.NewOrder(btcUSD(), exchange.Market, exchange.Buy, 50000.0, 0.1)
 	editOrder := events.NewEditOrder(cancelID, *newOrder)
 
 	mockConnector := &MockConnector{

@@ -1,6 +1,7 @@
 package toolkit
 
 import (
+	"fmt"
 	"math"
 	"time"
 
@@ -19,15 +20,18 @@ type GridLevel struct {
 	id     LevelID
 }
 
-func NewGridLevel(price, amount float64) *GridLevel {
+func NewGridLevel(price, amount float64) (*GridLevel, error) {
+	if amount <= 0 {
+		return nil, fmt.Errorf("invalid amount of grid level: %f (expected > 0)", amount)
+	}
 	return &GridLevel{
 		price:  price,
 		amount: amount,
 		id:     LevelID(internal.RandomUint64()),
-	}
+	}, nil
 }
 
-func orderByLevel(level GridLevel, currentPrice float64, symbol data.Symbol) exchange.Order {
+func orderByLevel(level GridLevel, currentPrice float64, symbol data.Symbol) (*exchange.Order, error) {
 	var side exchange.OrderSide
 
 	if level.price < currentPrice {
@@ -36,7 +40,7 @@ func orderByLevel(level GridLevel, currentPrice float64, symbol data.Symbol) exc
 		side = exchange.Sell
 	}
 
-	return *exchange.NewOrder(
+	return exchange.NewOrder(
 		symbol,
 		exchange.Limit,
 		side,
@@ -115,7 +119,7 @@ func (g *grid) checkNewGrid(levels []GridLevel) bool {
 	return false
 }
 
-func (g *grid) UpdateOrders(candle data.Candle) []events.Event {
+func (g *grid) UpdateOrders(candle data.Candle) ([]events.Event, error) {
 	orderEvents := make([]events.Event, 0, len(g.levels))
 
 	for _, level := range g.levels {
@@ -125,12 +129,15 @@ func (g *grid) UpdateOrders(candle data.Candle) []events.Event {
 			continue
 		}
 
-		editOrder := g.adjustOrderIfNeeded(level, candle.Close)
+		editOrder, err := g.adjustOrderIfNeeded(level, candle.Close)
+		if err != nil {
+			return nil, fmt.Errorf("failed to adjust order: %w", err)
+		}
 		if editOrder != nil {
 			orderEvents = internal.Append(orderEvents, editOrder)
 		}
 	}
-	return orderEvents
+	return orderEvents, nil
 }
 
 func (g *grid) processIfExecuted(levelID LevelID, candle data.Candle) {
@@ -166,33 +173,38 @@ func (g *grid) undoExecuted(candle data.Candle) events.Event {
 		side = exchange.Buy
 	}
 
-	return events.NewOpenOrder(
-		*exchange.NewOrder(
-			g.symbol,
-			exchange.Market,
-			side,
-			price,
-			amount,
-		),
+	// An error cannot occur here because we have already
+	// normalized the volume to the correct values
+	order, _ := exchange.NewOrder(
+		g.symbol,
+		exchange.Market,
+		side,
+		price,
+		amount,
 	)
+
+	return events.NewOpenOrder(*order)
 }
 
-func (g *grid) adjustOrderIfNeeded(level GridLevel, currPrice float64) events.Event {
-	newOrder := orderByLevel(level, currPrice, g.symbol)
+func (g *grid) adjustOrderIfNeeded(level GridLevel, currPrice float64) (events.Event, error) {
+	newOrder, err := orderByLevel(level, currPrice, g.symbol)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create get order by level: %w", err)
+	}
 
 	// check if adjusting the order is unnecessary
 	existingOrder, ok := g.orders[level.id]
-	if ok && existingOrder.IsEqual(&newOrder) {
-		return nil
+	if ok && existingOrder.IsEqual(newOrder) {
+		return nil, nil
 	}
 
-	g.orders[level.id] = newOrder
+	g.orders[level.id] = *newOrder
 
 	if ok {
-		return events.NewEditOrder(existingOrder.ID(), newOrder)
+		return events.NewEditOrder(existingOrder.ID(), *newOrder), nil
 	}
 
-	return events.NewOpenOrder(newOrder)
+	return events.NewOpenOrder(*newOrder), nil
 }
 
 func newGrid(symbol data.Symbol) *grid {
@@ -237,7 +249,10 @@ func (g *GridBot) Next(candle data.InstrumentCandle) (events.Event, error) {
 		levelEvents = g.grid.SetLevels(levels, candle.Candle)
 	}
 
-	updateEvents := g.grid.UpdateOrders(candle.Candle)
+	updateEvents, err := g.grid.UpdateOrders(candle.Candle)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update orders: %w", err)
+	}
 
 	result := events.NewSequential(levelEvents...)
 	result.Add(updateEvents...)

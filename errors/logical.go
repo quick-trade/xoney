@@ -105,3 +105,20 @@ func (e NoLimitOrderError) Error() string {
 func NewNoLimitOrderError(id uint64) NoLimitOrderError {
 	return NoLimitOrderError{id: id}
 }
+
+type InvalidOrderAmountError struct {
+	Amount float64
+}
+
+func (e InvalidOrderAmountError) Error() string {
+var msg strings.Builder
+
+	msg.WriteString("invalid order amount: ")
+	msg.WriteString(strconv.FormatFloat(e.Amount, 'f', -1, 64))
+
+	return msg.String()
+}
+
+func NewInvalidOrderAmountError(amount float64) InvalidOrderAmountError {
+	return InvalidOrderAmountError{Amount: amount}
+}

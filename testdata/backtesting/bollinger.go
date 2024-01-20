@@ -1,6 +1,7 @@
 package backtesting
 
 import (
+	"fmt"
 	"math"
 	"time"
 
@@ -184,7 +185,10 @@ func (b *EntryAllDeposit) Occur(connector exchange.Connector) error {
 		amount /= b.price
 	}
 
-	order := exchange.NewOrder(b.symbol, b.orderType, b.side, b.price, amount)
+	order, err := exchange.NewOrder(b.symbol, b.orderType, b.side, b.price, amount)
+	if err != nil {
+		return fmt.Errorf("error creating order: %w", err)
+	}
 
 	return events.NewOpenOrder(*order).Occur(connector)
 }

@@ -57,7 +57,7 @@ func TestMarginSimulator_PlaceMarketOrder_Buy(t *testing.T) {
 	symbol := btcUSD()
 	price := 50000.0
 	amount := 0.1
-	order := exchange.NewOrder(symbol, exchange.Market, exchange.Buy, price, amount)
+	order, _ := exchange.NewOrder(symbol, exchange.Market, exchange.Buy, price, amount)
 
 	err := simulator.PlaceOrder(*order)
 	if err != nil {
@@ -76,7 +76,7 @@ func TestMarginSimulator_PlaceMarketOrder_Sell(t *testing.T) {
 	btc := symbol.Base()
 	price := 50000.0
 	amount := 0.1
-	order := exchange.NewOrder(symbol, exchange.Market, exchange.Sell, price, amount)
+	order, _ := exchange.NewOrder(symbol, exchange.Market, exchange.Sell, price, amount)
 
 	err := simulator.PlaceOrder(*order)
 	if err != nil {
@@ -100,7 +100,7 @@ func TestMarginSimulator_ExecuteLimitOrder_ImmediateExecution(t *testing.T) {
 	amount := 0.1
 
 	// Place a limit order that should be executed immediately
-	limitOrder := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price, amount)
+	limitOrder, _ := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price, amount)
 	err := simulator.PlaceOrder(*limitOrder)
 	if err != nil {
 		t.Errorf("Error placing limit order: %v", err)
@@ -137,7 +137,7 @@ func TestMarginSimulator_ExecuteLimitOrder_DelayedExecution(t *testing.T) {
 	amount := 0.1
 
 	// Place a limit order that should be executed after two updates
-	limitOrder := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price, amount)
+	limitOrder, _ := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price, amount)
 	err := simulator.PlaceOrder(*limitOrder)
 	if err != nil {
 		t.Errorf("Error placing limit order: %v", err)
@@ -185,13 +185,13 @@ func TestMarginSimulator_ExecuteMultipleLimitOrders(t *testing.T) {
 	amount2 := 0.2
 
 	// Place two limit orders
-	limitOrder1 := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price1, amount1)
+	limitOrder1, _ := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price1, amount1)
 	err := simulator.PlaceOrder(*limitOrder1)
 	if err != nil {
 		t.Errorf("Error placing limit order 1: %v", err)
 	}
 
-	limitOrder2 := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price2, amount2)
+	limitOrder2, _ := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price2, amount2)
 	err = simulator.PlaceOrder(*limitOrder2)
 
 	if err != nil {
@@ -253,7 +253,7 @@ func TestMarginSimulator_CancelOrder_ExistingOrder(t *testing.T) {
 	amount := 0.1
 
 	// Place a limit order to have an existing order
-	limitOrder := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price, amount)
+	limitOrder, _ := exchange.NewOrder(*symbol, exchange.Limit, exchange.Buy, price, amount)
 	err := simulator.PlaceOrder(*limitOrder)
 	if err != nil {
 		t.Fatalf("Error placing limit order: %v", err)
@@ -440,7 +440,7 @@ func TestSpotSimulator_ExecuteMarketOrder_Buy(t *testing.T) {
 	amount := 0.1
 
 	// Execute a market buy order
-	marketOrder := exchange.NewOrder(symbol, exchange.Market, exchange.Buy, price, amount)
+	marketOrder, _ := exchange.NewOrder(symbol, exchange.Market, exchange.Buy, price, amount)
 	err := simulator.PlaceOrder(*marketOrder)
 	// Check if there is no error
 	if err != nil {
@@ -465,7 +465,7 @@ func TestSpotSimulator_PlaceOrder_MarketBuy_Success(t *testing.T) {
 	symbol := btcUSD()
 	price := 50000.0
 	amount := 0.1
-	order := exchange.NewOrder(symbol, exchange.Market, exchange.Buy, price, amount)
+	order, _ := exchange.NewOrder(symbol, exchange.Market, exchange.Buy, price, amount)
 
 	err := simulator.PlaceOrder(*order)
 	if err != nil {
@@ -492,7 +492,8 @@ func TestSpotSimulator_ExecuteMarketOrder_Buy_InsufficientFunds(t *testing.T) {
 	price := 50000.0
 
 	// Execute market buy order with insufficient funds
-	err := simulator.PlaceOrder(*exchange.NewOrder(symbol, exchange.Market, exchange.Buy, price, amount))
+	order, _ := exchange.NewOrder(symbol, exchange.Market, exchange.Buy, price, amount)
+	err := simulator.PlaceOrder(*order)
 	if err == nil || !goErrors.Is(err, errors.NewNotEnoughFundsError(usd().String(), amount*price)) {
 		t.Errorf("Expected NotEnoughFundsError, got: %v", err)
 	}
@@ -513,7 +514,8 @@ func TestSpotSimulator_ExecuteLimitOrder_Sell_InsufficientFunds(t *testing.T) {
 	amount := 0.1
 
 	// Execute limit sell order
-	err := simulator.PlaceOrder(*exchange.NewOrder(symbol, exchange.Limit, exchange.Sell, price, amount))
+	order, _ := exchange.NewOrder(symbol, exchange.Limit, exchange.Sell, price, amount)
+	err := simulator.PlaceOrder(*order)
 	if !goErrors.Is(err, errors.NewNotEnoughFundsError(btc().String(), amount)) {
 		t.Errorf("Expected NotEnoughFundsError, got: %v", err)
 	}
@@ -537,7 +539,8 @@ func TestSpotSimulator_PlaceLimitOrder_Sell_InsufficientFunds(t *testing.T) {
 	amount := 0.1
 
 	// Execute limit sell order with insufficient funds
-	err := simulator.PlaceOrder(*exchange.NewOrder(symbol, exchange.Limit, exchange.Sell, price, amount))
+	order, _ := exchange.NewOrder(symbol, exchange.Limit, exchange.Sell, price, amount)
+	err := simulator.PlaceOrder(*order)
 	if err == nil || !goErrors.Is(err, errors.NewNotEnoughFundsError(btc().String(), amount)) {
 		t.Errorf("Expected NotEnoughFundsError, got: %v", err)
 	}
@@ -559,7 +562,8 @@ func TestSpotSimulator_PlaceLimitOrder_Buy_Success(t *testing.T) {
 	amount := 0.1
 
 	// Execute limit buy order
-	err := simulator.PlaceOrder(*exchange.NewOrder(symbol, exchange.Limit, exchange.Buy, price, amount))
+	order, _ := exchange.NewOrder(symbol, exchange.Limit, exchange.Buy, price, amount)
+	err := simulator.PlaceOrder(*order)
 	if err != nil {
 		t.Errorf("Unexpected error during successful limit buy order placement: %v", err)
 	}
@@ -592,7 +596,8 @@ func TestSpotSimulator_PlaceLimitOrder_Buy_InsufficientFunds(t *testing.T) {
 	simulator.UpdatePrice(*data.NewInstrumentCandle(*candleBTC, instrument()))
 
 	// Execute limit buy order with insufficient funds
-	err := simulator.PlaceOrder(*exchange.NewOrder(symbol, exchange.Limit, exchange.Buy, price, amount))
+	order, _ := exchange.NewOrder(symbol, exchange.Limit, exchange.Buy, price, amount)
+	err := simulator.PlaceOrder(*order)
 	if err == nil || !goErrors.Is(err, errors.NewNotEnoughFundsError(usd().String(), amount*price)) {
 		t.Errorf("Expected NotEnoughFundsError, got: %v", err)
 	}
