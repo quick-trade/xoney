@@ -2,8 +2,8 @@ package exchange
 
 import (
 	"xoney/common/data"
-	"xoney/internal"
 	"xoney/errors"
+	"xoney/internal"
 )
 
 type OrderType string

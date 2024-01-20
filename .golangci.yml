@@ -6,3 +6,4 @@ linters-settings:
       - n int
       - T any
       - wg sync.WaitGroup
+      - ok bool

@@ -1,8 +1,8 @@
 package common_test
 
 import (
-	"testing"
 	"strings"
+	"testing"
 
 	"xoney/common"
 	"xoney/common/data"

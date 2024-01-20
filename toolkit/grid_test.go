@@ -1,16 +1,15 @@
 package toolkit
 
 import (
+	"fmt"
 	"testing"
 	"time"
-	"fmt"
 
-	"xoney/common/data"
 	"xoney/common"
+	"xoney/common/data"
 	"xoney/events"
 	"xoney/exchange"
 )
-
 
 func btcUSD() data.Symbol {
 	return *data.NewSymbol("BTC", "USD", "BINANCE")
@@ -35,7 +34,6 @@ func TestNewGridLevel(t *testing.T) {
 	amount := 0.5
 
 	level, err := NewGridLevel(price, amount)
-
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -52,6 +50,7 @@ func TestNewGridLevel(t *testing.T) {
 		t.Errorf("Expected non-zero level ID, got: %v", level.id)
 	}
 }
+
 type MockGridGenerator struct {
 	counter int
 }
@@ -288,8 +287,7 @@ func TestGridBot_Duration(t *testing.T) {
 	}
 }
 
-
-// Test GridBot MinDurations method
+// Test GridBot MinDurations method.
 func TestGridBot_MinDurations(t *testing.T) {
 	generator := &MockGridGenerator{counter: 0}
 

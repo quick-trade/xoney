@@ -86,7 +86,6 @@ func debugBollinger() {
 	}
 }
 
-
 func main() {
 	// Uploading chart data once
 	btc15m = btc15min()

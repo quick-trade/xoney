@@ -11,12 +11,14 @@ import (
 	"xoney/events"
 	"xoney/exchange"
 	"xoney/internal"
-
 	st "xoney/strategy"
 )
 
-type BaseWeight float64
-type PortfolioWeights map[data.Currency]BaseWeight
+type (
+	BaseWeight       float64
+	PortfolioWeights map[data.Currency]BaseWeight
+)
+
 func NewPortfolioWeights(distribution map[data.Currency]BaseWeight) (*PortfolioWeights, error) {
 	weights := PortfolioWeights(distribution)
 	if err := weights.isValid(); err != nil {
@@ -24,6 +26,7 @@ func NewPortfolioWeights(distribution map[data.Currency]BaseWeight) (*PortfolioW
 	}
 	return &weights, nil
 }
+
 func (f PortfolioWeights) isValid() error {
 	sumWeights := 0.0
 
@@ -77,7 +80,6 @@ func (pw PortfolioWeights) Synchronize(
 	return target, nil
 }
 
-
 type CapitalAllocator interface {
 	Start(charts data.ChartContainer) error
 	Next(candle data.InstrumentCandle) (PortfolioWeights, error)
@@ -85,11 +87,12 @@ type CapitalAllocator interface {
 }
 
 type RebalancePortfolio struct {
-	weights PortfolioWeights
+	weights             PortfolioWeights
 	currentDistribution common.BaseDistribution
-	lastPrices map[data.Currency]float64
-	mainCurrency data.Currency
+	lastPrices          map[data.Currency]float64
+	mainCurrency        data.Currency
 }
+
 func (r *RebalancePortfolio) Occur(connector exchange.Connector) error {
 	target, err := r.getTargetDistribution(connector)
 	if err != nil {
@@ -108,6 +111,7 @@ func (r *RebalancePortfolio) Occur(connector exchange.Connector) error {
 
 	return nil
 }
+
 func (r *RebalancePortfolio) rebalance(connector exchange.Connector, target common.BaseDistribution) (events.Event, error) {
 	difference := r.calculateDifference(target)
 	sellDifferences, buyDifferences := r.sortDifference(difference)
@@ -124,6 +128,7 @@ func (r *RebalancePortfolio) rebalance(connector exchange.Connector, target comm
 
 	return events.NewSequential(sellEvents, buyEvents), nil
 }
+
 func (r *RebalancePortfolio) newOrders(differences common.BaseDistribution) (events.Event, error) {
 	Events := make([]events.Event, 0, len(differences))
 	for currency, amount := range differences {
@@ -157,6 +162,7 @@ func (r *RebalancePortfolio) newOrders(differences common.BaseDistribution) (eve
 
 	return events.NewParallel(Events...), nil
 }
+
 func (r *RebalancePortfolio) sortDifference(difference common.BaseDistribution) (sellDifferences, buyDifferences common.BaseDistribution) {
 	sellDifferences = make(common.BaseDistribution, len(difference))
 	buyDifferences = make(common.BaseDistribution, len(difference))
@@ -171,6 +177,7 @@ func (r *RebalancePortfolio) sortDifference(difference common.BaseDistribution) 
 
 	return sellDifferences, buyDifferences
 }
+
 func (r *RebalancePortfolio) calculateDifference(target common.BaseDistribution) common.BaseDistribution {
 	difference := make(common.BaseDistribution)
 	for currency, targetVolume := range target {
@@ -220,7 +227,6 @@ func (r *RebalancePortfolio) getTargetDistribution(connector exchange.Connector)
 
 	wg.Wait()
 
-
 	// Convert prices into a map where keys are Currencies and values are float64
 	r.lastPrices = make(map[data.Currency]float64)
 	for _, symbolPrice := range prices {
@@ -228,7 +234,6 @@ func (r *RebalancePortfolio) getTargetDistribution(connector exchange.Connector)
 	}
 
 	target, err := r.weights.Synchronize(currentDistribution, r.lastPrices)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to synchronize portfolio with weights: %w", err)
 	}
@@ -261,6 +266,7 @@ func (r *RebalancePortfolio) getPrices(
 	}
 	return prices, nil
 }
+
 func NewRebalancePortfolio(weights PortfolioWeights) *RebalancePortfolio {
 	return &RebalancePortfolio{weights: weights, currentDistribution: nil}
 }
@@ -268,9 +274,11 @@ func NewRebalancePortfolio(weights PortfolioWeights) *RebalancePortfolio {
 type CapitalAllocationBot struct {
 	allocator CapitalAllocator
 }
+
 func NewCapitalAllocationBot(allocator CapitalAllocator) *CapitalAllocationBot {
 	return &CapitalAllocationBot{allocator: allocator}
 }
+
 func (c *CapitalAllocationBot) MinDurations() st.Durations {
 	return c.allocator.MinDurations()
 }

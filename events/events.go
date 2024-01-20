@@ -2,8 +2,8 @@ package events
 
 import (
 	"fmt"
-	"sync"
 	"strings"
+	"sync"
 
 	"xoney/exchange"
 	"xoney/internal"
@@ -64,6 +64,7 @@ func NewEditOrder(cancelID exchange.OrderID, newOrder exchange.Order) *EditOrder
 type Sequential struct {
 	actions []Event
 }
+
 func (s *Sequential) Occur(connector exchange.Connector) error {
 	for _, action := range s.actions {
 		if err := action.Occur(connector); err != nil {
@@ -72,12 +73,15 @@ func (s *Sequential) Occur(connector exchange.Connector) error {
 	}
 	return nil
 }
+
 func (s *Sequential) Add(actions ...Event) {
 	s.actions = append(s.actions, actions...)
 }
+
 func (s *Sequential) Events() []Event {
 	return s.actions
 }
+
 func NewSequential(actions ...Event) *Sequential {
 	return &Sequential{actions: actions}
 }
@@ -85,6 +89,7 @@ func NewSequential(actions ...Event) *Sequential {
 type Parallel struct {
 	actions []Event
 }
+
 func (p *Parallel) Occur(connector exchange.Connector) error {
 	var wg sync.WaitGroup
 	errorsChan := make(chan string, len(p.actions))
@@ -112,9 +117,11 @@ func (p *Parallel) Occur(connector exchange.Connector) error {
 	}
 	return nil
 }
+
 func (p *Parallel) Add(actions ...Event) {
 	p.actions = internal.Append(p.actions, actions...)
 }
+
 func NewParallel(actions ...Event) *Parallel {
 	return &Parallel{actions: actions}
 }

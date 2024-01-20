@@ -189,7 +189,7 @@ func (g *grid) undoExecuted(candle data.Candle) events.Event {
 func (g *grid) adjustOrderIfNeeded(level GridLevel, currPrice float64) (events.Event, error) {
 	newOrder, err := orderByLevel(level, currPrice, g.symbol)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create get order by level: %w", err)
+		return nil, fmt.Errorf("failed to create order by level: %w", err)
 	}
 
 	// check if adjusting the order is unnecessary

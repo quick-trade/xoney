@@ -2,8 +2,8 @@
 package toolkit_test
 
 import (
-	"testing"
 	"math"
+	"testing"
 
 	"xoney/common"
 	"xoney/common/data"
@@ -62,9 +62,9 @@ func CurrentWeights(portfolio common.BaseDistribution) toolkit.PortfolioWeights 
 
 func TestSynchronize(t *testing.T) {
 	currentBasePortfolio := common.BaseDistribution{
-		data.NewCurrency("USD", "EXCHANGE"): 1./100.,
-		data.NewCurrency("BTC", "EXCHANGE"): 1./500.,
-		data.NewCurrency("ETH", "EXCHANGE"): 1./10.,
+		data.NewCurrency("USD", "EXCHANGE"): 1. / 100.,
+		data.NewCurrency("BTC", "EXCHANGE"): 1. / 500.,
+		data.NewCurrency("ETH", "EXCHANGE"): 1. / 10.,
 	}
 
 	targetWeights := CurrentWeights(currentBasePortfolio)
@@ -78,7 +78,6 @@ func TestSynchronize(t *testing.T) {
 	expectedResult := currentBasePortfolio
 
 	result, err := targetWeights.Synchronize(currentBasePortfolio, currentPrices)
-
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}

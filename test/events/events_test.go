@@ -11,20 +11,18 @@ import (
 	"xoney/exchange"
 )
 
-
 func usd() data.Currency {
 	return data.NewCurrency("USD", "NYSE")
 }
-
 
 func btcUSD() data.Symbol {
 	return *data.NewSymbol("BTC", "USD", "BINANCE")
 }
 
 type MockConnector struct {
-	CancelOrderID   exchange.OrderID
+	CancelOrderID    exchange.OrderID
 	PlaceOrderCalled int
-	PlacedOrder     *exchange.Order
+	PlacedOrder      *exchange.Order
 	CancelOrderError error
 	PlaceOrderError  error
 }
@@ -66,7 +64,6 @@ func TestCancelOrder_Occur(t *testing.T) {
 
 	mockConnector := &MockConnector{}
 	err := cancelOrder.Occur(mockConnector)
-
 	if err != nil {
 		t.Errorf("Unexpected error during CancelOrder.Occur: %v", err)
 	}
@@ -83,7 +80,6 @@ func TestEditOrder_Occur(t *testing.T) {
 
 	mockConnector := &MockConnector{}
 	err := editOrder.Occur(mockConnector)
-
 	if err != nil {
 		t.Errorf("Unexpected error during EditOrder.Occur: %v", err)
 	}

@@ -111,7 +111,7 @@ type InvalidOrderAmountError struct {
 }
 
 func (e InvalidOrderAmountError) Error() string {
-var msg strings.Builder
+	var msg strings.Builder
 
 	msg.WriteString("invalid order amount: ")
 	msg.WriteString(strconv.FormatFloat(e.Amount, 'f', -1, 64))

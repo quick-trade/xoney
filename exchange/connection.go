@@ -46,12 +46,14 @@ type SymbolPrice struct {
 	Symbol data.Symbol
 	Price  float64
 }
+
 func NewSymbolPrice(symbol data.Symbol, price float64) *SymbolPrice {
 	return &SymbolPrice{
 		Symbol: symbol,
 		Price:  price,
 	}
 }
+
 type Connector interface {
 	PlaceOrder(order Order) error
 	CancelOrder(id OrderID) error
@@ -205,6 +207,7 @@ func (s *MarginSimulator) SellAll() error {
 
 	return firstErr
 }
+
 func orderSideFromBalance(balance float64) OrderSide {
 	if balance > 0 {
 		return Sell
