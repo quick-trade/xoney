@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"testing"
-
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/events"
@@ -35,6 +34,7 @@ func (m *MockConnector) PlaceOrder(order exchange.Order) error {
 
 func (m *MockConnector) CancelOrder(id exchange.OrderID) error {
 	m.CancelOrderID = id
+
 	return m.CancelOrderError
 }
 

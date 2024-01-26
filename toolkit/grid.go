@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"math"
 	"time"
-
 	"xoney/common/data"
+	"xoney/errors"
 	"xoney/events"
 	"xoney/exchange"
 	"xoney/internal"
+
 	st "xoney/strategy"
 )
 
@@ -22,7 +23,7 @@ type GridLevel struct {
 
 func NewGridLevel(price, amount float64) (*GridLevel, error) {
 	if amount <= 0 {
-		return nil, fmt.Errorf("invalid amount of grid level: %f (expected > 0)", amount)
+		return nil, errors.NewInvalidGridLevelAmountError(amount)
 	}
 	return &GridLevel{
 		price:  price,

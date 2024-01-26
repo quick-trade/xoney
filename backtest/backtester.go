@@ -3,25 +3,27 @@ package backtest
 import (
 	"fmt"
 	"time"
+
 	"xoney/common/data"
 	"xoney/exchange"
 	"xoney/internal"
-
 	exec "xoney/internal/executing"
 	st "xoney/strategy"
 )
 
 type StepByStepBacktester struct {
-	system  st.Tradable
+	system    st.Tradable
 	equity    data.Equity
 	simulator exchange.Simulator
 }
+
 func NewStepByStepBacktester(simulator exchange.Simulator) *StepByStepBacktester {
 	return &StepByStepBacktester{
 		equity:    data.Equity{},
 		simulator: simulator,
 	}
 }
+
 func (b *StepByStepBacktester) Start(charts data.ChartContainer, system st.Tradable) error {
 	err := b.setup(charts, system)
 	if err != nil {
@@ -30,6 +32,7 @@ func (b *StepByStepBacktester) Start(charts data.ChartContainer, system st.Trada
 
 	return nil
 }
+
 func (b *StepByStepBacktester) Next(candle data.InstrumentCandle) error {
 	if err := b.updatePrices(candle); err != nil {
 		return err
@@ -51,9 +54,11 @@ func (b *StepByStepBacktester) Next(candle data.InstrumentCandle) error {
 
 	return nil
 }
+
 func (b *StepByStepBacktester) GetEquity() data.Equity {
 	return b.equity
 }
+
 func (b *StepByStepBacktester) setup(
 	charts data.ChartContainer,
 	system st.Tradable,
@@ -101,6 +106,7 @@ func (b *StepByStepBacktester) updateBalance(timestamp time.Time) error {
 
 	return nil
 }
+
 type Backtester struct {
 	simulator exchange.Simulator
 }

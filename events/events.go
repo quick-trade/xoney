@@ -2,9 +2,8 @@ package events
 
 import (
 	"fmt"
-	"strings"
 	"sync"
-
+	"xoney/errors"
 	"xoney/exchange"
 	"xoney/internal"
 )
@@ -113,7 +112,7 @@ func (p *Parallel) Occur(connector exchange.Connector) error {
 	}
 
 	if len(errorsList) > 0 {
-		return fmt.Errorf("errors occurred in parallel execution: %s", strings.Join(errorsList, "; "))
+		return errors.NewParallelExecutionError(errorsList)
 	}
 	return nil
 }

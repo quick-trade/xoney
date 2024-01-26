@@ -11,7 +11,10 @@ gci,\
 varnamelen,\
 gomnd,\
 gofumpt,\
-ifshort
+ifshort,\
+wrapcheck,\
+paralleltest,\
+ireturn
 
 fmt :
 	go fmt ./... && \

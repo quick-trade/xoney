@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"math"
 	"sync"
-
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"
 	"xoney/events"
 	"xoney/exchange"
 	"xoney/internal"
+
 	st "xoney/strategy"
 )
 
@@ -35,7 +35,7 @@ func (f PortfolioWeights) isValid() error {
 	}
 
 	if sumWeights != 1 {
-		return fmt.Errorf("invalid portfolio weights: sum of abs(weights): %f", sumWeights)
+		return errors.NewInvalidWeightsError(sumWeights)
 	}
 
 	return nil
@@ -131,6 +131,7 @@ func (r *RebalancePortfolio) rebalance(connector exchange.Connector, target comm
 
 func (r *RebalancePortfolio) newOrders(differences common.BaseDistribution) (events.Event, error) {
 	Events := make([]events.Event, 0, len(differences))
+
 	for currency, amount := range differences {
 		if amount == 0 {
 			continue
@@ -148,7 +149,7 @@ func (r *RebalancePortfolio) newOrders(differences common.BaseDistribution) (eve
 
 		price, priceExists := r.lastPrices[currency]
 		if !priceExists {
-			return nil, fmt.Errorf("failed to get the last price for %s", currency)
+			return nil, errors.NewNoPriceError(currency.String())
 		}
 
 		order, err := exchange.NewOrder(*symbol, exchange.Market, side, price, math.Abs(amount))
@@ -180,6 +181,7 @@ func (r *RebalancePortfolio) sortDifference(difference common.BaseDistribution) 
 
 func (r *RebalancePortfolio) calculateDifference(target common.BaseDistribution) common.BaseDistribution {
 	difference := make(common.BaseDistribution)
+
 	for currency, targetVolume := range target {
 		currentVolume, exists := r.currentDistribution[currency]
 		if exists {
@@ -188,6 +190,7 @@ func (r *RebalancePortfolio) calculateDifference(target common.BaseDistribution)
 			difference[currency] = -targetVolume
 		}
 	}
+
 	for currency, currentVolume := range r.currentDistribution {
 		if _, exists := target[currency]; !exists {
 			difference[currency] = currentVolume

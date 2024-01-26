@@ -3,7 +3,6 @@ package data_test
 import (
 	"testing"
 	"time"
-
 	"xoney/common/data"
 	"xoney/errors"
 )

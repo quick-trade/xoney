@@ -4,11 +4,13 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
 	"xoney/errors"
 )
 
 func timeFrameMinute() TimeFrame {
 	tf, _ := NewTimeFrame(time.Minute, "1m")
+
 	return *tf
 }
 

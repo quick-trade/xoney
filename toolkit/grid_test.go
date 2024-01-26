@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 	"time"
-
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/events"
@@ -69,7 +68,9 @@ func (g *MockGridGenerator) Next(candle data.Candle) ([]GridLevel, error) {
 	g.counter++
 
 	var levels []GridLevel
+
 	var level *GridLevel
+
 	var err error
 
 	switch g.counter {
@@ -79,6 +80,7 @@ func (g *MockGridGenerator) Next(candle data.Candle) ([]GridLevel, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to create grid level: %w", err)
 		}
+
 		levels = append(levels, *level)
 	case 1:
 		// Attempt to create a new grid with price 100 and amount 0.5 on the first candle
@@ -86,6 +88,7 @@ func (g *MockGridGenerator) Next(candle data.Candle) ([]GridLevel, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to create grid level: %w", err)
 		}
+
 		levels = append(levels, *level)
 	}
 
@@ -194,6 +197,7 @@ func TestGridBot_Next(t *testing.T) {
 				if order.Price() != 100 {
 					t.Errorf("Expected order price to be 100, got %v", order.Price())
 				}
+
 				return nil
 			},
 		}
@@ -244,6 +248,7 @@ func TestGridBot_Next(t *testing.T) {
 				if order.Side() != exchange.Sell {
 					t.Errorf("Expected order side to be Sell, got %v", order.Side())
 				}
+
 				return nil
 			},
 		}
@@ -269,6 +274,7 @@ func TestGridBot_Next(t *testing.T) {
 			if order.Side() != exchange.Sell {
 				t.Errorf("Expected order side to be Sell, got %v", order.Side())
 			}
+
 			return nil
 		},
 	}

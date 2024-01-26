@@ -3,7 +3,6 @@ package common_test
 import (
 	"strings"
 	"testing"
-
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"

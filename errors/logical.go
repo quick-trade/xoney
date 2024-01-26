@@ -122,6 +122,7 @@ func (e InvalidOrderAmountError) Error() string {
 func NewInvalidOrderAmountError(amount float64) InvalidOrderAmountError {
 	return InvalidOrderAmountError{Amount: amount}
 }
+
 type InvalidSymbolError struct {
 	Base  string
 	Quote string
@@ -138,4 +139,71 @@ func (e InvalidSymbolError) Error() string {
 
 func NewInvalidSymbolError(base, quote string) InvalidSymbolError {
 	return InvalidSymbolError{Base: base, Quote: quote}
+}
+
+type NoPriceError struct {
+	currency string
+}
+
+func (e NoPriceError) Error() string {
+	var msg strings.Builder
+	msg.WriteString("there is no price for ")
+	msg.WriteString(e.currency)
+	return msg.String()
+}
+
+func NewNoPriceError(currency string) NoPriceError {
+	return NoPriceError{currency: currency}
+}
+
+type InvalidWeightsError struct {
+	sum float64
+}
+
+func (e InvalidWeightsError) Error() string {
+	var msg strings.Builder
+
+	msg.WriteString("invalid portfolio weights: sum of abs(weights): ")
+	msg.WriteString(strconv.FormatFloat(e.sum, 'f', -1, 64))
+
+	return msg.String()
+}
+
+func NewInvalidWeightsError(sum float64) InvalidWeightsError {
+	return InvalidWeightsError{sum: sum}
+}
+
+type InvalidGridLevelAmountError struct {
+	Amount float64
+}
+
+func (e InvalidGridLevelAmountError) Error() string {
+	var msg strings.Builder
+
+	msg.WriteString("invalid amount of grid level: ")
+	msg.WriteString(strconv.FormatFloat(e.Amount, 'f', -1, 64))
+	msg.WriteString(" (expected > 0)")
+
+	return msg.String()
+}
+
+func NewInvalidGridLevelAmountError(amount float64) InvalidGridLevelAmountError {
+	return InvalidGridLevelAmountError{Amount: amount}
+}
+
+type ParallelExecutionError struct {
+	ErrorsList []string
+}
+
+func (e *ParallelExecutionError) Error() string {
+	var msg strings.Builder
+
+	msg.WriteString("errors occurred in parallel execution: ")
+	msg.WriteString(strings.Join(e.ErrorsList, "; "))
+
+	return msg.String()
+}
+
+func NewParallelExecutionError(errorsList []string) *ParallelExecutionError {
+	return &ParallelExecutionError{ErrorsList: errorsList}
 }
