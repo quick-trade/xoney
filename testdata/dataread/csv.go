@@ -9,10 +9,10 @@ import (
 	"xoney/common/data"
 )
 
-func LoadChartFromCSV(filePath string, tf data.TimeFrame) (data.Chart, error) {
+func LoadChartFromCSV(filePath string, tf data.TimeFrame, contains_index int) (data.Chart, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return data.Chart{}, fmt.Errorf("Error opening file: %w", err)
+		return data.Chart{}, fmt.Errorf("error opening file: %w", err)
 	}
 	defer file.Close()
 
@@ -20,7 +20,7 @@ func LoadChartFromCSV(filePath string, tf data.TimeFrame) (data.Chart, error) {
 
 	rows, err := reader.ReadAll()
 	if err != nil {
-		return data.Chart{}, fmt.Errorf("Error reading CSV: %w", err)
+		return data.Chart{}, fmt.Errorf("error reading CSV: %w", err)
 	}
 
 	chart := data.Chart{
@@ -33,41 +33,41 @@ func LoadChartFromCSV(filePath string, tf data.TimeFrame) (data.Chart, error) {
 	}
 
 	for _, row := range rows[1:] {
-		timestampStr := row[0]
-		openStr := row[1]
-		highStr := row[2]
-		lowStr := row[3]
-		closeStr := row[4]
-		volumeStr := row[5]
+		timestampStr := row[contains_index]
+		openStr := row[1+contains_index]
+		highStr := row[2+contains_index]
+		lowStr := row[3+contains_index]
+		closeStr := row[4+contains_index]
+		volumeStr := row[5+contains_index]
 
 		timestamp, err := time.Parse("2006-01-02 15:04:05", timestampStr)
 		if err != nil {
-			return data.Chart{}, fmt.Errorf("Error parsing time: %w", err)
+			return data.Chart{}, fmt.Errorf("error parsing time: %w", err)
 		}
 
 		open, err := strconv.ParseFloat(openStr, 64)
 		if err != nil {
-			return data.Chart{}, fmt.Errorf("Error parsing: %w", err)
+			return data.Chart{}, fmt.Errorf("error parsing: %w", err)
 		}
 
 		high, err := strconv.ParseFloat(highStr, 64)
 		if err != nil {
-			return data.Chart{}, fmt.Errorf("Error parsing: %w", err)
+			return data.Chart{}, fmt.Errorf("error parsing: %w", err)
 		}
 
 		low, err := strconv.ParseFloat(lowStr, 64)
 		if err != nil {
-			return data.Chart{}, fmt.Errorf("Error parsing: %w", err)
+			return data.Chart{}, fmt.Errorf("error parsing: %w", err)
 		}
 
 		closePrice, err := strconv.ParseFloat(closeStr, 64)
 		if err != nil {
-			return data.Chart{}, fmt.Errorf("Error parsing: %w", err)
+			return data.Chart{}, fmt.Errorf("error parsing: %w", err)
 		}
 
 		volume, err := strconv.ParseFloat(volumeStr, 64)
 		if err != nil {
-			return data.Chart{}, fmt.Errorf("Error parsing: %w", err)
+			return data.Chart{}, fmt.Errorf("error parsing: %w", err)
 		}
 
 		chart.Timestamp.Append(timestamp)

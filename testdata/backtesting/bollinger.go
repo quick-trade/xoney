@@ -31,6 +31,7 @@ type BBBStrategy struct {
 	Mean []float64
 	UB []float64
 	LB []float64
+	first bool
 }
 
 func NewBBStrategy(period int, deviation float64, instrument data.Instrument) *BBBStrategy {
@@ -44,16 +45,19 @@ func NewBBStrategy(period int, deviation float64, instrument data.Instrument) *B
 		Mean: make([]float64, 0, internal.DefaultCapacity),
 		UB: make([]float64, 0, internal.DefaultCapacity),
 		LB: make([]float64, 0, internal.DefaultCapacity),
+		first: true,
 	}
 }
 
 func (b *BBBStrategy) Next(candle data.InstrumentCandle) (events.Event, error) {
 	b.computeBollinger(candle.Close)
+
 	return b.fetchEvents(candle.Close)
 }
 
 func (b *BBBStrategy) Start(charts data.ChartContainer) error {
 	b.prices = charts[b.instrument].Close
+	b.first = true
 	return nil
 }
 
@@ -94,7 +98,7 @@ func (b *BBBStrategy) fetchEvents(price float64) (events.Event, error) {
 		resultEvents.Add(event)
 	}
 	b.prevSide = b.side
-
+	b.first = false
 
 	return resultEvents, err
 }
@@ -113,7 +117,7 @@ func (b *VectorizedBollinger) Backtest(
 
 	startIndex := b.Period - 1
 	start := chart.Timestamp.At(startIndex)
-	equity := *data.NewEquity(b.instrument.Timeframe(), start, len(chart.Close))
+	equity := *data.NewEquity(b.instrument.Timeframe(), len(chart.Close))
 	equity.AddValue(initialDepo, start)
 
 	price := chart.Close
@@ -180,6 +184,9 @@ func (b *EntryAllDeposit) Occur(connector exchange.Connector) error {
 	}
 
 	amount := connector.Portfolio().Balance(neededCurrency)
+	if amount == 0 {
+		return nil
+	}
 
 	if b.side == exchange.Buy {
 		amount /= b.price
@@ -194,6 +201,7 @@ func (b *EntryAllDeposit) Occur(connector exchange.Connector) error {
 }
 func NewEntryAllDeposit(symbol data.Symbol, orderType, side string, price float64) (*EntryAllDeposit, error) {
 	var Type exchange.OrderType
+
 	if orderType == "market" {
 		Type = exchange.Market
 	} else if orderType == "limit" {

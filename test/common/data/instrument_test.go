@@ -57,7 +57,7 @@ func Daily() data.TimeFrame {
 
 func TestEquityTimeframe(t *testing.T) {
 	// Create a new Equity instance with a specific timeframe
-	equity := data.NewEquity(Daily(), time.Now(), 100)
+	equity := data.NewEquity(Daily(), 100)
 
 	// Expected timeframe
 	expectedTimeframe := Daily()
@@ -70,7 +70,7 @@ func TestEquityTimeframe(t *testing.T) {
 
 func TestEquityDeposit(t *testing.T) {
 	// Create a new Equity instance
-	equity := data.NewEquity(Daily(), time.Now(), 100)
+	equity := data.NewEquity(Daily(), 100)
 
 	// Deposit some values
 	values := []float64{1000.0, 1500.0, 1200.0}
@@ -88,7 +88,7 @@ func TestEquityDeposit(t *testing.T) {
 }
 
 func TestEquityPortfolioHistory(t *testing.T) {
-	equity := data.NewEquity(Daily(), time.Now(), 100)
+	equity := data.NewEquity(Daily(), 100)
 
 	usd := data.NewCurrency("USD", "BINANCE")
 	btc := data.NewCurrency("BTC", "BINANCE")
@@ -143,7 +143,7 @@ func isEqualMap(a, b map[data.Currency][]float64) bool {
 
 func TestEquityNow(t *testing.T) {
 	// Create a new Equity instance
-	equity := data.NewEquity(Daily(), time.Now(), 100)
+	equity := data.NewEquity(Daily(), 100)
 
 	// Add some values to the equity
 	values := []float64{1000.0, 1500.0, 1200.0}
@@ -157,16 +157,5 @@ func TestEquityNow(t *testing.T) {
 	// Compare the actual and expected Now value
 	if result := equity.Now(); result != expectedNow {
 		t.Errorf("Expected: %f, got: %f", expectedNow, result)
-	}
-}
-
-func TestEquityStart(t *testing.T) {
-	// Create a new Equity instance with a specific start time
-	startTime := time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)
-	equity := data.NewEquity(Daily(), startTime, 100)
-
-	// Compare the actual and expected Start time
-	if result := equity.Start(); !result.Equal(startTime) {
-		t.Errorf("Expected: %s, got: %s", startTime, result)
 	}
 }

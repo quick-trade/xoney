@@ -122,3 +122,20 @@ func (e InvalidOrderAmountError) Error() string {
 func NewInvalidOrderAmountError(amount float64) InvalidOrderAmountError {
 	return InvalidOrderAmountError{Amount: amount}
 }
+type InvalidSymbolError struct {
+	Base  string
+	Quote string
+}
+
+func (e InvalidSymbolError) Error() string {
+	var msg strings.Builder
+	msg.WriteString("invalid symbol: ")
+	msg.WriteString(e.Base)
+	msg.WriteString("/")
+	msg.WriteString(e.Quote)
+	return msg.String()
+}
+
+func NewInvalidSymbolError(base, quote string) InvalidSymbolError {
+	return InvalidSymbolError{Base: base, Quote: quote}
+}

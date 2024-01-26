@@ -195,6 +195,19 @@ func (c *ChartContainer) FirstStart() time.Time {
 	return first
 }
 
+func (c *ChartContainer) LastEnd() time.Time {
+	var last time.Time
+
+	for _, chart := range *c {
+		end := chart.Timestamp.End()
+		if last.IsZero() || end.After(last) {
+			last = end
+		}
+	}
+
+	return last
+}
+
 func (c *ChartContainer) sortedInstruments() []Instrument {
 	keys := make([]Instrument, 0, len(*c))
 

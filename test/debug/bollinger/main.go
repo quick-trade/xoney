@@ -19,14 +19,14 @@ var (
 
 func btc15min() data.Instrument {
 	btcUsd := data.NewSymbol("BTC", "USD", "BINANCE")
-	m15, _ := data.NewTimeFrame(time.Minute*15, "15m")
+	m1, _ := data.NewTimeFrame(time.Minute, "1m")
 
-	return data.NewInstrument(*btcUsd, *m15)
+	return data.NewInstrument(*btcUsd, *m1)
 }
 
 func getCharts() data.ChartContainer {
-	m15 := btc15m.Timeframe()
-	btc, err := dtr.LoadChartFromCSV("testdata/BTCUSDT15m.csv", m15)
+	m1 := btc15m.Timeframe()
+	btc, err := dtr.LoadChartFromCSV("testdata/BTCUSDT1m.csv", m1, 1)
 	if err != nil {
 		panic(err)
 	}
@@ -39,13 +39,13 @@ func getCharts() data.ChartContainer {
 }
 
 func btcBBStrategy() testdata.BBBStrategy {
-	return *testdata.NewBBStrategy(300, 2, btc15m)
+	return *testdata.NewBBStrategy(60*24*30, 2, btc15m)
 }
 
 func portfolio() common.Portfolio {
 	currency := data.NewCurrency("USD", "BINANCE")
 	portfolio := common.NewPortfolio(currency)
-	portfolio.Set(currency, 20000)
+	portfolio.Set(currency, 4300)
 
 	return portfolio
 }

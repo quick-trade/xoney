@@ -27,7 +27,7 @@ func btc15min() data.Instrument {
 
 func getCharts() data.ChartContainer {
 	m15 := btc15m.Timeframe()
-	btc, err := dtr.LoadChartFromCSV("../../testdata/BTCUSDT15m.csv", m15)
+	btc, err := dtr.LoadChartFromCSV("../../testdata/BTCUSDT15m.csv", m15, 0)
 	if err != nil {
 		panic(err)
 	}

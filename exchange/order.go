@@ -74,6 +74,9 @@ func NewOrder(symbol data.Symbol, orderType OrderType, side OrderSide, price, am
 	if amount <= 0 {
 		return nil, errors.NewInvalidOrderAmountError(amount)
 	}
+	if symbol.Base() == symbol.Quote() {
+		return nil, errors.NewInvalidSymbolError(symbol.Base().String(), symbol.Quote().String())
+	}
 	return &Order{
 		symbol:     symbol,
 		orderType:  orderType,

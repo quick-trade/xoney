@@ -5,19 +5,108 @@ import (
 	"time"
 	"xoney/common/data"
 	"xoney/exchange"
+	"xoney/internal"
 
 	exec "xoney/internal/executing"
 	st "xoney/strategy"
 )
 
-type Backtester struct {
+type StepByStepBacktester struct {
+	system  st.Tradable
 	equity    data.Equity
+	simulator exchange.Simulator
+}
+func NewStepByStepBacktester(simulator exchange.Simulator) *StepByStepBacktester {
+	return &StepByStepBacktester{
+		equity:    data.Equity{},
+		simulator: simulator,
+	}
+}
+func (b *StepByStepBacktester) Start(charts data.ChartContainer, system st.Tradable) error {
+	err := b.setup(charts, system)
+	if err != nil {
+		return fmt.Errorf("error during backtest setup: %w", err)
+	}
+
+	return nil
+}
+func (b *StepByStepBacktester) Next(candle data.InstrumentCandle) error {
+	if err := b.updatePrices(candle); err != nil {
+		return err
+	}
+
+	timestamp := candle.TimeClose
+	if err := b.updateBalance(timestamp); err != nil {
+		return err
+	}
+
+	event, err := b.system.Next(candle)
+	if err != nil {
+		return err
+	}
+
+	if err = exec.ProcessEvent(b.simulator, event); err != nil {
+		return err
+	}
+
+	return nil
+}
+func (b *StepByStepBacktester) GetEquity() data.Equity {
+	return b.equity
+}
+func (b *StepByStepBacktester) setup(
+	charts data.ChartContainer,
+	system st.Tradable,
+) error {
+	err := b.cleanup()
+	if err != nil {
+		return err
+	}
+
+	b.system = system
+
+	b.equity = *generateStartEquity(charts)
+
+	durations := system.MinDurations()
+	maxDuration := durations.Max()
+
+	strategyCharts := lastByDuration(charts, maxDuration)
+	err = system.Start(strategyCharts)
+
+	return err
+}
+
+func (b *StepByStepBacktester) cleanup() error {
+	err := b.simulator.Cleanup()
+	if err != nil {
+		return fmt.Errorf("failed to cleanup: %w", err)
+	}
+
+	return nil
+}
+
+func (b *StepByStepBacktester) updatePrices(candle data.InstrumentCandle) error {
+	return b.simulator.UpdatePrice(candle)
+}
+
+func (b *StepByStepBacktester) updateBalance(timestamp time.Time) error {
+	totalBalance, err := b.simulator.Total()
+	if err != nil {
+		return fmt.Errorf("error getting total balance: %w", err)
+	}
+
+	b.equity.AddValue(totalBalance, timestamp)
+
+	b.equity.AddPortfolio(b.simulator.Portfolio().Assets())
+
+	return nil
+}
+type Backtester struct {
 	simulator exchange.Simulator
 }
 
 func NewBacktester(simulator exchange.Simulator) *Backtester {
 	return &Backtester{
-		equity:    data.Equity{},
 		simulator: simulator,
 	}
 }
@@ -30,119 +119,28 @@ func (b *Backtester) Backtest(
 		return vecTradable.Backtest(b.simulator, charts)
 	}
 
-	err := b.setup(charts, system)
+	equity, err := b.runTest(charts, system) // TODO: BUGFIX: charts here is not corrected by MinDurations
 	if err != nil {
-		return b.equity, fmt.Errorf("error during backtest setup: %w", err)
+		return equity, fmt.Errorf("error during backtest: %w", err)
 	}
 
-	err = b.runTest(charts, system) // TODO: BUGFIX: charts here is not corrected by MinDurations
-	if err != nil {
-		return b.equity, fmt.Errorf("error during backtest: %w", err)
-	}
-
-	return b.equity, nil
-}
-
-func (b *Backtester) setup(
-	charts data.ChartContainer,
-	system st.Tradable,
-) error {
-	err := b.cleanup()
-	if err != nil {
-		return err
-	}
-
-	durations := system.MinDurations()
-	maxDuration := durations.Max()
-	period := equityPeriod(charts, durations)
-
-	b.equity = *generateEquity(charts, period, maxDuration)
-
-	startPeriod := setupPeriod(charts, maxDuration)
-	strategyCharts := charts.ChartsByPeriod(startPeriod)
-	err = system.Start(strategyCharts)
-
-	return err
+	return data.Equity{}, nil
 }
 
 func (b *Backtester) runTest(
 	charts data.ChartContainer,
 	system st.Tradable,
-) error {
+) (data.Equity, error) {
+	bt := NewStepByStepBacktester(b.simulator)
+
+	startCharts := firstByDuration(charts, system.MinDurations().Max())
+	bt.Start(startCharts, system)
+
 	for _, candle := range charts.Candles() {
-		if err := b.updatePrices(candle); err != nil {
-			return err
-		}
-
-		timestamp := candle.TimeClose
-		if err := b.updateBalance(timestamp); err != nil {
-			return err
-		}
-
-		event, err := system.Next(candle)
-		if err != nil {
-			return err
-		}
-
-		if err = exec.ProcessEvent(b.simulator, event); err != nil {
-			return err
-		}
+		bt.Next(candle)
 	}
 
-	return nil
-}
-
-func (b *Backtester) cleanup() error {
-	err := b.simulator.Cleanup()
-	if err != nil {
-		return fmt.Errorf("failed to cleanup: %w", err)
-	}
-
-	return nil
-}
-
-func (b *Backtester) updatePrices(candle data.InstrumentCandle) error {
-	return b.simulator.UpdatePrice(candle)
-}
-
-func (b *Backtester) updateBalance(timestamp time.Time) error {
-	totalBalance, err := b.simulator.Total()
-	if err != nil {
-		return fmt.Errorf("error getting total balance: %w", err)
-	}
-
-	b.equity.AddValue(totalBalance, timestamp)
-
-	b.equity.AddPortfolio(b.simulator.Portfolio().Assets())
-
-	return nil
-}
-
-func equityPeriod(
-	charts data.ChartContainer,
-	durations st.Durations,
-) data.Period {
-	var firstStart time.Time
-
-	var latestEnd time.Time
-
-	for inst, chart := range charts {
-		chartStart := chart.Timestamp.Start()
-		instMinDuration := durations[inst]
-		instStart := chartStart.Add(instMinDuration)
-
-		if firstStart.Before(instStart) {
-			firstStart = chartStart
-		}
-
-		chartEnd := chart.Timestamp.End()
-
-		if latestEnd.Before(chartEnd) {
-			latestEnd = chartEnd
-		}
-	}
-
-	return data.NewPeriod(firstStart, latestEnd)
+	return bt.GetEquity(), nil
 }
 
 func maxTimeFrame(charts data.ChartContainer) data.TimeFrame {
@@ -158,23 +156,29 @@ func maxTimeFrame(charts data.ChartContainer) data.TimeFrame {
 	return tf
 }
 
-func generateEquity(
+func generateStartEquity(
 	charts data.ChartContainer,
-	period data.Period,
-	maxDuration time.Duration,
 ) *data.Equity {
-	period = period.ShiftedStart(-maxDuration)
-
 	timeframe := maxTimeFrame(charts)
-	duration := period.End.Sub(period.Start)
-	length := int(duration/timeframe.Duration) + 1
 
-	return data.NewEquity(timeframe, period.Start, length)
+	return data.NewEquity(timeframe, internal.DefaultCapacity)
 }
 
-func setupPeriod(charts data.ChartContainer, maxDuration time.Duration) data.Period {
+func firstByDuration(charts data.ChartContainer, maxDuration time.Duration) data.ChartContainer {
 	start := charts.FirstStart()
 	stop := start.Add(maxDuration)
 
-	return data.NewPeriod(start, stop)
+	period := data.NewPeriod(start, stop)
+
+	return charts.ChartsByPeriod(period)
+}
+
+func lastByDuration(
+	charts data.ChartContainer,
+	maxDuration time.Duration,
+) data.ChartContainer {
+	end := charts.LastEnd()
+	start := end.Add(-maxDuration)
+
+	return charts.ChartsByPeriod(data.NewPeriod(start, end))
 }
