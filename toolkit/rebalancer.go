@@ -44,6 +44,7 @@ func (f PortfolioWeights) isValid() error {
 func (pw PortfolioWeights) Synchronize(
 	current common.BaseDistribution,
 	prices map[data.Currency]float64,
+	mainCurrency data.Currency,
 ) (target common.BaseDistribution, err error) {
 	totalQuote := 0.0
 	totalQuoteWeight := 0.0
@@ -53,6 +54,9 @@ func (pw PortfolioWeights) Synchronize(
 	// Calculate the total value of quote distribution
 	for currency, amount := range current {
 		price, ok := prices[currency]
+		if !ok && currency == mainCurrency {
+			price, ok = 1, true
+		}
 		if !ok {
 			missingCurrencyErr.Add(currency.String())
 			success = false
@@ -140,6 +144,9 @@ func (r *RebalancePortfolio) newOrders(differences common.BaseDistribution) (eve
 		var side exchange.OrderSide
 
 		// Assuming r.mainCurrency is the quote currency
+		if currency == r.mainCurrency {
+			continue
+		}
 		symbol := data.NewSymbolFromCurrencies(currency, r.mainCurrency)
 		if amount < 0 {
 			side = exchange.Sell
@@ -185,17 +192,12 @@ func (r *RebalancePortfolio) calculateDifference(target common.BaseDistribution)
 	for currency, targetVolume := range target {
 		currentVolume, exists := r.currentDistribution[currency]
 		if exists {
-			difference[currency] = currentVolume - targetVolume
+			difference[currency] = targetVolume - currentVolume
 		} else {
-			difference[currency] = -targetVolume
+			difference[currency] = targetVolume
 		}
 	}
 
-	for currency, currentVolume := range r.currentDistribution {
-		if _, exists := target[currency]; !exists {
-			difference[currency] = currentVolume
-		}
-	}
 	return difference
 }
 
@@ -208,6 +210,9 @@ func (r *RebalancePortfolio) getTargetDistribution(connector exchange.Connector)
 	symbols := make([]data.Symbol, 0, len(r.weights))
 
 	for currency := range r.weights {
+		if currency == r.mainCurrency {
+			continue
+		}
 		symbol := data.NewSymbolFromCurrencies(currency, r.mainCurrency)
 		symbols = append(symbols, *symbol)
 	}
@@ -236,7 +241,7 @@ func (r *RebalancePortfolio) getTargetDistribution(connector exchange.Connector)
 		r.lastPrices[symbolPrice.Symbol.Base()] = symbolPrice.Price
 	}
 
-	target, err := r.weights.Synchronize(currentDistribution, r.lastPrices)
+	target, err := r.weights.Synchronize(currentDistribution, r.lastPrices, r.mainCurrency)
 	if err != nil {
 		return nil, fmt.Errorf("failed to synchronize portfolio with weights: %w", err)
 	}
