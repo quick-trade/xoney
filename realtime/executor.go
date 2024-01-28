@@ -3,11 +3,10 @@ package executing
 import (
 	"context"
 	"fmt"
+
 	"xoney/common/data"
-	"xoney/internal"
-
 	conn "xoney/exchange"
-
+	"xoney/internal"
 	exec "xoney/internal/executing"
 	st "xoney/strategy"
 )

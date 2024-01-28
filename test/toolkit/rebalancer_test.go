@@ -4,12 +4,13 @@ package toolkit_test
 import (
 	"math"
 	"testing"
+
 	"xoney/common"
 	"xoney/common/data"
+	"xoney/errors"
 	"xoney/exchange"
 	"xoney/internal"
 	"xoney/toolkit"
-	"xoney/errors"
 )
 
 const epsilon = 0.001
@@ -100,9 +101,9 @@ func TestSynchronize(t *testing.T) {
 }
 
 type MockConnector struct {
-	orders []*exchange.Order
+	orders    []*exchange.Order
 	portfolio common.Portfolio
-	prices map[data.Symbol]float64
+	prices    map[data.Symbol]float64
 }
 
 func (mc *MockConnector) PlaceOrder(order exchange.Order) error {
@@ -174,12 +175,13 @@ func (m *MockConnector) GetPrices(symbols []data.Symbol) (<-chan exchange.Symbol
 func (m *MockConnector) SetPrice(symbol data.Symbol, price float64) {
 	m.prices[symbol] = price
 }
+
 // NewMockConnector creates a new instance of MockConnector with initialized fields.
 func NewMockConnector(portfolio common.Portfolio) *MockConnector {
 	return &MockConnector{
-		orders: make([]*exchange.Order, 0),
+		orders:    make([]*exchange.Order, 0),
 		portfolio: portfolio,
-		prices: make(map[data.Symbol]float64, internal.DefaultCapacity),
+		prices:    make(map[data.Symbol]float64, internal.DefaultCapacity),
 	}
 }
 
@@ -200,6 +202,7 @@ func mapSubtract[T comparable](a, b map[T]float64) map[T]float64 {
 	}
 	return result
 }
+
 // convertToPortfolio converts a BaseDistribution to a common.Portfolio using a base asset.
 func convertToPortfolio(distribution common.BaseDistribution, mainCurrency data.Currency) common.Portfolio {
 	portfolio := common.NewPortfolio(mainCurrency)
@@ -210,6 +213,7 @@ func convertToPortfolio(distribution common.BaseDistribution, mainCurrency data.
 
 	return portfolio
 }
+
 func TestRebalanceMarketOrders(t *testing.T) {
 	// Hardcoded initial distribution and desired weights
 	initialDistribution := common.BaseDistribution{
