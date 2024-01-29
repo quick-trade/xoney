@@ -2,7 +2,6 @@ package internal_test
 
 import (
 	"testing"
-
 	"xoney/errors"
 	"xoney/internal"
 )

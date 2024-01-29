@@ -107,6 +107,12 @@ type VectorizedBollinger struct {
 	BBBStrategy
 }
 
+func NewVectorizedBollinger(period int, deviation float64, instrument data.Instrument) *VectorizedBollinger {
+	return &VectorizedBollinger{
+		BBBStrategy: *NewBBStrategy(period, deviation, instrument),
+	}
+}
+
 func (b *VectorizedBollinger) Backtest(
 	simulator exchange.Simulator,
 	charts data.ChartContainer,
@@ -123,8 +129,6 @@ func (b *VectorizedBollinger) Backtest(
 	price := chart.Close
 	flag := NEUTRAL
 
-	var diff float64
-
 	for i, p := range price {
 		price[i] = math.Log(p)
 	}
@@ -132,13 +136,13 @@ func (b *VectorizedBollinger) Backtest(
 	average, _ := internal.RawMoment(price[:b.Period+1], 1)
 
 	for i := startIndex; i < len(price); i++ {
-		diff = price[i] - price[i-1]
+		diff := price[i] - price[i-1]
 		moment := chart.Timestamp.At(i)
 
 		if flag == BUY {
-			equity.AddValue(equity.Now() + diff, moment)
+			equity.AddValue(math.Exp(equity.Now() + diff), moment)
 		} else if flag == SELL {
-			equity.AddValue(equity.Now() - diff, moment)
+			equity.AddValue(math.Exp(equity.Now() - diff), moment)
 		}
 
 		average += (price[i] - price[i-b.Period+1]) / float64(b.Period)

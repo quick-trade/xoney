@@ -2,11 +2,12 @@ package main
 
 import (
 	"time"
-
-	bt "xoney/backtest"
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/exchange"
+
+	bt "xoney/backtest"
+
 	st "xoney/strategy"
 	testdata "xoney/testdata/backtesting"
 	dtr "xoney/testdata/dataread"

@@ -2,7 +2,6 @@ package internal
 
 import (
 	"math"
-
 	"xoney/errors"
 )
 

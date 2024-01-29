@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"math"
 	"time"
-
 	"xoney/common/data"
 	"xoney/errors"
 	"xoney/events"
 	"xoney/exchange"
 	"xoney/internal"
+
 	st "xoney/strategy"
 )
 

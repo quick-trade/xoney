@@ -3,7 +3,6 @@ package exchange
 import (
 	"fmt"
 	"math"
-
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"

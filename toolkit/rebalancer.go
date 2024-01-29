@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"math"
 	"sync"
-
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"
 	"xoney/events"
 	"xoney/exchange"
 	"xoney/internal"
+
 	st "xoney/strategy"
 )
 
