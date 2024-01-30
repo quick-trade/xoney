@@ -38,11 +38,11 @@ jobs:
     - name: Test
       run: make test-cov
 
-  documentation:
-    needs: [build, test]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
+  # documentation:
+  #   needs: [build, test]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v3
 
-    - name: Generate Documentation
-      run: make doc
+  #   - name: Generate Documentation
+  #     run: make doc

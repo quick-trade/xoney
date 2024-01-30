@@ -28,3 +28,7 @@ view-cov :
 
 build :
 	go build -v ./...
+
+doc:
+	@echo "Generating godoc documentation..."
+	@godoc -http=:6060 &
