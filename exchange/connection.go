@@ -10,29 +10,37 @@ import (
 	"xoney/internal/structures"
 )
 
+// OrderHeap is a utility structure for efficient management of a collection of orders.
+// It leverages the performance characteristics of structures.Heap[T] to provide
+// efficient operations such as finding an order by ID and removing orders.
 type OrderHeap struct {
 	heap structures.Heap[Order]
 }
 
+// IndexByID searches for an order with the given id and returns its index in the heap.
+// If the order is not found, it returns an error.
 func (o OrderHeap) IndexByID(id OrderID) (int, error) {
 	for index, order := range o.heap.Members {
 		if order.ID() == id {
 			return index, nil
 		}
 	}
-
 	return -1, errors.NewNoLimitOrderError(uint64(id))
 }
 
+// RemoveByID removes the order with the given id from the heap.
+// It first finds the index of the order and then removes it using the RemoveAt method.
+// If the order is not found, it returns an error.
 func (o *OrderHeap) RemoveByID(id OrderID) error {
 	index, err := o.IndexByID(id)
 	if err != nil {
 		return err
 	}
-
 	return o.heap.RemoveAt(index)
 }
 
+// newOrderHeap creates a new OrderHeap with the specified initial capacity.
+// This allows for preallocation of memory to improve performance.
 func newOrderHeap(capacity int) OrderHeap {
 	return OrderHeap{
 		heap: structures.Heap[Order]{
@@ -53,21 +61,28 @@ func NewSymbolPrice(symbol data.Symbol, price float64) *SymbolPrice {
 	}
 }
 
+// Connector is a critical interface for interacting with the exchange.
+// It provides all the necessary methods to retrieve real-time information from
+// the exchange and to send various types of requests, such as placing orders
+// or viewing the portfolio balance.
 type Connector interface {
-	PlaceOrder(order Order) error
-	CancelOrder(id OrderID) error
-	CancelAllOrders() error
-	Transfer(quantity float64, currency data.Currency, target data.Exchange) error
-	Portfolio() common.Portfolio
-	SellAll() error
-	GetPrices(symbols []data.Symbol) (<-chan SymbolPrice, <-chan error)
+	PlaceOrder(order Order) error             // Places a new order on the exchange.
+	CancelOrder(id OrderID) error             // Cancels an existing order using its ID.
+	CancelAllOrders() error                   // Cancels all existing orders.
+	Transfer(quantity float64, currency data.Currency, target data.Exchange) error // Transfers a quantity of currency to a target exchange.
+	Portfolio() common.Portfolio              // Retrieves the current state of the portfolio.
+	SellAll() error                           // Executes the sale of all assets in the portfolio.
+	GetPrices(symbols []data.Symbol) (<-chan SymbolPrice, <-chan error) // Retrieves real-time prices for the specified symbols.
 }
-
+// Simulator is a key component for backtesting any trading system.
+// It is responsible for computing the total balance (profitability) and
+// simulating real trades. Prices are updated by the Backtester structure
+// based on the historical data provided (ChartContainer).
 type Simulator interface {
 	Connector
-	Cleanup() error
-	Total() (float64, error)
-	UpdatePrice(candle data.InstrumentCandle) error
+	Cleanup() error // Typically used to reset the simulation to its initial state.
+	Total() (float64, error)      // Calculates the total balance of the portfolio.
+	UpdatePrice(candle data.InstrumentCandle) error // Updates the price based on a new candle data.
 }
 
 type MarginSimulator struct {
