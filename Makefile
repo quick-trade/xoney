@@ -2,7 +2,7 @@ COVERAGE := testdata/coverage.txt
 TESTPATH := ./...
 
 setup :
-	export PATH=$$PATH:$(shell go env GOPATH)/bin
+	export PATH=$$PATH:/home/vlad/go/bin
 
 lint :
 	golangci-lint run --enable-all -D \
@@ -25,3 +25,6 @@ test-cov :
 
 view-cov :
 	go tool cover -html=$(COVERAGE)
+
+build :
+	go build -v ./...
