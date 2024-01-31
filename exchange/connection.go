@@ -85,12 +85,15 @@ type Simulator interface {
 	UpdatePrice(candle data.InstrumentCandle) error // Updates the price based on a new candle data.
 }
 
+// MarginSimulator is a structure used for testing trading strategies with
+// margin trading capabilities. It allows for the simulation of leveraged
+// and short positions.
 type MarginSimulator struct {
-	prices         map[data.Currency]float64
-	portfolio      common.Portfolio
-	startPortfolio common.Portfolio
-	limitOrders    OrderHeap
-	commission     float64
+	prices         map[data.Currency]float64 // Current simulated prices for each currency.
+	portfolio      common.Portfolio         // The trading portfolio including current holdings.
+	startPortfolio common.Portfolio         // The portfolio at the start of the simulation to compare against.
+	limitOrders    OrderHeap                // Heap of limit orders to manage order execution.
+	commission     float64                  // Commission fees for executing trades within the simulator.
 }
 
 func (s *MarginSimulator) CancelOrder(id OrderID) error {
@@ -273,6 +276,8 @@ func orderSideFromBalance(balance float64) OrderSide {
 	return Buy
 }
 
+// SpotSimulator represents a trading simulator for spot markets.
+// It only supports long positions and does not allow the use of leverage.
 type SpotSimulator struct{ MarginSimulator }
 
 func NewSpotSimulator(portfolio common.Portfolio, commission float64) SpotSimulator {
