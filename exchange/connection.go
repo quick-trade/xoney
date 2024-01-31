@@ -3,6 +3,7 @@ package exchange
 import (
 	"fmt"
 	"math"
+
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/errors"
@@ -66,22 +67,23 @@ func NewSymbolPrice(symbol data.Symbol, price float64) *SymbolPrice {
 // the exchange and to send various types of requests, such as placing orders
 // or viewing the portfolio balance.
 type Connector interface {
-	PlaceOrder(order Order) error             // Places a new order on the exchange.
-	CancelOrder(id OrderID) error             // Cancels an existing order using its ID.
-	CancelAllOrders() error                   // Cancels all existing orders.
+	PlaceOrder(order Order) error                                                  // Places a new order on the exchange.
+	CancelOrder(id OrderID) error                                                  // Cancels an existing order using its ID.
+	CancelAllOrders() error                                                        // Cancels all existing orders.
 	Transfer(quantity float64, currency data.Currency, target data.Exchange) error // Transfers a quantity of currency to a target exchange.
-	Portfolio() common.Portfolio              // Retrieves the current state of the portfolio.
-	SellAll() error                           // Executes the sale of all assets in the portfolio.
-	GetPrices(symbols []data.Symbol) (<-chan SymbolPrice, <-chan error) // Retrieves real-time prices for the specified symbols.
+	Portfolio() common.Portfolio                                                   // Retrieves the current state of the portfolio.
+	SellAll() error                                                                // Executes the sale of all assets in the portfolio.
+	GetPrices(symbols []data.Symbol) (<-chan SymbolPrice, <-chan error)            // Retrieves real-time prices for the specified symbols.
 }
+
 // Simulator is a key component for backtesting any trading system.
 // It is responsible for computing the total balance (profitability) and
 // simulating real trades. Prices are updated by the Backtester structure
 // based on the historical data provided (ChartContainer).
 type Simulator interface {
 	Connector
-	Cleanup() error // Typically used to reset the simulation to its initial state.
-	Total() (float64, error)      // Calculates the total balance of the portfolio.
+	Cleanup() error                                 // Typically used to reset the simulation to its initial state.
+	Total() (float64, error)                        // Calculates the total balance of the portfolio.
 	UpdatePrice(candle data.InstrumentCandle) error // Updates the price based on a new candle data.
 }
 
@@ -90,10 +92,10 @@ type Simulator interface {
 // and short positions.
 type MarginSimulator struct {
 	prices         map[data.Currency]float64 // Current simulated prices for each currency.
-	portfolio      common.Portfolio         // The trading portfolio including current holdings.
-	startPortfolio common.Portfolio         // The portfolio at the start of the simulation to compare against.
-	limitOrders    OrderHeap                // Heap of limit orders to manage order execution.
-	commission     float64                  // Commission fees for executing trades within the simulator.
+	portfolio      common.Portfolio          // The trading portfolio including current holdings.
+	startPortfolio common.Portfolio          // The portfolio at the start of the simulation to compare against.
+	limitOrders    OrderHeap                 // Heap of limit orders to manage order execution.
+	commission     float64                   // Commission fees for executing trades within the simulator.
 }
 
 func (s *MarginSimulator) CancelOrder(id OrderID) error {

@@ -4,12 +4,11 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	bt "xoney/backtest"
 	"xoney/common"
 	"xoney/common/data"
 	"xoney/exchange"
-
-	bt "xoney/backtest"
-
 	testdata "xoney/testdata/backtesting"
 	dtr "xoney/testdata/dataread"
 )
