@@ -60,7 +60,7 @@ func TestBacktestReturnsEquity(t *testing.T) {
 	portfolio := common.NewPortfolio(currency)
 	portfolio.Set(currency, 17100)
 
-	simulator := exchange.NewMarginSimulator(portfolio)
+	simulator := exchange.NewMarginSimulator(portfolio, 0.001)
 	tester := bt.NewBacktester(&simulator)
 
 	system := btcStrategy()

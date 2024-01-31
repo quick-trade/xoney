@@ -90,6 +90,7 @@ type MarginSimulator struct {
 	portfolio      common.Portfolio
 	startPortfolio common.Portfolio
 	limitOrders    OrderHeap
+	commission     float64
 }
 
 func (s *MarginSimulator) CancelOrder(id OrderID) error {
@@ -113,6 +114,9 @@ func (s *MarginSimulator) executeMarketOrder(order Order) error {
 	symbol := order.symbol
 	quote := symbol.Quote()
 	base := symbol.Base()
+
+	commission := s.commission * quoteQuantity
+	s.portfolio.Decrease(quote, commission)
 
 	if order.side == Buy {
 		return s.executeBuyOrder(base, quote, baseQuantity, quoteQuantity)
@@ -222,13 +226,6 @@ func (s *MarginSimulator) SellAll() error {
 	return firstErr
 }
 
-func orderSideFromBalance(balance float64) OrderSide {
-	if balance > 0 {
-		return Sell
-	}
-	return Buy
-}
-
 func (s *MarginSimulator) GetPrices(symbols []data.Symbol) (<-chan SymbolPrice, <-chan error) {
 	prices := make(chan SymbolPrice, len(symbols))
 	defer close(prices)
@@ -259,20 +256,28 @@ func (s *MarginSimulator) Cleanup() error {
 	return nil
 }
 
-func NewMarginSimulator(portfolio common.Portfolio) MarginSimulator {
+func NewMarginSimulator(portfolio common.Portfolio, commission float64) MarginSimulator {
 	return MarginSimulator{
 		prices:         make(common.BaseDistribution, internal.DefaultCapacity),
 		portfolio:      portfolio,
 		startPortfolio: portfolio.Copy(),
 		limitOrders:    newOrderHeap(internal.DefaultCapacity),
+		commission:     commission,
 	}
+}
+
+func orderSideFromBalance(balance float64) OrderSide {
+	if balance > 0 {
+		return Sell
+	}
+	return Buy
 }
 
 type SpotSimulator struct{ MarginSimulator }
 
-func NewSpotSimulator(portfolio common.Portfolio) SpotSimulator {
+func NewSpotSimulator(portfolio common.Portfolio, commission float64) SpotSimulator {
 	return SpotSimulator{
-		MarginSimulator: NewMarginSimulator(portfolio),
+		MarginSimulator: NewMarginSimulator(portfolio, commission),
 	}
 }
 

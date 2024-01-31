@@ -51,7 +51,7 @@ func portfolio() common.Portfolio {
 func backtester() bt.Backtester {
 	portfolio := portfolio()
 
-	simulator := exchange.NewMarginSimulator(portfolio)
+	simulator := exchange.NewMarginSimulator(portfolio, 0.001)
 	tester := bt.NewBacktester(&simulator)
 
 	return *tester

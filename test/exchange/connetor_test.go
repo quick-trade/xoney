@@ -44,11 +44,11 @@ func portfolioUSD() common.Portfolio {
 }
 
 func marginSimulator() exchange.MarginSimulator {
-	return exchange.NewMarginSimulator(portfolioUSD())
+	return exchange.NewMarginSimulator(portfolioUSD(), 0)
 }
 
 func spotSimulator() exchange.SpotSimulator {
-	return exchange.NewSpotSimulator(portfolioUSD())
+	return exchange.NewSpotSimulator(portfolioUSD(), 0)
 }
 
 func TestMarginSimulator_PlaceMarketOrder_Buy(t *testing.T) {
