@@ -4,7 +4,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
-	"xoney/errors"
+
+	"github.com/quick-trade/xoney/errors"
 )
 
 func timeFrameMinute() TimeFrame {

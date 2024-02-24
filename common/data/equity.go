@@ -2,7 +2,8 @@ package data
 
 import (
 	"time"
-	"xoney/internal"
+
+	"github.com/quick-trade/xoney/internal"
 )
 
 type Equity struct {

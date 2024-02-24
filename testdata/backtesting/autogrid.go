@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"math"
 	"time"
-	"xoney/common/data"
-	"xoney/internal"
-	tk "xoney/toolkit"
+
+	"github.com/quick-trade/xoney/common/data"
+	"github.com/quick-trade/xoney/internal"
+	tk "github.com/quick-trade/xoney/toolkit"
 )
 
 type bounds struct {

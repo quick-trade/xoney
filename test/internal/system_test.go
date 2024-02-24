@@ -4,7 +4,8 @@ import (
 	"reflect"
 	"sort"
 	"testing"
-	"xoney/internal"
+
+	"github.com/quick-trade/xoney/internal"
 )
 
 func Map() map[string]int {

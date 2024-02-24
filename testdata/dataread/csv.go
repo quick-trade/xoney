@@ -6,7 +6,8 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"xoney/common/data"
+
+	"github.com/quick-trade/xoney/common/data"
 )
 
 func LoadChartFromCSV(filePath string, tf data.TimeFrame, contains_index int) (data.Chart, error) {

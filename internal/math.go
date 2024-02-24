@@ -3,7 +3,7 @@ package internal
 import (
 	"math"
 
-	"xoney/errors"
+	"github.com/quick-trade/xoney/errors"
 )
 
 type Data []float64

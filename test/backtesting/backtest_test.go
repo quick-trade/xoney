@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
-	bt "xoney/backtest"
-	"xoney/common"
-	"xoney/common/data"
-	"xoney/exchange"
-	testdata "xoney/testdata/backtesting"
-	dtr "xoney/testdata/dataread"
+	bt "github.com/quick-trade/xoney/backtest"
+	"github.com/quick-trade/xoney/common"
+	"github.com/quick-trade/xoney/common/data"
+	"github.com/quick-trade/xoney/exchange"
+	testdata "github.com/quick-trade/xoney/testdata/backtesting"
+	dtr "github.com/quick-trade/xoney/testdata/dataread"
 )
 
 var (

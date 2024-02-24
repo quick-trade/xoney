@@ -3,12 +3,13 @@ package backtest
 import (
 	"fmt"
 	"time"
-	"xoney/common/data"
-	"xoney/exchange"
-	"xoney/internal"
 
-	exec "xoney/internal/executing"
-	st "xoney/strategy"
+	"github.com/quick-trade/xoney/common/data"
+	"github.com/quick-trade/xoney/exchange"
+	"github.com/quick-trade/xoney/internal"
+
+	exec "github.com/quick-trade/xoney/internal/executing"
+	st "github.com/quick-trade/xoney/strategy"
 )
 
 type StepByStepBacktester struct {

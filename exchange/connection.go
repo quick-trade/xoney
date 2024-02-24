@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"math"
 
-	"xoney/common"
-	"xoney/common/data"
-	"xoney/errors"
-	"xoney/internal"
-	"xoney/internal/structures"
+	"github.com/quick-trade/xoney/common"
+	"github.com/quick-trade/xoney/common/data"
+	"github.com/quick-trade/xoney/errors"
+	"github.com/quick-trade/xoney/internal"
+	"github.com/quick-trade/xoney/internal/structures"
 )
 
 // OrderHeap is a utility structure for efficient management of a collection of orders.

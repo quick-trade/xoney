@@ -2,8 +2,9 @@ package backtest
 
 import (
 	"math"
-	"xoney/common/data"
-	"xoney/internal"
+
+	"github.com/quick-trade/xoney/common/data"
+	"github.com/quick-trade/xoney/internal"
 )
 
 type Metric interface {

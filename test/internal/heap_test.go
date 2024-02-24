@@ -2,8 +2,9 @@ package internal_test
 
 import (
 	"testing"
-	"xoney/errors"
-	"xoney/internal/structures"
+
+	"github.com/quick-trade/xoney/errors"
+	"github.com/quick-trade/xoney/internal/structures"
 )
 
 type MockEqualer int

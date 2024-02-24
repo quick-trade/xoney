@@ -1,9 +1,9 @@
 package exchange
 
 import (
-	"xoney/common/data"
-	"xoney/errors"
-	"xoney/internal"
+	"github.com/quick-trade/xoney/common/data"
+	"github.com/quick-trade/xoney/errors"
+	"github.com/quick-trade/xoney/internal"
 )
 
 type OrderType string

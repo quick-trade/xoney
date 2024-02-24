@@ -3,8 +3,8 @@ package internal_test
 import (
 	"testing"
 
-	"xoney/errors"
-	"xoney/internal"
+	"github.com/quick-trade/xoney/errors"
+	"github.com/quick-trade/xoney/internal"
 )
 
 func array() []float64 {

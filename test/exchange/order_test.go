@@ -3,8 +3,8 @@ package exchange_test
 import (
 	"testing"
 
-	"xoney/common/data"
-	"xoney/exchange"
+	"github.com/quick-trade/xoney/common/data"
+	"github.com/quick-trade/xoney/exchange"
 )
 
 func eth() data.Symbol {

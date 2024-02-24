@@ -5,12 +5,12 @@ import (
 	"math"
 	"time"
 
-	"xoney/common/data"
-	"xoney/errors"
-	"xoney/events"
-	"xoney/exchange"
-	"xoney/internal"
-	st "xoney/strategy"
+	"github.com/quick-trade/xoney/common/data"
+	"github.com/quick-trade/xoney/errors"
+	"github.com/quick-trade/xoney/events"
+	"github.com/quick-trade/xoney/exchange"
+	"github.com/quick-trade/xoney/internal"
+	st "github.com/quick-trade/xoney/strategy"
 )
 
 type LevelID uint64

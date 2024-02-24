@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"xoney/common"
-	"xoney/common/data"
-	"xoney/errors"
-	"xoney/exchange"
+	"github.com/quick-trade/xoney/common"
+	"github.com/quick-trade/xoney/common/data"
+	"github.com/quick-trade/xoney/errors"
+	"github.com/quick-trade/xoney/exchange"
 )
 
 func usd() data.Currency {

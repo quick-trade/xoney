@@ -3,8 +3,8 @@ package executing
 import (
 	"fmt"
 
-	"xoney/events"
-	"xoney/exchange"
+	"github.com/quick-trade/xoney/events"
+	"github.com/quick-trade/xoney/exchange"
 )
 
 // ProcessEvent takes an exchange.Connector and an events.Event as parameters and processes the

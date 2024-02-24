@@ -3,9 +3,9 @@ package strategy
 import (
 	"time"
 
-	"xoney/common/data"
-	"xoney/events"
-	"xoney/exchange"
+	"github.com/quick-trade/xoney/common/data"
+	"github.com/quick-trade/xoney/events"
+	"github.com/quick-trade/xoney/exchange"
 )
 
 type Durations map[data.Instrument]time.Duration

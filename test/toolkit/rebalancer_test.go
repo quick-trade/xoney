@@ -5,12 +5,12 @@ import (
 	"math"
 	"testing"
 
-	"xoney/common"
-	"xoney/common/data"
-	"xoney/errors"
-	"xoney/exchange"
-	"xoney/internal"
-	"xoney/toolkit"
+	"github.com/quick-trade/xoney/common"
+	"github.com/quick-trade/xoney/common/data"
+	"github.com/quick-trade/xoney/errors"
+	"github.com/quick-trade/xoney/exchange"
+	"github.com/quick-trade/xoney/internal"
+	"github.com/quick-trade/xoney/toolkit"
 )
 
 const epsilon = 0.001

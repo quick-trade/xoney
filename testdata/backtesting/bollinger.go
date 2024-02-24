@@ -6,11 +6,12 @@ import (
 	"time"
 
 	"errors"
-	"xoney/common/data"
-	"xoney/events"
-	"xoney/exchange"
-	"xoney/internal"
-	"xoney/strategy"
+
+	"github.com/quick-trade/xoney/common/data"
+	"github.com/quick-trade/xoney/events"
+	"github.com/quick-trade/xoney/exchange"
+	"github.com/quick-trade/xoney/internal"
+	"github.com/quick-trade/xoney/strategy"
 )
 
 type Decision string

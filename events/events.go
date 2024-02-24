@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sync"
 
-	"xoney/errors"
-	"xoney/exchange"
-	"xoney/internal"
+	"github.com/quick-trade/xoney/errors"
+	"github.com/quick-trade/xoney/exchange"
+	"github.com/quick-trade/xoney/internal"
 )
 
 // Event is an interface designed for interaction with the exchange.

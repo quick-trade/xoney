@@ -3,8 +3,9 @@ package data
 import (
 	"sort"
 	"time"
-	"xoney/errors"
-	"xoney/internal"
+
+	"github.com/quick-trade/xoney/errors"
+	"github.com/quick-trade/xoney/internal"
 )
 
 type Period struct {
