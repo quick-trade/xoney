@@ -4,7 +4,5 @@
 # Xoney
 </div>
 
+A simple, fast, and powerful library for algorithmic trading in Go, **with no dependencies**.
 
-Простая, быстрая и мощная библеотека для алгоритмического трейдинга на Go, **не имеющая зависимостей**.
-
-> В одиночку я могу и чёрта лысого написать
