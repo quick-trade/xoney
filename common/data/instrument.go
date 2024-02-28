@@ -10,11 +10,17 @@ import (
 
 type Exchange string
 
+// Currency represents a financial asset on a specific exchange.
+// It contains the asset identifier (e.g., "BTC" for Bitcoin) and
+// the exchange where it is traded.
 type Currency struct {
-	Asset    string
-	Exchange Exchange
+	Asset    string   // Identifier of the financial asset.
+	Exchange Exchange // Exchange on which the asset is traded.
 }
 
+// String returns the string representation of the Currency in the format
+// "Exchange:Asset". For example, if the Exchange is "NASDAQ" and the Asset is "AAPL",
+// the String method would return "NASDAQ:AAPL".
 func (c Currency) String() string {
 	var str strings.Builder
 
@@ -25,6 +31,7 @@ func (c Currency) String() string {
 	return str.String()
 }
 
+// NewCurrency is a Currency constructor.
 func NewCurrency[E Exchange | string](asset string, exchange E) Currency {
 	return Currency{
 		Asset:    asset,
@@ -32,11 +39,17 @@ func NewCurrency[E Exchange | string](asset string, exchange E) Currency {
 	}
 }
 
+// Symbol represents a trading pair in the format 'Base/Quote'.
+// The 'base' is the currency being bought or sold, and 'quote' is the currency
+// that the 'base' is priced in.
 type Symbol struct {
-	base  Currency
-	quote Currency
+	base  Currency // Currency being traded.
+	quote Currency // Currency used to price the 'base'.
 }
 
+// String returns the string representation of the Symbol in the format
+// "Exchange:Base/Quote". For example, if the 'base' is "BTC" on "NASDAQ" and
+// the 'quote' is "USD", the String method would return "NASDAQ:BTC/USD".
 func (s Symbol) String() string {
 	var full strings.Builder
 
@@ -52,6 +65,8 @@ func (s Symbol) String() string {
 func (s Symbol) Base() Currency     { return s.base }
 func (s Symbol) Quote() Currency    { return s.quote }
 func (s Symbol) Exchange() Exchange { return s.base.Exchange }
+
+// NewSymbol is a Symbol constructor.
 func NewSymbol[E Exchange | string](base, quote string, exchange E) *Symbol {
 	return &Symbol{
 		base:  NewCurrency(base, exchange),
@@ -66,12 +81,18 @@ func NewSymbolFromCurrencies(base, quote Currency) *Symbol {
 	}
 }
 
+// TimeFrame represents a discretization period of a trading instrument.
 type TimeFrame struct {
 	Duration       time.Duration
 	CandlesPerYear float64
 	Name           string
 }
 
+// NewTimeFrame creates a new TimeFrame with the specified duration and name.
+// It returns an error if the duration is not positive.
+// Inputs:
+// - duration: The length of the time frame in time.Duration format.
+// - name: The display name of the time frame.
 func NewTimeFrame(duration time.Duration, name string) (*TimeFrame, error) {
 	if duration <= 0 {
 		return nil, errors.NewIncorrectDurationError(duration)
@@ -85,7 +106,9 @@ func NewTimeFrame(duration time.Duration, name string) (*TimeFrame, error) {
 		Name:           name,
 	}, nil
 }
-
+// Instrument represents the full description of a trading instrument in financial markets.
+// It encapsulates all concrete details required for trading with no further abstractions for tradable currencies.
+// The 'symbol' uniquely identifies the financial asset, and the 'timeframe' defines the trading interval.
 type Instrument struct {
 	symbol    Symbol
 	timeframe TimeFrame

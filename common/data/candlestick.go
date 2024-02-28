@@ -8,6 +8,8 @@ import (
 	"github.com/quick-trade/xoney/internal"
 )
 
+// Period is a utility structure used for denoting intervals in time.
+// It allows for convenient slicing of various time-series data.
 type Period struct {
 	Start time.Time
 	End   time.Time
@@ -17,12 +19,17 @@ func NewPeriod(start, end time.Time) Period {
 	return Period{Start: start, End: end}
 }
 
+// ShiftedStart returns a new Period with the start time shifted by the given duration.
+// The end time of the Period is not affected.
 func (p Period) ShiftedStart(shift time.Duration) Period {
 	p.Start = p.Start.Add(shift)
 
 	return p
 }
 
+// TimeStamp represents a sequence of time moments.
+// These moments are not required to have a constant step between them,
+// but the data should be sequential.
 type TimeStamp struct {
 	timeframe TimeFrame
 	Timestamp []time.Time
@@ -38,11 +45,13 @@ func NewTimeStamp(timeframe TimeFrame, capacity int) TimeStamp {
 func (t *TimeStamp) Timeframe() TimeFrame {
 	return t.timeframe
 }
-
+// At returns the time at the specified index within the TimeStamp.
 func (t TimeStamp) At(index int) time.Time {
 	return t.Timestamp[index]
 }
 
+// Extend increases the length of the TimeStamp by n timeframes,
+// adding new moments sequentially based on the TimeStamp's timeframe.
 func (t *TimeStamp) Extend(n int) {
 	last := t.At(len(t.Timestamp) - 1)
 	for i := 0; i < n; i++ {
@@ -51,10 +60,13 @@ func (t *TimeStamp) Extend(n int) {
 	}
 }
 
+// Append adds the provided moments to the end of the TimeStamp.
+// If you need to extend the TimeStamp by N timeframes, consider using Extend instead.
 func (t *TimeStamp) Append(moments ...time.Time) {
 	t.Timestamp = internal.Append(t.Timestamp, moments...)
 }
 
+// Slice returns a new TimeStamp consisting of the time moments within the range [start, stop).
 func (t TimeStamp) Slice(start, stop int) TimeStamp {
 	return TimeStamp{
 		timeframe: t.timeframe,
@@ -62,15 +74,22 @@ func (t TimeStamp) Slice(start, stop int) TimeStamp {
 	}
 }
 
+// End returns the last time moment within the TimeStamp.
 func (t TimeStamp) End() time.Time {
 	return t.At(len(t.Timestamp) - 1)
 }
 
+// Start returns the first time moment within the TimeStamp.
 func (t TimeStamp) Start() time.Time {
 	return t.At(0)
 }
+
+// Len returns the number of time moments within the TimeStamp.
 func (t TimeStamp) Len() int { return len(t.Timestamp) }
 
+// Candle represents a single candlestick data point in a financial chart,
+// encapsulating the open, high, low, close values and the volume of trading
+// over a particular time period, with TimeClose marking the end of that period.
 type Candle struct {
 	Open      float64
 	High      float64
@@ -90,7 +109,10 @@ func NewCandle(open, high, low, c, volume float64, timeClose time.Time) *Candle 
 		TimeClose: timeClose,
 	}
 }
-
+// InstrumentCandle represents a candlestick data point with an associated financial instrument.
+// It combines the detailed candlestick information such as OHLCV with the specific instrument
+// for which this data is relevant. This data structure is commonly used in trading strategies
+// as the primary source of information from which trading signals are generated.
 type InstrumentCandle struct {
 	Candle
 	Instrument
@@ -103,6 +125,9 @@ func NewInstrumentCandle(candle Candle, instrument Instrument) *InstrumentCandle
 	}
 }
 
+// Chart represents a sequence of candlestick data points for a specific instrument.
+// It contains slices of open, high, low, close values and the trading volume,
+// along with the corresponding timestamps for each data point.
 type Chart struct {
 	Open      []float64
 	High      []float64
@@ -112,6 +137,9 @@ type Chart struct {
 	Timestamp TimeStamp
 }
 
+// RawChart creates a new Chart with slices preallocated to the specified capacity.
+// This function is used to initialize a Chart for a certain timeframe and with a capacity
+// hint to optimize memory allocations for the underlying slices.
 func RawChart(timeframe TimeFrame, capacity int) Chart {
 	return Chart{
 		Open:      make([]float64, 0, capacity),
@@ -123,6 +151,9 @@ func RawChart(timeframe TimeFrame, capacity int) Chart {
 	}
 }
 
+// Add appends a single candle to the end of the chart.
+// It appends the open, high, low, close, and volume data from the candle
+// to their respective slices in the Chart and updates the timestamp.
 func (c *Chart) Add(candle Candle) {
 	c.Open = internal.Append(c.Open, candle.Open)
 	c.High = internal.Append(c.High, candle.High)
@@ -132,6 +163,10 @@ func (c *Chart) Add(candle Candle) {
 	c.Timestamp.Append(candle.TimeClose)
 }
 
+// Slice returns a new Chart consisting of the candlestick data within the specified period.
+// It performs a binary search to find the start and end indices, ensuring O(log N) complexity.
+// The resulting slice includes the boundaries of the period. If an exact match for the boundaries
+// is not found, the nearest preceding element is included in the slice.
 func (c *Chart) Slice(period Period) Chart {
 	start, err := findIndexBeforeOrAtTime(c.Timestamp, period.Start)
 	if err != nil {
@@ -152,11 +187,18 @@ func (c *Chart) Slice(period Period) Chart {
 		Timestamp: c.Timestamp.Slice(start, stop),
 	}
 }
-
+// Len returns the number of timestamps (and hence the number of candles) in the Chart.
 func (c *Chart) Len() int {
 	return len(c.Timestamp.Timestamp)
 }
 
+// CandleByIndex retrieves the candle at the specified index from the Chart.
+// If the index is out of range, an error is returned.
+// Parameters:
+//   index - The index of the candle to retrieve.
+// Returns:
+//   pointer to a Candle and nil error if successful, or
+//   nil pointer and an OutOfIndexError if the index is invalid.
 func (c *Chart) CandleByIndex(index int) (*Candle, error) {
 	if index >= c.Len() {
 		return nil, errors.NewOutOfIndexError(index)
@@ -171,9 +213,12 @@ func (c *Chart) CandleByIndex(index int) (*Candle, error) {
 		c.Timestamp.At(index),
 	), nil
 }
-
+// ChartContainer represents a collection of instruments and their corresponding charts.
+// It can be used to inform your trading system about your investment universe during testing and training.
 type ChartContainer map[Instrument]Chart
 
+// ChartsByPeriod slices each chart in the ChartContainer to a new chart based on the provided period.
+// It's analogous to the Slice method of the Chart, but it operates on the entire container, slicing each chart.
 func (c *ChartContainer) ChartsByPeriod(period Period) ChartContainer {
 	result := make(ChartContainer, len(*c))
 	for instrument, chart := range *c {
@@ -183,6 +228,9 @@ func (c *ChartContainer) ChartsByPeriod(period Period) ChartContainer {
 	return result
 }
 
+// FirstStart finds the earliest start time among all charts in the ChartContainer.
+// It iterates through all charts and returns the earliest timestamp found.
+// If the ChartContainer is empty, it returns the zero value of time.Time.
 func (c *ChartContainer) FirstStart() time.Time {
 	var first time.Time
 
@@ -196,6 +244,9 @@ func (c *ChartContainer) FirstStart() time.Time {
 	return first
 }
 
+// LastEnd finds the latest end time among all charts in the ChartContainer.
+// It iterates through all charts and returns the latest timestamp found.
+// If the ChartContainer is empty, it returns the zero value of time.Time.
 func (c *ChartContainer) LastEnd() time.Time {
 	var last time.Time
 
@@ -226,6 +277,9 @@ func (c *ChartContainer) sortedInstruments() []Instrument {
 	return keys
 }
 
+// Candles returns all the candles in the ChartContainer.
+// It implements a merging stage of the merge-sort algorithm.
+// Complexity: O(NK), where N is the number of candles and K is the number of instruments.
 func (c ChartContainer) Candles() []InstrumentCandle {
 	// It is just merging from merge-sort algorithm
 	sumLength := 0
