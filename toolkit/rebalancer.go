@@ -103,7 +103,7 @@ func (r *RebalancePortfolio) Occur(connector exchange.Connector) error {
 		return fmt.Errorf("failed to get target assets distribution: %w", err)
 	}
 
-	rebalanceEvents, err := r.rebalance(connector, target)
+	rebalanceEvents, err := r.rebalance(target)
 	if err != nil {
 		return fmt.Errorf("failed to initialize asset rebalance: %w", err)
 	}
@@ -116,7 +116,7 @@ func (r *RebalancePortfolio) Occur(connector exchange.Connector) error {
 	return nil
 }
 
-func (r *RebalancePortfolio) rebalance(connector exchange.Connector, target common.BaseDistribution) (events.Event, error) {
+func (r *RebalancePortfolio) rebalance(target common.BaseDistribution) (events.Event, error) {
 	difference := r.calculateDifference(target)
 	sellDifferences, buyDifferences := r.sortDifference(difference)
 
