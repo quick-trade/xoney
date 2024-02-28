@@ -159,10 +159,12 @@ func (m *MockConnector) GetPrices(symbols []data.Symbol) (<-chan exchange.Symbol
 	go func() {
 		defer close(priceChan)
 		defer close(errChan)
+
 		for _, symbol := range symbols {
 			price, ok := m.prices[symbol]
 			if !ok {
 				errChan <- errors.NewNoPriceError(symbol.String())
+
 				return
 			}
 			priceChan <- *exchange.NewSymbolPrice(symbol, price)
@@ -188,6 +190,7 @@ func NewMockConnector(portfolio common.Portfolio) *MockConnector {
 // mapSubtract takes two maps of data.Symbol to float64 and returns a new map with the subtraction result.
 func mapSubtract[T comparable](a, b map[T]float64) map[T]float64 {
 	result := make(map[T]float64)
+
 	for k, v := range a {
 		if bv, ok := b[k]; ok {
 			result[k] = v - bv
@@ -195,6 +198,7 @@ func mapSubtract[T comparable](a, b map[T]float64) map[T]float64 {
 			result[k] = v
 		}
 	}
+
 	for k, bv := range b {
 		if _, ok := a[k]; !ok {
 			result[k] = -bv

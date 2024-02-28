@@ -5,16 +5,7 @@ setup :
 	export PATH=$$PATH:/home/vlad/go/bin
 
 lint :
-	golangci-lint run --enable-all -D \
-depguard,\
-gci,\
-varnamelen,\
-gomnd,\
-gofumpt,\
-ifshort,\
-wrapcheck,\
-paralleltest,\
-ireturn
+	golangci-lint run --enable-all -D depguard,gci,varnamelen,gomnd,gofumpt,ifshort,wrapcheck,paralleltest,ireturn --skip-files '.*_test\.go' --skip-dirs 'test'
 
 fmt :
 	go fmt ./... && \

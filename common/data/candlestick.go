@@ -45,6 +45,7 @@ func NewTimeStamp(timeframe TimeFrame, capacity int) TimeStamp {
 func (t *TimeStamp) Timeframe() TimeFrame {
 	return t.timeframe
 }
+
 // At returns the time at the specified index within the TimeStamp.
 func (t TimeStamp) At(index int) time.Time {
 	return t.Timestamp[index]
@@ -109,6 +110,7 @@ func NewCandle(open, high, low, c, volume float64, timeClose time.Time) *Candle 
 		TimeClose: timeClose,
 	}
 }
+
 // InstrumentCandle represents a candlestick data point with an associated financial instrument.
 // It combines the detailed candlestick information such as OHLCV with the specific instrument
 // for which this data is relevant. This data structure is commonly used in trading strategies
@@ -187,6 +189,7 @@ func (c *Chart) Slice(period Period) Chart {
 		Timestamp: c.Timestamp.Slice(start, stop),
 	}
 }
+
 // Len returns the number of timestamps (and hence the number of candles) in the Chart.
 func (c *Chart) Len() int {
 	return len(c.Timestamp.Timestamp)
@@ -195,10 +198,13 @@ func (c *Chart) Len() int {
 // CandleByIndex retrieves the candle at the specified index from the Chart.
 // If the index is out of range, an error is returned.
 // Parameters:
-//   index - The index of the candle to retrieve.
+//
+//	index - The index of the candle to retrieve.
+//
 // Returns:
-//   pointer to a Candle and nil error if successful, or
-//   nil pointer and an OutOfIndexError if the index is invalid.
+//
+//	pointer to a Candle and nil error if successful, or
+//	nil pointer and an OutOfIndexError if the index is invalid.
 func (c *Chart) CandleByIndex(index int) (*Candle, error) {
 	if index >= c.Len() {
 		return nil, errors.NewOutOfIndexError(index)
@@ -213,6 +219,7 @@ func (c *Chart) CandleByIndex(index int) (*Candle, error) {
 		c.Timestamp.At(index),
 	), nil
 }
+
 // ChartContainer represents a collection of instruments and their corresponding charts.
 // It can be used to inform your trading system about your investment universe during testing and training.
 type ChartContainer map[Instrument]Chart

@@ -54,6 +54,7 @@ func (p Portfolio) Total(prices map[data.Currency]float64) (float64, error) {
 func (p Portfolio) Balance(currency data.Currency) float64 {
 	return p.assets[currency]
 }
+
 // Assets returns a reference to the current assets held in the portfolio.
 // Be cautious when using this reference directly as it can alter the portfolio's state.
 // Consider using .Copy() method for a safe, mutable copy if needed.

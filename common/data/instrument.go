@@ -106,6 +106,7 @@ func NewTimeFrame(duration time.Duration, name string) (*TimeFrame, error) {
 		Name:           name,
 	}, nil
 }
+
 // Instrument represents the full description of a trading instrument in financial markets.
 // It encapsulates all concrete details required for trading with no further abstractions for tradable currencies.
 // The 'symbol' uniquely identifies the financial asset, and the 'timeframe' defines the trading interval.

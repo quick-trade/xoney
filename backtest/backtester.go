@@ -7,7 +7,6 @@ import (
 	"github.com/quick-trade/xoney/common/data"
 	"github.com/quick-trade/xoney/exchange"
 	"github.com/quick-trade/xoney/internal"
-
 	exec "github.com/quick-trade/xoney/internal/executing"
 	st "github.com/quick-trade/xoney/strategy"
 )
@@ -20,6 +19,7 @@ type StepByStepBacktester struct {
 
 func NewStepByStepBacktester(simulator exchange.Simulator) *StepByStepBacktester {
 	return &StepByStepBacktester{
+		system:	   nil,
 		equity:    data.Equity{},
 		simulator: simulator,
 	}

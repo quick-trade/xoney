@@ -133,6 +133,7 @@ func (p *Parallel) Occur(connector exchange.Connector) error {
 
 	for _, action := range p.actions {
 		wg.Add(1)
+
 		go func(act Event) {
 			defer wg.Done()
 			if err := act.Occur(connector); err != nil {
@@ -144,7 +145,7 @@ func (p *Parallel) Occur(connector exchange.Connector) error {
 	wg.Wait()
 	close(errorsChan)
 
-	var errorsList []string
+	errorsList := make([]string, 0, len(p.actions))
 	for err := range errorsChan {
 		errorsList = append(errorsList, err)
 	}
