@@ -22,4 +22,4 @@ build :
 
 doc:
 	@echo "Generating godoc documentation..."
-	@godoc -http=:6060 &
+	@go doc -http=:6060

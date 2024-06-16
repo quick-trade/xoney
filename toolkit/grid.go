@@ -227,7 +227,7 @@ type GridGenerator interface {
 	Next(candle data.Candle) ([]GridLevel, error) // new levels can be nil
 }
 
-type GridBot struct {
+type GridBot struct { // TODO: debug
 	grid       grid
 	strategy   GridGenerator
 	instrument data.Instrument

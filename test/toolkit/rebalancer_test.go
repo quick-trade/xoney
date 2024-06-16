@@ -54,7 +54,7 @@ func CurrentWeights(portfolio common.BaseDistribution) toolkit.PortfolioWeights 
 		weights[currency] = toolkit.BaseWeight(amount / totalCapital)
 	}
 
-	dist, err := toolkit.NewPortfolioWeights(weights)
+	dist, err := toolkit.NewPortfolioWeights(weights, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -246,7 +246,7 @@ func TestRebalanceMarketOrders(t *testing.T) {
 	}
 
 	// Create new PortfolioWeights with desired weights
-	portfolioWeights, err := toolkit.NewPortfolioWeights(desiredWeights)
+	portfolioWeights, err := toolkit.NewPortfolioWeights(desiredWeights, 0)
 	if err != nil {
 		t.Fatalf("Error creating portfolio weights: %v", err)
 	}

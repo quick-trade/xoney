@@ -19,22 +19,22 @@ type (
 	PortfolioWeights map[data.Currency]BaseWeight
 )
 
-func NewPortfolioWeights(distribution map[data.Currency]BaseWeight) (*PortfolioWeights, error) {
+func NewPortfolioWeights(distribution map[data.Currency]BaseWeight, epsilon float64) (*PortfolioWeights, error) {
 	weights := PortfolioWeights(distribution)
-	if err := weights.isValid(); err != nil {
+	if err := weights.isValid(epsilon); err != nil {
 		return nil, err
 	}
 	return &weights, nil
 }
 
-func (f PortfolioWeights) isValid() error {
+func (f PortfolioWeights) isValid(epsilon float64) error {
 	sumWeights := 0.0
 
 	for _, weight := range f {
 		sumWeights += math.Abs(float64(weight))
 	}
 
-	if sumWeights != 1 {
+	if math.Abs(sumWeights-1) > epsilon {
 		return errors.NewInvalidWeightsError(sumWeights)
 	}
 
