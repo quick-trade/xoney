@@ -21,13 +21,13 @@ type (
 
 func NewPortfolioWeights(distribution map[data.Currency]BaseWeight, epsilon float64) (*PortfolioWeights, error) {
 	weights := PortfolioWeights(distribution)
-	if err := weights.isValid(epsilon); err != nil {
+	if err := weights.IsValid(epsilon); err != nil {
 		return nil, err
 	}
 	return &weights, nil
 }
 
-func (f PortfolioWeights) isValid(epsilon float64) error {
+func (f PortfolioWeights) IsValid(epsilon float64) error {
 	sumWeights := 0.0
 
 	for _, weight := range f {
