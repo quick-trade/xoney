@@ -100,3 +100,36 @@ func (e *Executor) stop() error {
 
 	return firstErr
 }
+
+type DummySupplier struct {
+	candles []data.InstrumentCandle
+}
+
+func (s *DummySupplier) GetCharts(durations st.Durations) (data.ChartContainer, error) {
+	return data.ChartContainer{}, nil
+}
+
+func (s *DummySupplier) SetCandles(candles []data.InstrumentCandle) {
+	s.candles = candles
+}
+
+func (s *DummySupplier) SetCandlesFromJSON(json []byte) error {
+	candles, err := data.CandlesFromJSON(json)
+	if err != nil {
+		return err
+	}
+
+	s.candles = candles
+	return nil
+}
+
+func (s *DummySupplier) StreamCandles(ctx context.Context, instruments []data.Instrument) <-chan data.InstrumentCandle {
+	ch := make(chan data.InstrumentCandle)
+	go func() {
+		defer close(ch)
+		for _, candle := range s.candles {
+			ch <- candle
+		}
+	}()
+	return ch
+}

@@ -1,8 +1,10 @@
 package data
 
 import (
+	"encoding/json"
 	"sort"
 	"time"
+	goErrors "errors"
 
 	"github.com/quick-trade/xoney/errors"
 	"github.com/quick-trade/xoney/internal"
@@ -92,12 +94,12 @@ func (t TimeStamp) Len() int { return len(t.Timestamp) }
 // encapsulating the open, high, low, close values and the volume of trading
 // over a particular time period, with TimeClose marking the end of that period.
 type Candle struct {
-	Open      float64
-	High      float64
-	Low       float64
-	Close     float64
-	Volume    float64
-	TimeClose time.Time
+	Open      float64   `json:"open"`
+	High      float64   `json:"high"`
+	Low       float64   `json:"low"`
+	Close     float64   `json:"close"`
+	Volume    float64   `json:"volume"`
+	TimeClose time.Time `json:"time_close"`
 }
 
 func NewCandle(open, high, low, c, volume float64, timeClose time.Time) *Candle {
@@ -125,6 +127,40 @@ func NewInstrumentCandle(candle Candle, instrument Instrument) *InstrumentCandle
 		Candle:     candle,
 		Instrument: instrument,
 	}
+}
+
+
+// creates an InstrumentCandle from a JSON-encoded string.
+func NewInstrumentCandleFromJSON(data []byte) (*InstrumentCandle, error) {
+	var icj InstrumentCandle
+	if err := json.Unmarshal(data, &icj); err != nil {
+		return nil, goErrors.New("failed to unmarshal instrument candle JSON: " + err.Error())
+	}
+
+	// Create a Candle from the unmarshaled CandleJSON
+	candle := Candle{
+		Open:      icj.Candle.Open,
+		High:      icj.Candle.High,
+		Low:       icj.Candle.Low,
+		Close:     icj.Candle.Close,
+		Volume:    icj.Candle.Volume,
+		TimeClose: icj.Candle.TimeClose,
+	}
+
+	// Create and return the InstrumentCandle
+	return &InstrumentCandle{
+		Candle:     candle,
+		Instrument: icj.Instrument,
+	}, nil
+}
+
+func CandlesFromJSON(data []byte) ([]InstrumentCandle, error) {
+	var icj []InstrumentCandle
+	if err := json.Unmarshal(data, &icj); err != nil {
+		return nil, goErrors.New("failed to unmarshal instrument candle JSON: " + err.Error())
+	}
+
+	return icj, nil
 }
 
 // Chart represents a sequence of candlestick data points for a specific instrument.

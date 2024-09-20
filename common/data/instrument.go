@@ -14,8 +14,8 @@ type Exchange string
 // It contains the asset identifier (e.g., "BTC" for Bitcoin) and
 // the exchange where it is traded.
 type Currency struct {
-	Asset    string   // Identifier of the financial asset.
-	Exchange Exchange // Exchange on which the asset is traded.
+	Asset    string   `json:"asset"`    // Identifier of the financial asset.
+	Exchange Exchange `json:"exchange"` // Exchange on which the asset is traded.
 }
 
 // String returns the string representation of the Currency in the format
